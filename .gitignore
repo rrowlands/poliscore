@@ -1,0 +1,17 @@
+**/target/**
+
+# MacOSX
+**/.DS_Store
+
+# Eclipse stuff
+**/.metadata
+**/bin/**
+**/tmp/**
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+**/.settings/**
+.loadpath
+.recommenders

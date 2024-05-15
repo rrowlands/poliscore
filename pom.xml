@@ -1,0 +1,12 @@
+<project>
+      <modelVersion>4.0.0</modelVersion>
+     
+      <groupId>ch.poliscore</groupId>
+      <artifactId>poliscore</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+      <packaging>pom</packaging>
+
+      <modules>
+        <module>bill-processor</module>
+      </modules>
+</project>
