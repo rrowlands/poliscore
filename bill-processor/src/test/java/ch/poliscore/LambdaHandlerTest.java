@@ -18,6 +18,7 @@ public class LambdaHandlerTest {
         InputObject in = new InputObject();
         in.setName("Stu");
         in.setGreeting("Hello");
+        
         given()
                 .contentType("application/json")
                 .accept("application/json")
