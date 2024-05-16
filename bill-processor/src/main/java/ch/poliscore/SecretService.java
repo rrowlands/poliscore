@@ -8,11 +8,6 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 
 @ApplicationScoped
 public class SecretService {
-	// Use this code snippet in your app.
-	// If you need more information about configurations or implementing the sample
-	// code, visit the AWS docs:
-	// https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/home.html
-
 	public String getSecret() {
 		/*
 	    String secretName = "openai";

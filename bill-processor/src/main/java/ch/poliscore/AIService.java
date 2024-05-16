@@ -8,6 +8,7 @@ import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
+import com.theokanning.openai.completion.chat.SystemMessage;
 import com.theokanning.openai.completion.chat.UserMessage;
 import com.theokanning.openai.service.OpenAiService;
 
@@ -19,12 +20,13 @@ public class AIService {
 	@Inject
     SecretService secret;
 	
-	public String Chat(String message)
+	public String Chat(String systemMsg, String userMsg)
     {
 		OpenAiService service = new OpenAiService(secret.getSecret(), Duration.ofSeconds(600));
     	
     	List<ChatMessage> msgs = new ArrayList<ChatMessage>();
-    	msgs.add(new UserMessage(message));
+    	msgs.add(new SystemMessage(systemMsg));
+    	msgs.add(new UserMessage(userMsg));
     	
     	ChatCompletionRequest completionRequest = ChatCompletionRequest.builder()
     			.messages(msgs)
@@ -35,7 +37,7 @@ public class AIService {
     	
     	ChatCompletionResult result = service.createChatCompletion(completionRequest);
     	
-    	result.getChoices().forEach(System.out::println);
+//    	result.getChoices().forEach(System.out::println);
     	
     	ChatCompletionChoice choice = result.getChoices().get(0);
     	
