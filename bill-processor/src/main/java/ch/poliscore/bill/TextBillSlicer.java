@@ -22,7 +22,7 @@ public class TextBillSlicer implements BillSlicer {
 	{
 		final String lc = line.toLowerCase();
 		
-		return lc.matches("section \\d+") || lc.matches("sec\\. \\d+");
+		return lc.matches(".*section \\d+.*") || lc.matches(".*sec\\. \\d+.*");
 	}
 	
 	@Override
@@ -31,22 +31,29 @@ public class TextBillSlicer implements BillSlicer {
 		
 		try (final Scanner scanner = new Scanner(bill))
 		{
-			StringBuilder section = new StringBuilder();
+			StringBuilder cur = new StringBuilder();
+			StringBuilder prev = null;
 			
 			while (scanner.hasNextLine()) {
 			  String line = scanner.nextLine();
 			  
 			  if (containsSectionHeader(line))
 			  {
-				  sections.add(section.toString());
+				  if (prev != null && prev.length() < BillSlicer.MAX_SECTION_LENGTH)
+				  {
+					  
+				  }
 				  
-				  section = new StringBuilder();
+				  sections.add(cur.toString());
+				  
+				  prev = cur;
+				  cur = new StringBuilder();
 			  }
 			  
-			  section.append(line);
+			  cur.append(line);
 			}
 			
-			sections.add(section.toString());
+			sections.add(cur.toString());
 		}
 		
 		return sections;

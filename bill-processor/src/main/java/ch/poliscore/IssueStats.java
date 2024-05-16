@@ -13,7 +13,7 @@ public class IssueStats {
 	
 	public Map<TrackedIssue, Integer> stats = new HashMap<TrackedIssue, Integer>();
 	
-	public String explanation;
+	public String explanation = "";
 	
 	public static IssueStats parse(String text)
 	{
@@ -32,8 +32,9 @@ public class IssueStats {
 			  if (stat != null)
 			  {
 				  readStats = true;
+				  stats.setStat(stat.left(), stat.right());
 			  }
-			  else if (readStats && line.matches("[^\\s]{2,}"))
+			  else if (readStats && line.matches(".*[^\\s]{2,}.*"))
 			  {
 				  stats.explanation += line;
 			  }
@@ -81,8 +82,10 @@ public class IssueStats {
 		
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
-			result.addStat(issue, incoming.getStat(issue));
+			result.addStat(issue, getStat(issue) + incoming.getStat(issue));
 		}
+		
+		result.explanation = explanation + "\n" + incoming.explanation;
 		
 		return result;
 	}

@@ -22,6 +22,7 @@ public class AIService {
 	
 	public String Chat(String systemMsg, String userMsg)
     {
+		/*
 		OpenAiService service = new OpenAiService(secret.getSecret(), Duration.ofSeconds(600));
     	
     	List<ChatMessage> msgs = new ArrayList<ChatMessage>();
@@ -37,8 +38,6 @@ public class AIService {
     	
     	ChatCompletionResult result = service.createChatCompletion(completionRequest);
     	
-//    	result.getChoices().forEach(System.out::println);
-    	
     	ChatCompletionChoice choice = result.getChoices().get(0);
     	
     	String out = choice.getMessage().getContent();
@@ -49,5 +48,14 @@ public class AIService {
     	}
     	
     	return out;
+    	*/
+		
+		IssueStats stats = new IssueStats();
+		for (TrackedIssue issue : TrackedIssue.values())
+		{
+			stats.addStat(issue, 1);
+		}
+		stats.explanation = "Test Explanation 1.";
+		return stats.toString();
     }
 }

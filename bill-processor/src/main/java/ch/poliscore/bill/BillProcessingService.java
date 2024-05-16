@@ -41,8 +41,8 @@ public class BillProcessingService {
 			throw new RuntimeException(e);
 		}
     	
-    	if (billText.length() > 20000)
-    	{
+//    	if (billText.length() >= BillSlicer.MAX_SECTION_LENGTH)
+//    	{
     		List<String> sections = new TextBillSlicer().slice(billText);
     		
     		IssueStats billStats = new IssueStats();
@@ -55,10 +55,10 @@ public class BillProcessingService {
     		}
     		
     		return billStats;
-    	}
-    	else
-    	{
-    		return IssueStats.parse(ai.Chat(systemMsg, billText));
-    	}
+//    	}
+//    	else
+//    	{
+//    		return IssueStats.parse(ai.Chat(systemMsg, billText));
+//    	}
     }
 }
