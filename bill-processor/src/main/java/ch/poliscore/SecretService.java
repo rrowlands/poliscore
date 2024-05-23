@@ -37,6 +37,6 @@ public class SecretService {
 	    return secret;
 	    */
 		
-		return "test";
+		return "secret";
 	}
 }

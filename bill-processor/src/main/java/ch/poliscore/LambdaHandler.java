@@ -15,7 +15,10 @@ public class LambdaHandler implements RequestHandler<InputObject, String> {
 
     @Override
     public String handleRequest(InputObject input, Context context) {
-    	String result = bill.process("https://www.congress.gov/115/bills/hr806/BILLS-115hr806rfs.xml").toString();
+    	String url = "https://www.congress.gov/118/bills/hr3935/BILLS-118hr3935eas.xml"; // huge bill - air transport
+//    	String url = "https://www.congress.gov/115/bills/hr806/BILLS-115hr806rfs.xml"; // small bill - trump epa rollback
+    	
+    	String result = bill.process(url).toString();
     	System.out.println(result);
     	return result;
     }

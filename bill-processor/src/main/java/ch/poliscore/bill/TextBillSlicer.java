@@ -37,17 +37,37 @@ public class TextBillSlicer implements BillSlicer {
 			while (scanner.hasNextLine()) {
 			  String line = scanner.nextLine();
 			  
-			  if (containsSectionHeader(line))
+			  if (prev != null && prev.length() + cur.length() >= BillSlicer.MAX_SECTION_LENGTH)
 			  {
-				  if (prev != null && prev.length() < BillSlicer.MAX_SECTION_LENGTH)
-				  {
-					  
-				  }
-				  
+				  sections.add(prev.toString());
+				  prev = null;
+			  }
+			  if (cur.length() >= BillSlicer.MAX_SECTION_LENGTH)
+			  {
 				  sections.add(cur.toString());
-				  
-				  prev = cur;
 				  cur = new StringBuilder();
+			  }
+			  
+			  if (cur.length() > 0)
+			  {
+				  if (containsSectionHeader(line))
+				  {
+					  if (prev != null)
+					  {
+						  prev = new StringBuilder(prev.toString() + cur.toString());
+						  cur = new StringBuilder();
+					  }
+					  else
+					  {
+						  prev = cur;
+						  cur = new StringBuilder();
+					  }
+				  }
+				  else if (cur.length() + line.length() >= BillSlicer.MAX_SECTION_LENGTH)
+				  {
+					  sections.add(cur.toString());
+					  cur = new StringBuilder();
+				  }
 			  }
 			  
 			  cur.append(line);

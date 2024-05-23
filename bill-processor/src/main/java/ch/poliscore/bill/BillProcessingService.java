@@ -49,7 +49,7 @@ public class BillProcessingService {
     		
     		for (String section : sections)
     		{
-    			IssueStats sectionStats = IssueStats.parse(ai.Chat(systemMsg, billText));
+    			IssueStats sectionStats = IssueStats.parse(ai.Chat(systemMsg, section));
     		
     			billStats = billStats.sum(sectionStats);
     		}

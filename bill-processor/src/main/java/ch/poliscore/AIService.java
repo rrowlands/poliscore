@@ -22,7 +22,6 @@ public class AIService {
 	
 	public String Chat(String systemMsg, String userMsg)
     {
-		/*
 		OpenAiService service = new OpenAiService(secret.getSecret(), Duration.ofSeconds(600));
     	
     	List<ChatMessage> msgs = new ArrayList<ChatMessage>();
@@ -36,6 +35,8 @@ public class AIService {
     	        .model("gpt-4o")
     	        .build();
     	
+    	System.out.println("Sending request to open ai with message size " + userMsg.length());
+    	
     	ChatCompletionResult result = service.createChatCompletion(completionRequest);
     	
     	ChatCompletionChoice choice = result.getChoices().get(0);
@@ -48,14 +49,13 @@ public class AIService {
     	}
     	
     	return out;
-    	*/
 		
-		IssueStats stats = new IssueStats();
-		for (TrackedIssue issue : TrackedIssue.values())
-		{
-			stats.addStat(issue, 1);
-		}
-		stats.explanation = "Test Explanation 1.";
-		return stats.toString();
+//		IssueStats stats = new IssueStats();
+//		for (TrackedIssue issue : TrackedIssue.values())
+//		{
+//			stats.addStat(issue, 1);
+//		}
+//		stats.explanation = "Test Explanation 1.";
+//		return stats.toString();
     }
 }
