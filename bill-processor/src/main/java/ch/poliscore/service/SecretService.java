@@ -1,4 +1,4 @@
-package ch.poliscore;
+package ch.poliscore.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import software.amazon.awssdk.regions.Region;
@@ -9,9 +9,8 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 @ApplicationScoped
 public class SecretService {
 	public String getSecret() {
-		/*
-	    String secretName = "openai";
-	    Region region = Region.of("us-west-2");
+		String secretName = "openai";
+	    Region region = Region.of("us-east-1");
 
 	    // Create a Secrets Manager client
 	    SecretsManagerClient client = SecretsManagerClient.builder()
@@ -35,8 +34,5 @@ public class SecretService {
 	    String secret = getSecretValueResponse.secretString();
 
 	    return secret;
-	    */
-		
-		return "secret";
 	}
 }

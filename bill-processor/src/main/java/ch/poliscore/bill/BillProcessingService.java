@@ -7,9 +7,9 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 
-import ch.poliscore.AIService;
 import ch.poliscore.IssueStats;
 import ch.poliscore.TrackedIssue;
+import ch.poliscore.service.AIService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 

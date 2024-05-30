@@ -1,4 +1,4 @@
-package ch.poliscore;
+package ch.poliscore.service;
 
 import java.time.Duration;
 import java.util.ArrayList;

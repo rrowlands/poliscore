@@ -8,5 +8,6 @@
 
       <modules>
         <module>bill-processor</module>
+        <module>cdk</module>
       </modules>
 </project>

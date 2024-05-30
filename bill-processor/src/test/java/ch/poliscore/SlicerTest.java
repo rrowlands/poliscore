@@ -34,7 +34,7 @@ public class SlicerTest {
 //			
 //		}
 		
-		IOUtils.write(String.join("\n\n===========================\n\n", sliced), new FileOutputStream(new File("/Users/rrowlands/dev/projects/poliscore/bill-processor/target/test.txt")), "UTF-8");
+		IOUtils.write(String.join("\n\n\n\n===========================\n\n\n\n", sliced), new FileOutputStream(new File("/Users/rrowlands/dev/projects/poliscore/bill-processor/target/test.txt")), "UTF-8");
 	}
 	
 	private String getBillText()

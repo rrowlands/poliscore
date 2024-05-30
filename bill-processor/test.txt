@@ -1,9 +1,0 @@
-at Odokonia.Shared.BaseAction.get_Metadata() in E:\\dev\\projects\\odokonia\\shared\\src\\Actions\\BaseAction.cs:line 24
- at Odokonia.Shared.TurnQueueSorter.CalculatePriorityOrdering(List`1 moves) in E:\\dev\\projects\\odokonia\\shared\\src\\Game\\TurnQueueSorter.cs:line 137
- at Odokonia.Shared.TurnQueueSorter.Sort(Game game) in E:\\dev\\projects\\odokonia\\shared\\src\\Game\\TurnQueueSorter.cs:line 27
- at Odokonia.Shared.Game.Play() in E:\\dev\\projects\\odokonia\\shared\\src\\Game\\Game.cs:line 467
- at Odokonia.Shared.Game.TryPlayRound() in E:\\dev\\projects\\odokonia\\shared\\src\\Game\\Game.cs:line 171
- at Odokonia.Shared.Game.SubmitTurn(PlayerTurn turn) in E:\\dev\\projects\\odokonia\\shared\\src\\Game\\Game.cs:line 157
- at Odokonia.Server.LambdaGame.SubmitTurnInner(SubmitTurnRequest request, Int32 retryNum) in E:\\dev\\projects\\odokonia\\server\\game\\src\\Function.cs:line 1448
- at Odokonia.Server.LambdaGame.SubmitTurn(SubmitTurnRequest request) in E:\\dev\\projects\\odokonia\\server\\game\\src\\Function.cs:line 1432
- at Odokonia.Server.LambdaGame.FunctionHandler(JsonElement input, ILambdaContext context) in E:\\dev\\projects\\odokonia\\server\\game\\src\\Function.cs:line 54
