@@ -18,7 +18,7 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class AIService {
 	@Inject
-    SecretService secret;
+    protected SecretService secret;
 	
 	public String Chat(String systemMsg, String userMsg)
     {

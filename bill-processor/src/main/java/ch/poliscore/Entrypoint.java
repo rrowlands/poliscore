@@ -2,7 +2,7 @@ package ch.poliscore;
 
 import java.util.Map;
 
-import ch.poliscore.bill.BillProcessingService;
+import ch.poliscore.service.BillProcessingService;
 import io.quarkus.funqy.Funq;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
