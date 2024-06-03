@@ -1,9 +1,11 @@
-package ch.poliscore.bill;
+package ch.poliscore.bill.parsing;
 
 import java.util.List;
+
+import ch.poliscore.bill.Bill;
 
 public interface BillSlicer {
 	public static final int MAX_SECTION_LENGTH = 100000; //450000;
 	
-	public List<String> slice(String bill);
+	public List<BillSlice> slice(Bill bill);
 }

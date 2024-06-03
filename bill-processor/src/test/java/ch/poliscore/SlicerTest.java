@@ -4,45 +4,47 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import ch.poliscore.bill.BillSlicer;
-import ch.poliscore.bill.TextBillSlicer;
+import ch.poliscore.bill.Bill;
+import ch.poliscore.bill.parsing.BillSlice;
+import ch.poliscore.bill.parsing.BillSlicer;
+import ch.poliscore.bill.parsing.TextBillSlicer;
+import ch.poliscore.service.TestResourcesBillService;
+import io.quarkus.test.junit.QuarkusTest;
+import io.smallrye.common.constraint.Assert;
+import jakarta.inject.Inject;
 
+@QuarkusTest
 public class SlicerTest {
+	
+	@Inject
+	private TestResourcesBillService billService;
+	
 	@Test
 	public void testTextSlicer() throws Exception
 	{
-		List<String> sliced = new TextBillSlicer().slice(getBillText());
+		Bill bill = billService.fetchBill(TestUtils.C115HR806);
+		List<BillSlice> sliced = new TextBillSlicer().slice(bill);
 		
 		System.out.println("Sliced into " + sliced.size() + " sections.");
 		
 		for (int i = 0; i < sliced.size(); ++i)
 		{
-			if (sliced.get(i).length() >= BillSlicer.MAX_SECTION_LENGTH)
+			Assert.assertTrue(sliced.get(i).getText().length() > 0);
+			
+			if (sliced.get(i).getText().length() >= BillSlicer.MAX_SECTION_LENGTH)
 			{
 				System.out.println(sliced.get(i));
-				Assertions.fail("Section " + i + " was too long (" + sliced.get(i).length() + ")");
+				Assertions.fail("Slice " + i + " was too long (" + sliced.get(i).getText().length() + ")");
 			}
 		}
 		
-//		for (int i = 0; i < Math.min(sliced.size(), Integer.MAX_VALUE); ++i)
-//		{
-//			
-//		}
-		
-		IOUtils.write(String.join("\n\n\n\n===========================\n\n\n\n", sliced), new FileOutputStream(new File("/Users/rrowlands/dev/projects/poliscore/bill-processor/target/test.txt")), "UTF-8");
-	}
-	
-	private String getBillText()
-	{
-		try {
-			return IOUtils.toString(SlicerTest.class.getResourceAsStream("/hr3935.xml"), "UTF-8");
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		IOUtils.write(String.join("\n\n\n\n===========================\n\n\n\n", sliced.stream().map(s -> s.getText()).collect(Collectors.toList())),
+				new FileOutputStream(new File("/Users/rrowlands/dev/projects/poliscore/bill-processor/target/test.txt")), "UTF-8");
 	}
 }

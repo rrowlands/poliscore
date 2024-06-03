@@ -14,7 +14,7 @@ public class IssueStatsTest {
 		
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
-			Assertions.assertEquals(2, stats.getStat(issue));
+			Assertions.assertEquals(2, summedStats.getStat(issue));
 		}
 	}
 	

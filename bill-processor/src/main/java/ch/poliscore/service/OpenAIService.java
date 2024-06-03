@@ -12,13 +12,24 @@ import com.theokanning.openai.completion.chat.SystemMessage;
 import com.theokanning.openai.completion.chat.UserMessage;
 import com.theokanning.openai.service.OpenAiService;
 
+import ch.poliscore.bill.OpenAIInterpretationMetadata;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class AIService {
+public class OpenAIService {
+	public static final String MODEL = "gpt-4o";
+	
 	@Inject
     protected SecretService secret;
+	
+	public OpenAIInterpretationMetadata getInterpretationMetadata()
+	{
+		OpenAIInterpretationMetadata meta = new OpenAIInterpretationMetadata();
+		meta.setModel(MODEL);
+		meta.setPromptVersion(0);
+		return meta;
+	}
 	
 	public String Chat(String systemMsg, String userMsg)
     {
@@ -32,7 +43,7 @@ public class AIService {
     			.messages(msgs)
     			.n(1)
     			.maxTokens(500)
-    	        .model("gpt-4o")
+    	        .model(MODEL)
     	        .build();
     	
     	System.out.println("Sending request to open ai with message size " + userMsg.length());

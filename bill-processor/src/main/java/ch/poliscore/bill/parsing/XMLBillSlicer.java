@@ -1,0 +1,88 @@
+package ch.poliscore.bill.parsing;
+
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import ch.poliscore.bill.Bill;
+import lombok.SneakyThrows;
+
+public class XMLBillSlicer implements BillSlicer {
+
+	@Override
+	@SneakyThrows
+	public List<BillSlice> slice(Bill bill) {
+		final List<BillSlice> slices = new ArrayList<BillSlice>();
+
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		factory.setValidating(true);
+		factory.setIgnoringElementContentWhitespace(true);
+		DocumentBuilder builder = factory.newDocumentBuilder();
+		Document doc = builder.parse(new ByteArrayInputStream(bill.getText().getBytes("UTF-8")));
+
+		StringBuilder cur = new StringBuilder();
+		int start = 0;
+
+		List<Node> sections = childNodesWhere(doc, true, n -> n.getNodeName().equals("section"));
+		for (int i = 0; i < sections.size(); ++i) {
+			Node section = sections.get(i);
+
+			String sectionText = String.join(" ", childNodesWhere(section, true, n -> n.getNodeType() == Node.TEXT_NODE)
+					.stream().map(n -> n.getTextContent()).collect(Collectors.toList()));
+			
+			if (cur.length() > 0 && cur.length() + sectionText.length() >= BillSlicer.MAX_SECTION_LENGTH)
+			{
+				slices.add(buildSlice(bill, start, cur.toString()));
+				start = i;
+				cur = new StringBuilder();
+			}
+
+			cur.append(sectionText);
+		}
+		
+		if (cur.length() > 0)
+		{
+			slices.add(buildSlice(bill, start, cur.toString()));
+		}
+
+		return slices;
+	}
+
+	private BillSlice buildSlice(Bill bill, int i, String sectionText) {
+		BillSlice slice = new BillSlice();
+		slice.setBill(bill);
+		slice.setText(sectionText);
+		slice.setSectionStart(i);
+		slice.setSectionEnd(i);
+		return slice;
+	}
+
+	private List<Node> childNodesWhere(Node n, boolean recursive, Predicate<? super Node> criteria) {
+		List<Node> list = new ArrayList<Node>();
+		NodeList nl = n.getChildNodes();
+
+		for (int i = 0; i < nl.getLength(); ++i) {
+			Node cn = nl.item(i);
+
+			list.add(cn);
+
+			if (recursive)
+				list.addAll(childNodesWhere(cn, recursive, criteria));
+		}
+
+		if (criteria == null)
+			return list;
+
+		return list.stream().filter(criteria).collect(Collectors.toList());
+	}
+
+}

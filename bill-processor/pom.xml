@@ -18,6 +18,7 @@
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.version>3.10.0</quarkus.platform.version>
         <surefire-plugin.version>3.2.5</surefire-plugin.version>
+        <lombok.version>1.18.32</lombok.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -55,6 +56,17 @@
 		    <groupId>software.amazon.awssdk</groupId>
 		    <artifactId>secretsmanager</artifactId>
 		    <version>2.25.52</version>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>com.fasterxml.jackson.core</groupId>
+		    <artifactId>jackson-core</artifactId>
+		    <version>2.17.1</version>
 		</dependency>
 		<dependency>
             <groupId>io.quarkus</groupId>
@@ -96,6 +108,17 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${compiler-plugin.version}</version>
+                <configuration>
+	                <source>${maven.compiler.source}</source>
+	                <target>${maven.compiler.target}</target>
+	                <annotationProcessorPaths>
+	                    <path>
+	                        <groupId>org.projectlombok</groupId>
+	                        <artifactId>lombok</artifactId>
+	                        <version>${lombok.version}</version>
+	                    </path>                         
+	                </annotationProcessorPaths>
+	            </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
