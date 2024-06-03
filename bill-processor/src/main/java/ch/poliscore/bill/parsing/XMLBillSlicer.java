@@ -18,14 +18,22 @@ import lombok.SneakyThrows;
 
 public class XMLBillSlicer implements BillSlicer {
 
+	private int sliceIndex = 0;
+	
 	@Override
 	@SneakyThrows
 	public List<BillSlice> slice(Bill bill) {
 		final List<BillSlice> slices = new ArrayList<BillSlice>();
 
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		factory.setValidating(true);
 		factory.setIgnoringElementContentWhitespace(true);
+		factory.setValidating(false);
+//		factory.setNamespaceAware(true);
+		factory.setFeature("http://xml.org/sax/features/namespaces", false);
+		factory.setFeature("http://xml.org/sax/features/validation", false);
+		factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+		factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		Document doc = builder.parse(new ByteArrayInputStream(bill.getText().getBytes("UTF-8")));
 
@@ -41,7 +49,7 @@ public class XMLBillSlicer implements BillSlicer {
 			
 			if (cur.length() > 0 && cur.length() + sectionText.length() >= BillSlicer.MAX_SECTION_LENGTH)
 			{
-				slices.add(buildSlice(bill, start, cur.toString()));
+				slices.add(buildSlice(bill, start, i, cur.toString()));
 				start = i;
 				cur = new StringBuilder();
 			}
@@ -51,18 +59,19 @@ public class XMLBillSlicer implements BillSlicer {
 		
 		if (cur.length() > 0)
 		{
-			slices.add(buildSlice(bill, start, cur.toString()));
+			slices.add(buildSlice(bill, start, sections.size() - 1, cur.toString()));
 		}
 
 		return slices;
 	}
 
-	private BillSlice buildSlice(Bill bill, int i, String sectionText) {
+	private BillSlice buildSlice(Bill bill, int start, int end, String sectionText) {
 		BillSlice slice = new BillSlice();
 		slice.setBill(bill);
 		slice.setText(sectionText);
-		slice.setSectionStart(i);
-		slice.setSectionEnd(i);
+		slice.setSectionStart(start);
+		slice.setSectionEnd(end);
+		slice.setSliceIndex(sliceIndex++);
 		return slice;
 	}
 

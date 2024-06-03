@@ -1,11 +1,7 @@
 package ch.poliscore.service;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -55,7 +51,7 @@ public class LocalStorageBillService extends BillService {
 			File out = new File(storage, bill.getName() + ".json");
 			
 			var mapper = new ObjectMapper();
-			mapper.writeValue(out, bill);
+			mapper.writerWithDefaultPrettyPrinter().writeValue(out, bill);
 			
 			System.out.println("Wrote bill text to " + out.getAbsolutePath());
 		

@@ -2,7 +2,6 @@ package ch.poliscore;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import ch.poliscore.bill.Bill;
 import ch.poliscore.bill.parsing.BillSlice;
 import ch.poliscore.bill.parsing.BillSlicer;
-import ch.poliscore.bill.parsing.TextBillSlicer;
+import ch.poliscore.bill.parsing.XMLBillSlicer;
 import ch.poliscore.service.TestResourcesBillService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.common.constraint.Assert;
@@ -28,8 +27,8 @@ public class SlicerTest {
 	@Test
 	public void testTextSlicer() throws Exception
 	{
-		Bill bill = billService.fetchBill(TestUtils.C115HR806);
-		List<BillSlice> sliced = new TextBillSlicer().slice(bill);
+		Bill bill = billService.fetchBill(TestUtils.C118HR393);
+		List<BillSlice> sliced = new XMLBillSlicer().slice(bill);
 		
 		System.out.println("Sliced into " + sliced.size() + " sections.");
 		
@@ -45,6 +44,6 @@ public class SlicerTest {
 		}
 		
 		IOUtils.write(String.join("\n\n\n\n===========================\n\n\n\n", sliced.stream().map(s -> s.getText()).collect(Collectors.toList())),
-				new FileOutputStream(new File("/Users/rrowlands/dev/projects/poliscore/bill-processor/target/test.txt")), "UTF-8");
+				new FileOutputStream(new File("/Users/rrowlands/dev/projects/poliscore/bill-processor/target/slice-test.txt")), "UTF-8");
 	}
 }

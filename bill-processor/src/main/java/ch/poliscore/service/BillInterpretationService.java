@@ -7,6 +7,8 @@ import ch.poliscore.IssueStats;
 import ch.poliscore.TrackedIssue;
 import ch.poliscore.bill.Bill;
 import ch.poliscore.bill.BillInterpretation;
+import ch.poliscore.bill.OpenAISliceInterpretationMetadata;
+import ch.poliscore.bill.OpenAIInterpretationMetadata;
 import ch.poliscore.bill.parsing.BillSlice;
 import ch.poliscore.bill.parsing.BillSlicer;
 import ch.poliscore.bill.parsing.XMLBillSlicer;
@@ -35,44 +37,73 @@ public class BillInterpretationService {
 	
 	public BillInterpretation interpret(Bill bill)
 	{
-		BillInterpretation bi = new BillInterpretation();
-		bi.setMetadata(ai.getInterpretationMetadata());
-		bi.setBill(bill);
-		
 		if (bill.getText().length() >= BillSlicer.MAX_SECTION_LENGTH)
     	{
     		List<BillSlice> sections = new XMLBillSlicer().slice(bill);
     		
-    		IssueStats billStats = new IssueStats();
-    		
-    		for (int i = 0; i < sections.size(); ++i)
+    		if (sections.size() > 1)
     		{
-    			BillSlice section = sections.get(i);
-    			
-    			String interpText = ai.Chat(systemMsg, section.getText());
-            	IssueStats sectionStats = IssueStats.parse(interpText);
-    		
-    			billStats = billStats.sum(sectionStats);
+	    		IssueStats billStats = new IssueStats();
+	    		
+	    		for (int i = 0; i < sections.size(); ++i)
+	    		{
+	    			BillSlice slice = sections.get(i);
+	    			
+	    			BillInterpretation sliceInterp = fetchInterpretation(bill, slice);
+	    			
+	    			archiveInterpretation(sliceInterp);
+	    			
+	    			billStats = billStats.sum(sliceInterp.getIssueStats());
+	    		}
+	    		
+	    		var bi = fetchAggregateInterpretation(bill, billStats);
+	    		
+	    		archiveInterpretation(bi);
+	    		
+	    		return bi;
     		}
-    		
-    		billStats.explanation = ai.Chat(summaryPrompt, billStats.explanation);
-    		
-    		bi.setText(billStats.toString());
-    		
-    		archiveInterpretation(bi);
-    		
-    		return bi;
     	}
-    	else
-    	{
-    		String interpText = ai.Chat(systemMsg, bill.getText());
-    		
-    		bi.setText(interpText);
-        	
-        	archiveInterpretation(bi);
-        	
-        	return bi;
-    	}
+		
+		var bi = fetchInterpretation(bill, null);
+		
+		archiveInterpretation(bi);
+    	
+    	return bi;
+	}
+	
+	protected BillInterpretation fetchAggregateInterpretation(Bill bill, IssueStats aggregateStats)
+	{
+		BillInterpretation bi = new BillInterpretation();
+		bi.setBill(bill);
+		bi.setMetadata(OpenAIInterpretationMetadata.construct());
+		
+		aggregateStats.explanation = ai.chat(summaryPrompt, aggregateStats.explanation);
+		
+		bi.setText(aggregateStats.toString());
+		
+		return bi;
+	}
+	
+	protected BillInterpretation fetchInterpretation(Bill bill, BillSlice slice)
+	{
+		BillInterpretation bi = new BillInterpretation();
+		bi.setBill(bill);
+		
+		String interpText;
+		if (slice == null)
+		{
+			interpText = ai.chat(systemMsg, bill.getText());
+			bi.setMetadata(OpenAIInterpretationMetadata.construct());
+		}
+		else
+		{
+			interpText = ai.chat(systemMsg, slice.getText());
+			bi.setMetadata(OpenAISliceInterpretationMetadata.construct(slice));
+		}
+		
+		bi.setText(interpText);
+		
+		return bi;
 	}
     
     protected void archiveInterpretation(BillInterpretation interp)

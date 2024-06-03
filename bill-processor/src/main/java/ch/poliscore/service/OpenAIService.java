@@ -1,6 +1,8 @@
 package ch.poliscore.service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,27 +14,31 @@ import com.theokanning.openai.completion.chat.SystemMessage;
 import com.theokanning.openai.completion.chat.UserMessage;
 import com.theokanning.openai.service.OpenAiService;
 
-import ch.poliscore.bill.OpenAIInterpretationMetadata;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.SneakyThrows;
 
 @ApplicationScoped
 public class OpenAIService {
 	public static final String MODEL = "gpt-4o";
 	
+	public static final int PROMPT_VERSION = 0;
+	
+	public static final int WAIT_BETWEEN_CALLS = 60; // in seconds
+	
 	@Inject
     protected SecretService secret;
 	
-	public OpenAIInterpretationMetadata getInterpretationMetadata()
-	{
-		OpenAIInterpretationMetadata meta = new OpenAIInterpretationMetadata();
-		meta.setModel(MODEL);
-		meta.setPromptVersion(0);
-		return meta;
-	}
+	protected LocalDateTime lastCall = null;
 	
-	public String Chat(String systemMsg, String userMsg)
+	@SneakyThrows
+	public String chat(String systemMsg, String userMsg)
     {
+		if (lastCall != null && ChronoUnit.SECONDS.between(lastCall, lastCall) < WAIT_BETWEEN_CALLS)
+		{
+			Thread.sleep(WAIT_BETWEEN_CALLS * 1000);
+		}
+		
 		OpenAiService service = new OpenAiService(secret.getSecret(), Duration.ofSeconds(600));
     	
     	List<ChatMessage> msgs = new ArrayList<ChatMessage>();
@@ -59,14 +65,8 @@ public class OpenAIService {
     		out += ". FINISH_REASON: " + choice.getFinishReason();
     	}
     	
+    	lastCall = LocalDateTime.now();
+    	
     	return out;
-		
-//		IssueStats stats = new IssueStats();
-//		for (TrackedIssue issue : TrackedIssue.values())
-//		{
-//			stats.addStat(issue, 1);
-//		}
-//		stats.explanation = "Test Explanation 1.";
-//		return stats.toString();
     }
 }

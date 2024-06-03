@@ -48,4 +48,17 @@ public class BillInterpretation
 		this.bill = bill;
 		billUrl = bill.getUrl();
 	}
+	
+	@JsonIgnore
+	public String getName()
+	{
+		if (metadata instanceof OpenAISliceInterpretationMetadata)
+		{
+			return bill.getName() + "-" + ((OpenAISliceInterpretationMetadata)metadata).getSliceIndex();
+		}
+		else
+		{
+			return bill.getName();
+		}
+	}
 }

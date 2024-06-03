@@ -1,5 +1,6 @@
 package ch.poliscore.bill;
 
+import ch.poliscore.service.OpenAIService;
 import lombok.Data;
 
 @Data
@@ -8,8 +9,11 @@ public class OpenAIInterpretationMetadata extends BillInterpretationMetadata {
 	
 	protected int promptVersion;
 	
-	public BillInterpretationMetadataType getType()
+	public static OpenAIInterpretationMetadata construct()
 	{
-		return BillInterpretationMetadataType.OPEN_AI;
+		OpenAIInterpretationMetadata meta = new OpenAIInterpretationMetadata();
+		meta.setModel(OpenAIService.MODEL);
+		meta.setPromptVersion(OpenAIService.PROMPT_VERSION);
+		return meta;
 	}
 }
