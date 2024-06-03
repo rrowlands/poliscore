@@ -14,10 +14,4 @@ public class TestResourcesBillInterpretationService extends LocalStorageBillInte
 	{
 		return new File(Environment.getDeployedPath(), "../../src/test/resources");
 	}
-	
-	@Override
-	protected boolean allowFetch()
-	{
-		return true;
-	}
 }

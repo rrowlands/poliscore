@@ -17,11 +17,6 @@ public class LocalStorageBillService extends BillService {
 		return Environment.getDeployedPath();
 	}
 	
-	protected boolean allowFetch()
-	{
-		return true;
-	}
-	
 	@Override
 	public Bill fetchBill(String url) {
 		try {
@@ -33,8 +28,6 @@ public class LocalStorageBillService extends BillService {
 				var mapper = new ObjectMapper();
 				return mapper.readValue(stored, Bill.class);
 			}
-			
-			if (!allowFetch()) throw new RuntimeException("Could not find bill in local storage at " + stored.getAbsolutePath() + " and allowFetch is false.");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

@@ -12,10 +12,4 @@ public class TestResourcesBillService extends LocalStorageBillService {
 	{
 		return new File(Environment.getDeployedPath(), "../../src/test/resources");
 	}
-	
-	@Override
-	protected boolean allowFetch()
-	{
-		return true;
-	}
 }

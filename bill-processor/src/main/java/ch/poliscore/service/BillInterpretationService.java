@@ -30,7 +30,7 @@ public class BillInterpretationService {
     	systemMsg = prompt.replaceFirst("\\{issuesList\\}", issues);
 	}
 	
-	final String summaryPrompt = "A political bill has split into sections each section has been interpreted. Using the following interpretations, create a summarized interpretation of the bill as a whole.";
+	final String summaryPrompt = "A political bill has split into sections and each section has been interpreted. Using the following interpretations, create a summarized interpretation of the bill as a whole.";
 	
 	@Inject
 	protected OpenAIService ai;
@@ -39,15 +39,15 @@ public class BillInterpretationService {
 	{
 		if (bill.getText().length() >= BillSlicer.MAX_SECTION_LENGTH)
     	{
-    		List<BillSlice> sections = new XMLBillSlicer().slice(bill);
+    		List<BillSlice> slices = new XMLBillSlicer().slice(bill);
     		
-    		if (sections.size() > 1)
+    		if (slices.size() > 1)
     		{
 	    		IssueStats billStats = new IssueStats();
 	    		
-	    		for (int i = 0; i < sections.size(); ++i)
+	    		for (int i = 0; i < slices.size(); ++i)
 	    		{
-	    			BillSlice slice = sections.get(i);
+	    			BillSlice slice = slices.get(i);
 	    			
 	    			BillInterpretation sliceInterp = fetchInterpretation(bill, slice);
 	    			
@@ -56,8 +56,11 @@ public class BillInterpretationService {
 	    			billStats = billStats.sum(sliceInterp.getIssueStats());
 	    		}
 	    		
+	    		billStats = billStats.divide(slices.size()); // Dividing by the total slices here gives us an average
+	    		
 	    		var bi = fetchAggregateInterpretation(bill, billStats);
 	    		
+	    		System.out.println(bi.getIssueStats().toString());	    		
 	    		archiveInterpretation(bi);
 	    		
 	    		return bi;

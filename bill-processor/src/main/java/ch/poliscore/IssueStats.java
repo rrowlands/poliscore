@@ -11,7 +11,7 @@ import software.amazon.awssdk.utils.Pair;
 
 public class IssueStats {
 	
-	public Map<TrackedIssue, Integer> stats = new HashMap<TrackedIssue, Integer>();
+	public Map<TrackedIssue, Float> stats = new HashMap<TrackedIssue, Float>();
 	
 	public String explanation = "";
 	
@@ -27,7 +27,7 @@ public class IssueStats {
 			{
 			  String line = scanner.nextLine();
 			  
-			  Pair<TrackedIssue, Integer> stat = parseStat(line);
+			  Pair<TrackedIssue, Float> stat = parseStat(line);
 			  
 			  if (stat != null)
 			  {
@@ -44,7 +44,7 @@ public class IssueStats {
 		return stats;
 	}
 	
-	private static Pair<TrackedIssue, Integer> parseStat(String line)
+	private static Pair<TrackedIssue, Float> parseStat(String line)
 	{
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
@@ -52,7 +52,7 @@ public class IssueStats {
 			Matcher matcher = pattern.matcher(line);
 		    
 		    if (matcher.find()) {
-		    	Integer value = Integer.parseInt(matcher.group(1));
+		    	Float value = Float.parseFloat(matcher.group(1));
 		    	
 		    	return Pair.of(issue, value);
 		    }
@@ -61,17 +61,17 @@ public class IssueStats {
 		return null;
 	}
 	
-	public int getStat(TrackedIssue issue)
+	public float getStat(TrackedIssue issue)
 	{
-		return stats.getOrDefault(issue, 0);
+		return stats.getOrDefault(issue, 0.0f);
 	}
 	
-	public void setStat(TrackedIssue issue, int value)
+	public void setStat(TrackedIssue issue, float value)
 	{
 		stats.put(issue, value);
 	}
 	
-	public void addStat(TrackedIssue issue, int value)
+	public void addStat(TrackedIssue issue, float value)
 	{
 		stats.put(issue, getStat(issue) + value);
 	}
@@ -82,10 +82,22 @@ public class IssueStats {
 		
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
-			result.addStat(issue, getStat(issue) + incoming.getStat(issue));
+			result.setStat(issue, getStat(issue) + incoming.getStat(issue));
 		}
 		
 		result.explanation = explanation + "\n" + incoming.explanation;
+		
+		return result;
+	}
+	
+	public IssueStats divide(float divisor)
+	{
+		IssueStats result = new IssueStats();
+		
+		for (TrackedIssue issue : TrackedIssue.values())
+		{
+			result.setStat(issue, getStat(issue) / divisor);
+		}
 		
 		return result;
 	}
@@ -95,12 +107,24 @@ public class IssueStats {
 	{
 		StringBuilder sb = new StringBuilder();
 		
-	    sb.append(String.join("\n", Arrays.stream(TrackedIssue.values()).map(issue ->"-" + issue.getName() + ": " + getStat(issue)).toList()));
+	    sb.append(String.join("\n", Arrays.stream(TrackedIssue.values()).map(issue ->"-" + issue.getName() + ": " + formatStatValue(getStat(issue))).toList()));
 		
 		sb.append("\n\n");
 		
 		sb.append(explanation);
 		
 		return sb.toString();
+	}
+	
+	private String formatStatValue(float val)
+	{
+		String sign = (val > 0) ? "+" : (val < 0 ? "-" : "");
+		
+		if (Double.valueOf(Math.floor(val)).equals(Double.valueOf(val)))
+		{
+			return sign + String.valueOf((int) val);
+		}
+		
+		return sign + String.valueOf(val);
 	}
 }

@@ -48,7 +48,8 @@ public class OpenAIService {
     	ChatCompletionRequest completionRequest = ChatCompletionRequest.builder()
     			.messages(msgs)
     			.n(1)
-    			.maxTokens(500)
+    			.temperature(0.0d) // We don't want randomness. Give us predictability and accuracy
+    			.maxTokens(1000)
     	        .model(MODEL)
     	        .build();
     	

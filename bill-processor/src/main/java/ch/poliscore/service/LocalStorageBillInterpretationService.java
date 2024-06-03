@@ -24,11 +24,6 @@ public class LocalStorageBillInterpretationService extends BillInterpretationSer
 		return Environment.getDeployedPath();
 	}
 	
-	protected boolean allowFetch()
-	{
-		return true;
-	}
-	
 //	@Override
 //	public BillInterpretation interpret(Bill bill) {
 //		try {
@@ -54,14 +49,8 @@ public class LocalStorageBillInterpretationService extends BillInterpretationSer
 	@Override
 	protected BillInterpretation fetchAggregateInterpretation(Bill bill, IssueStats aggregateStats)
 	{
-		var bi = this.fetchInterpretation(bill, null);
-		
-		if (bi != null)
-		{
-			bi.setMetadata(OpenAISliceInterpretationMetadata.construct());
-			
-			return bi;
-		}
+		var bi = fetchLocalStorage(bill, null);
+		if (bi != null) return bi;
 		
 		return super.fetchAggregateInterpretation(bill, aggregateStats);
 	}
@@ -69,6 +58,13 @@ public class LocalStorageBillInterpretationService extends BillInterpretationSer
 	@Override
 	protected BillInterpretation fetchInterpretation(Bill bill, BillSlice slice)
 	{
+		var bi = fetchLocalStorage(bill, slice);
+		if (bi != null) return bi;
+		
+		return super.fetchInterpretation(bill, slice);
+	}
+
+	private BillInterpretation fetchLocalStorage(Bill bill, BillSlice slice) {
 		try {
 			File interpretStorage = new File(getLocalStorage(), "interpretations");
 			
@@ -82,13 +78,11 @@ public class LocalStorageBillInterpretationService extends BillInterpretationSer
 				interp.setBill(billService.fetchBill(interp.getBillUrl()));
 				return interp;
 			}
-			
-			if (!allowFetch()) throw new RuntimeException("Could not find interpretation in local storage at " + stored.getAbsolutePath() + " and allowFetch is false.");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 		
-		return super.fetchInterpretation(bill, slice);
+		return null;
 	}
 	
 	@Override
