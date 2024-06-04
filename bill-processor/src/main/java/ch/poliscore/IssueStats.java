@@ -1,5 +1,6 @@
 package ch.poliscore;
 
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +49,7 @@ public class IssueStats {
 	{
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
-			Pattern pattern = Pattern.compile(issue.getName() + ": ([+-]?\\d+)", Pattern.CASE_INSENSITIVE);
+			Pattern pattern = Pattern.compile(issue.getName() + ": ([+-]?\\d+.?\\d+)", Pattern.CASE_INSENSITIVE);
 			Matcher matcher = pattern.matcher(line);
 		    
 		    if (matcher.find()) {
@@ -118,13 +119,13 @@ public class IssueStats {
 	
 	private String formatStatValue(float val)
 	{
-		String sign = (val > 0) ? "+" : (val < 0 ? "-" : "");
+		final String sign = (val > 0) ? "+" : (val < 0 ? "-" : "");
 		
 		if (Double.valueOf(Math.floor(val)).equals(Double.valueOf(val)))
 		{
-			return sign + String.valueOf((int) val);
+			return sign + String.format("%.1f", val);
 		}
 		
-		return sign + String.valueOf(val);
+		return sign + String.format("%.1f", val);
 	}
 }
