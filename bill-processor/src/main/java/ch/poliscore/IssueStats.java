@@ -123,7 +123,7 @@ public class IssueStats {
 		
 		if (Double.valueOf(Math.floor(val)).equals(Double.valueOf(val)))
 		{
-			return sign + String.format("%.1f", val);
+			return sign + String.valueOf((int)val);
 		}
 		
 		return sign + String.format("%.1f", val);
