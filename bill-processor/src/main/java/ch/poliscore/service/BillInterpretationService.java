@@ -30,7 +30,7 @@ public class BillInterpretationService {
     	systemMsg = prompt.replaceFirst("\\{issuesList\\}", issues);
 	}
 	
-	final String summaryPrompt = "A political bill has split into sections and each section has been interpreted. Using the following interpretations, create a summarized interpretation of the bill as a whole.";
+	final String summaryPrompt = "Generate a concise (single paragraph) summary of the following text. In your summary, please attempt to reference concrete, notable and specific text of the summarized bill where possible.";
 	
 	@Inject
 	protected OpenAIService ai;
@@ -58,7 +58,7 @@ public class BillInterpretationService {
 	    		
 	    		billStats = billStats.divide(slices.size()); // Dividing by the total slices here gives us an average
 	    		
-	    		var bi = fetchAggregateInterpretation(bill, billStats);
+ 	    		var bi = fetchAggregateInterpretation(bill, billStats);
 	    		
 	    		System.out.println(bi.getIssueStats().toString());	    		
 	    		archiveInterpretation(bi);

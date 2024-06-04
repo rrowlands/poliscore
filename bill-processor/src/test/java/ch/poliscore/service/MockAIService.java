@@ -8,7 +8,8 @@ import io.quarkus.test.Mock;
 public class MockAIService extends OpenAIService {
 	public String chat(String systemMsg, String userMsg)
     {
-		return buildAggregateResponse();
+//		return buildAggregateResponse();
+		return userMsg;
     }
 	
 	protected String buildIssueStatsResponse()

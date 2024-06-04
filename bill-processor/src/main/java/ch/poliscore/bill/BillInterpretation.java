@@ -12,7 +12,7 @@ public class BillInterpretation
 	protected transient Bill bill;
 	
 	@JsonIgnore
-	protected IssueStats issueStats;
+	protected IssueStats issueStats = null;
 	
 	protected String billUrl;
 	

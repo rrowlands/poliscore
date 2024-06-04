@@ -49,7 +49,7 @@ public class IssueStats {
 	{
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
-			Pattern pattern = Pattern.compile(issue.getName() + ": ([+-]?\\d+.?\\d+)", Pattern.CASE_INSENSITIVE);
+			Pattern pattern = Pattern.compile(issue.getName() + ": ([+-]?\\d+.?\\d*)", Pattern.CASE_INSENSITIVE);
 			Matcher matcher = pattern.matcher(line);
 		    
 		    if (matcher.find()) {
@@ -99,6 +99,8 @@ public class IssueStats {
 		{
 			result.setStat(issue, getStat(issue) / divisor);
 		}
+		
+		result.explanation = explanation;
 		
 		return result;
 	}
