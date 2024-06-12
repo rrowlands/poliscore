@@ -42,10 +42,10 @@ class PoliscoreStack extends Stack {
         Function getOneItemFunction = new Function(this, "bill-processor",
         		FunctionProps.builder()
                 .code(Code.fromAsset("../bill-processor/target/bill-processor-0.0.1-SNAPSHOT.jar"))
-                .handler("ch.poliscore.LambdaHandler")
-                .runtime(Runtime.JAVA_11)
+                .handler("ch.poliscore.Entrypoint")
+                .runtime(Runtime.JAVA_21)
                 .environment(lambdaEnvMap)
-                .timeout(Duration.seconds(30))
+                .timeout(Duration.minutes(15))
                 .memorySize(512)
                 .build());
 

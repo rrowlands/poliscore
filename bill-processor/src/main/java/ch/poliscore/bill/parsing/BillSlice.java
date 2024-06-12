@@ -2,7 +2,7 @@ package ch.poliscore.bill.parsing;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import ch.poliscore.bill.Bill;
+import ch.poliscore.model.Bill;
 import lombok.Data;
 
 @Data

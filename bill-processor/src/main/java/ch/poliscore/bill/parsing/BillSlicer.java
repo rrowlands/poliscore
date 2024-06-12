@@ -2,7 +2,7 @@ package ch.poliscore.bill.parsing;
 
 import java.util.List;
 
-import ch.poliscore.bill.Bill;
+import ch.poliscore.model.Bill;
 
 public interface BillSlicer {
 	public static final int MAX_SECTION_LENGTH = 100000; //450000;

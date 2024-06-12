@@ -13,7 +13,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import ch.poliscore.bill.Bill;
+import ch.poliscore.model.Bill;
 import lombok.SneakyThrows;
 
 public class XMLBillSlicer implements BillSlicer {

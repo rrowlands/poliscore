@@ -39,7 +39,7 @@ public class OpenAIService {
 			Thread.sleep(WAIT_BETWEEN_CALLS * 1000);
 		}
 		
-		OpenAiService service = new OpenAiService(secret.getSecret(), Duration.ofSeconds(600));
+		OpenAiService service = new OpenAiService(secret.getOpenAISecret(), Duration.ofSeconds(600));
     	
     	List<ChatMessage> msgs = new ArrayList<ChatMessage>();
     	msgs.add(new SystemMessage(systemMsg));

@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 import org.apache.commons.io.IOUtils;
 
-import ch.poliscore.bill.Bill;
+import ch.poliscore.model.Bill;
 
 /**
  * Abandoned in favour of parsing the bill XML syntax. Challenges present in raw text parsing:

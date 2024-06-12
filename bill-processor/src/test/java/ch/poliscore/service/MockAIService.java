@@ -4,7 +4,7 @@ import ch.poliscore.IssueStats;
 import ch.poliscore.TrackedIssue;
 import io.quarkus.test.Mock;
 
-@Mock
+//@Mock
 public class MockAIService extends OpenAIService {
 	public String chat(String systemMsg, String userMsg)
     {

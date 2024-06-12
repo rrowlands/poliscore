@@ -5,15 +5,19 @@ import java.util.List;
 
 import ch.poliscore.IssueStats;
 import ch.poliscore.TrackedIssue;
-import ch.poliscore.bill.Bill;
-import ch.poliscore.bill.BillInterpretation;
-import ch.poliscore.bill.OpenAISliceInterpretationMetadata;
 import ch.poliscore.bill.OpenAIInterpretationMetadata;
+import ch.poliscore.bill.OpenAISliceInterpretationMetadata;
 import ch.poliscore.bill.parsing.BillSlice;
 import ch.poliscore.bill.parsing.BillSlicer;
 import ch.poliscore.bill.parsing.XMLBillSlicer;
+import ch.poliscore.model.Bill;
+import ch.poliscore.model.BillInterpretation;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+@ApplicationScoped
+@Priority(4)
 public class BillInterpretationService {
 	
 	final String prompt = """

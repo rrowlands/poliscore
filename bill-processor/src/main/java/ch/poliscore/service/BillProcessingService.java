@@ -1,11 +1,13 @@
 package ch.poliscore.service;
 
-import ch.poliscore.bill.Bill;
-import ch.poliscore.bill.BillInterpretation;
+import ch.poliscore.model.Bill;
+import ch.poliscore.model.BillInterpretation;
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
+@Priority(4)
 public class BillProcessingService {
 
 	@Inject
@@ -14,11 +16,11 @@ public class BillProcessingService {
 	@Inject
 	protected BillInterpretationService interpretationService;
 	
-    public BillInterpretation process(String url) {
-    	Bill bill = billService.fetchBill(url);
-    	
-    	var interp = interpretationService.interpret(bill);
-    	
-    	return interp;
-    }
+//    public BillInterpretation process(String url) {
+//    	Bill bill = billService.fetchBill(url);
+//    	
+//    	var interp = interpretationService.interpret(bill);
+//    	
+//    	return interp;
+//    }
 }
