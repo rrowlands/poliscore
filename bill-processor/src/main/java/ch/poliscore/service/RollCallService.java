@@ -4,11 +4,13 @@ import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ch.poliscore.DataNotFoundException;
 import ch.poliscore.VoteStatus;
 import ch.poliscore.legislator.VotingData;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.view.USCRollCallData;
 import ch.poliscore.view.USCRollCallData.USCRollCallVote;
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
@@ -34,19 +36,26 @@ public class RollCallService {
 	
 	protected void process(USCRollCallData rollCall, USCRollCallVote vote, VoteStatus vs)
 	{
-		Legislator leg = lService.getById(vote.getId());
-		
-		var bill = rollCall.getBill();
-		var billId = bill.getType() + bill.getNumber() + "-" + bill.getCongress();
-		
-		VotingData data = new VotingData();
-		data.setBillId(billId);
-		data.setVoteStatus(vs);
-		data.setDate(rollCall.getDate());
-		
-		leg.addVotingData(data);
-		
-		lService.persist(leg);
+		try
+		{
+			Legislator leg = lService.getById(vote.getId());
+			
+			var bill = rollCall.getBill();
+			var billId = bill.getType() + bill.getNumber() + "-" + bill.getCongress();
+			
+			VotingData data = new VotingData();
+			data.setBillId(billId);
+			data.setVoteStatus(vs);
+			data.setDate(rollCall.getDate());
+			
+			leg.addVotingData(data);
+			
+			lService.persist(leg);
+		}
+		catch (DataNotFoundException ex)
+		{
+			Log.warn("Could not find legislator with id [" + vote.getId() + "] referenced in file ?");
+		}
 	}
 	
 }

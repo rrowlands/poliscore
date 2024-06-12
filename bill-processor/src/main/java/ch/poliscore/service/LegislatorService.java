@@ -1,10 +1,13 @@
 package ch.poliscore.service;
 
+import java.io.IOException;
 import java.util.Iterator;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ch.poliscore.DataNotFoundException;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.view.USCLegislatorView;
 import io.quarkus.logging.Log;
@@ -21,10 +24,15 @@ public class LegislatorService {
 	@SneakyThrows
 	public void importLegislators()
 	{
+		importUSCJson("/legislators-current.json");
+		importUSCJson("/legislators-historical.json");
+	}
+
+	private void importUSCJson(String file) throws IOException, JsonProcessingException {
 		int count = 0;
 		
 		ObjectMapper mapper = new ObjectMapper();
-		JsonNode jn = mapper.readTree(LegislatorService.class.getResourceAsStream("/legislators-current.json"));
+		JsonNode jn = mapper.readTree(LegislatorService.class.getResourceAsStream(file));
 		Iterator<JsonNode> it = jn.elements();
 		while (it.hasNext())
 		{
@@ -43,7 +51,7 @@ public class LegislatorService {
 		Log.info("Imported " + count + " politicians");
 	}
 	
-	public Legislator getById(String id)
+	public Legislator getById(String id) throws DataNotFoundException
 	{
 		return pServ.retrieve(id, Legislator.class);
 	}

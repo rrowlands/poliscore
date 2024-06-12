@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import ch.poliscore.service.BillService;
 import ch.poliscore.service.LegislatorService;
@@ -41,10 +43,11 @@ public class USCDataImporter implements QuarkusApplication
 	{
 		legService.importLegislators();
 		
-		for (File fCongress : uscData.listFiles())
+		for (File fCongress : Arrays.asList(uscData.listFiles()).stream()
+				.filter(f -> f.getName().matches("\\d+") && f.isDirectory())
+				.sorted((a,b) -> a.getName().compareTo(b.getName()))
+				.collect(Collectors.toList()))
 		{
-			if (!fCongress.getName().matches("\\d+") || !fCongress.isDirectory()) continue;
-			
 			Log.info("Processing " + fCongress.getName() + " congress");
 			
 			int count = 0;

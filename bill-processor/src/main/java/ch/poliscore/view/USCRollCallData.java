@@ -1,5 +1,6 @@
 package ch.poliscore.view;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -46,14 +47,17 @@ public class USCRollCallData {
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class USCRollCallVotes {
 		
-		protected List<USCRollCallVote> Aye;
+		@JsonProperty("Aye")
+		protected List<USCRollCallVote> Aye = new ArrayList<USCRollCallVote>();
 		
-		protected List<USCRollCallVote> No;
+		@JsonProperty("No")
+		protected List<USCRollCallVote> No = new ArrayList<USCRollCallVote>();
 		
 		@JsonProperty("Not Voting")
-		protected List<USCRollCallVote> NotVoting;
+		protected List<USCRollCallVote> NotVoting = new ArrayList<USCRollCallVote>();
 		
-		protected List<USCRollCallVote> Present;
+		@JsonProperty("Present")
+		protected List<USCRollCallVote> Present = new ArrayList<USCRollCallVote>();
 		
 	}
 	
@@ -68,6 +72,18 @@ public class USCRollCallData {
 		protected String party;
 		
 		protected String state;
+		
+		public void setId(String id)
+		{
+			if (id.length() < 7)
+			{
+				String newId = String.valueOf(id.charAt(0));
+				for (int i = 0; i < 7 - id.length(); ++i) { newId += "0"; }
+				id = newId + id.substring(1);
+			}
+			
+			this.id = id;
+		}
 		
 	}
 	

@@ -3,6 +3,8 @@ package ch.poliscore.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import ch.poliscore.legislator.VotingData;
 import ch.poliscore.view.USCLegislatorView;
 import lombok.Data;
@@ -20,10 +22,11 @@ public class Legislator implements Persistable {
 	
 	protected Map<String, VotingData> votingData = new HashMap<String, VotingData>();
 	
+	@JsonIgnore
 	public String getId()
 	{
-		if (bioguideId != null) return bioguideId;
-		if (thomasId != null) return thomasId;
+		if (bioguideId != null) return getBioguideId();
+		if (thomasId != null) return getThomasId();
 		return null;
 	}
 	

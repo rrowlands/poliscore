@@ -4,6 +4,7 @@ import java.io.File;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ch.poliscore.DataNotFoundException;
 import ch.poliscore.Environment;
 import ch.poliscore.model.Persistable;
 import io.quarkus.logging.Log;
@@ -16,10 +17,12 @@ public class LocalFilePersistenceService implements PersistenceServiceIF
 
 	protected File getLocalStorage()
 	{
-		return new File(Environment.getDeployedPath(), "../store");
+//		return new File(Environment.getDeployedPath(), "../store");
+		
+		return new File("/Users/rrowlands/data/poliscore/store");
 	}
 	
-	public File getStore(Class clazz)
+	public File getStore(Class<?> clazz)
 	{
 //		if (Bill.class.equals(clazz)) return new File(getLocalStorage(), "bills");
 //		else if (BillInterpretation.class.equals(clazz)) return new File(getLocalStorage(), "interpretations");
@@ -45,16 +48,16 @@ public class LocalFilePersistenceService implements PersistenceServiceIF
 		var mapper = new ObjectMapper();
 		mapper.writerWithDefaultPrettyPrinter().writeValue(out, obj);
 		
-		Log.info("Wrote file to " + out.getAbsolutePath());
+//		Log.info("Wrote file to " + out.getAbsolutePath());
 	}
 
 	@Override
 	@SneakyThrows
-	public <T> T retrieve(String id, Class<T> clazz) {
+	public <T> T retrieve(String id, Class<T> clazz) throws DataNotFoundException {
 		File billStorage = getStore(clazz);
 		File stored = new File(billStorage, id + ".json");
 		
-		if (!stored.exists()) throw new RuntimeException("Could not find " + clazz.getName() + " with id " + id);
+		if (!stored.exists()) throw new DataNotFoundException("Could not find " + clazz.getName() + " with id " + id);
 		
 		var mapper = new ObjectMapper();
 		return mapper.readValue(stored, clazz);

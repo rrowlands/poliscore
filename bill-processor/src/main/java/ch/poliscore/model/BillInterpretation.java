@@ -18,7 +18,7 @@ public class BillInterpretation implements Persistable
 	
 	protected String id;
 	
-	protected String billUrl;
+	protected String billId;
 	
 	/**
 	 * The actual interpretation text of the bill or bill slice, as produced by AI.
@@ -36,7 +36,7 @@ public class BillInterpretation implements Persistable
 	{
 		this.metadata = metadata;
 		this.bill = bill;
-		this.billUrl = bill.getUrl();
+		this.billId = bill.getId();
 		this.text = text;
 		this.issueStats = IssueStats.parse(text);
 	}
@@ -50,7 +50,7 @@ public class BillInterpretation implements Persistable
 	public void setBill(Bill bill)
 	{
 		this.bill = bill;
-		billUrl = bill.getUrl();
+		billId = bill.getId();
 	}
 	
 	@JsonIgnore
