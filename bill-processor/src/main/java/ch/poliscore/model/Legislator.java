@@ -1,11 +1,10 @@
 package ch.poliscore.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import ch.poliscore.legislator.VotingData;
 import ch.poliscore.view.USCLegislatorView;
 import lombok.Data;
 
@@ -20,7 +19,7 @@ public class Legislator implements Persistable {
 	
 	protected String wikidataId;
 	
-	protected Map<String, VotingData> votingData = new HashMap<String, VotingData>();
+	protected Set<LegislatorBillInteration> interactions = new HashSet<LegislatorBillInteration>();
 	
 	@JsonIgnore
 	public String getId()
@@ -30,21 +29,10 @@ public class Legislator implements Persistable {
 		return null;
 	}
 	
-	public void addVotingData(VotingData data)
+	public void addBillInteraction(LegislatorBillInteration incoming)
 	{
-		if (!votingData.containsKey(data.getBillId()))
-		{
-			votingData.put(data.getBillId(), data);
-		}
-		else
-		{
-			var existing = votingData.get(data.getBillId());
-			
-			if (data.getDate().after(existing.getDate()))
-			{
-				votingData.put(data.getBillId(), data);
-			}
-		}
+		interactions.removeIf(existing -> incoming.supercedes(existing));
+		interactions.add(incoming);
 	}
 	
 }

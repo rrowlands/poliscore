@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.poliscore.DataNotFoundException;
 import ch.poliscore.VoteStatus;
-import ch.poliscore.legislator.VotingData;
 import ch.poliscore.model.Legislator;
+import ch.poliscore.model.LegislatorBillInteration.LegislatorBillVote;
 import ch.poliscore.view.USCRollCallData;
 import ch.poliscore.view.USCRollCallData.USCRollCallVote;
 import io.quarkus.logging.Log;
@@ -43,12 +43,12 @@ public class RollCallService {
 			var bill = rollCall.getBill();
 			var billId = bill.getType() + bill.getNumber() + "-" + bill.getCongress();
 			
-			VotingData data = new VotingData();
-			data.setBillId(billId);
-			data.setVoteStatus(vs);
-			data.setDate(rollCall.getDate());
+			LegislatorBillVote interaction = new LegislatorBillVote();
+			interaction.setBillId(billId);
+			interaction.setVoteStatus(vs);
+			interaction.setDate(rollCall.getDate());
 			
-			leg.addVotingData(data);
+			leg.addBillInteraction(interaction);
 			
 			lService.persist(leg);
 		}

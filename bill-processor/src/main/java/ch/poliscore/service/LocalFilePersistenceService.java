@@ -11,7 +11,7 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.SneakyThrows;
 
-@ApplicationScoped
+//@ApplicationScoped
 public class LocalFilePersistenceService implements PersistenceServiceIF
 {
 

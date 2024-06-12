@@ -21,7 +21,7 @@ import jakarta.inject.Inject;
 public class BillInterpretationService {
 	
 	final String prompt = """
-			Score the following bill (or bill section) on the estimated impact upon the following sectors of the United States, rated from -10 (very harmful) to 0 (neutral) to +10 (very helpful). Include a concise (single paragraph) summary of the bill at the end which references concrete, notable and specific text of the summarized bill where possible. Please format your response as a list in the example format:
+			Score the following bill (or bill section) on the estimated impact upon the following sectors of the United States, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful). Include a concise (single paragraph) summary of the bill at the end which references concrete, notable and specific text of the summarized bill where possible. Please format your response as a list in the example format:
 
             {issuesList}
 			

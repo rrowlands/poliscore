@@ -9,8 +9,12 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import ch.poliscore.model.Legislator;
 import ch.poliscore.service.BillService;
 import ch.poliscore.service.LegislatorService;
+import ch.poliscore.service.PersistenceServiceIF;
 import ch.poliscore.service.RollCallService;
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
@@ -25,6 +29,9 @@ import lombok.val;
 @QuarkusMain
 public class USCDataImporter implements QuarkusApplication
 {
+	@Inject
+	private PersistenceServiceIF pService;
+	
 	@Inject
 	private BillService billService;
 	
@@ -74,6 +81,9 @@ public class USCDataImporter implements QuarkusApplication
 		}
 		
 		Log.info("USC import complete.");
+		
+		Log.info("Printing Bernie Sanders for testing");
+		new ObjectMapper().writeValue(System.out, pService.retrieve("S000033", Legislator.class));
 	}
 	
 	public List<File> allFilesWhere(File parent, Predicate<File> criteria)

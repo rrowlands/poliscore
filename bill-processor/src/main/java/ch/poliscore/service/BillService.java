@@ -3,19 +3,22 @@ package ch.poliscore.service;
 import java.io.FileInputStream;
 import java.net.URI;
 import java.net.URL;
-import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.poliscore.model.Bill;
+import ch.poliscore.model.Legislator;
+import ch.poliscore.model.LegislatorBillInteration.LegislatorBillCosponsor;
+import ch.poliscore.model.LegislatorBillInteration.LegislatorBillSponsor;
 import ch.poliscore.view.USCBillView;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.val;
+import software.amazon.awssdk.utils.StringUtils;
 
 @ApplicationScoped
 @Priority(4)
@@ -23,6 +26,9 @@ public class BillService {
 	
 	@Inject
 	private PersistenceServiceIF pServ;
+	
+	@Inject
+	protected LegislatorService lService;
 	
 	@SneakyThrows
 	public void importUscData(FileInputStream fos) {
@@ -39,6 +45,31 @@ public class BillService {
     	bill.setLastUpdated(view.getUpdated_at());
     	bill.setSponsor(view.getSponsor());
     	bill.setCosponsors(view.getCosponsors());
+    	
+    	if (view.getSponsor() != null && !StringUtils.isBlank(view.getSponsor().getBioguide_id()))
+    	{
+			Legislator leg = lService.getById(view.getSponsor().getBioguide_id());
+			
+			LegislatorBillSponsor interaction = new LegislatorBillSponsor();
+			interaction.setBillId(bill.getId());
+			interaction.setDate(view.getUpdated_at());
+			leg.addBillInteraction(interaction);
+			
+			lService.persist(leg);
+    	}
+    	
+    	view.getCosponsors().forEach(cs -> {
+    		if (!StringUtils.isBlank(cs.getBioguide_id())) {
+	    		Legislator leg = lService.getById(cs.getBioguide_id());
+				
+				LegislatorBillCosponsor interaction = new LegislatorBillCosponsor();
+				interaction.setBillId(bill.getId());
+				interaction.setDate(view.getUpdated_at());
+				leg.addBillInteraction(interaction);
+				
+				lService.persist(leg);
+    		}
+    	});
     	
     	archiveBill(bill);
 	}

@@ -1,6 +1,5 @@
 package ch.poliscore;
 
-import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +11,7 @@ import software.amazon.awssdk.utils.Pair;
 
 public class IssueStats {
 	
-	public Map<TrackedIssue, Float> stats = new HashMap<TrackedIssue, Float>();
+	public Map<TrackedIssue, Integer> stats = new HashMap<TrackedIssue, Integer>();
 	
 	public String explanation = "";
 	
@@ -28,7 +27,7 @@ public class IssueStats {
 			{
 			  String line = scanner.nextLine();
 			  
-			  Pair<TrackedIssue, Float> stat = parseStat(line);
+			  Pair<TrackedIssue, Integer> stat = parseStat(line);
 			  
 			  if (stat != null)
 			  {
@@ -45,7 +44,7 @@ public class IssueStats {
 		return stats;
 	}
 	
-	private static Pair<TrackedIssue, Float> parseStat(String line)
+	private static Pair<TrackedIssue, Integer> parseStat(String line)
 	{
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
@@ -53,7 +52,7 @@ public class IssueStats {
 			Matcher matcher = pattern.matcher(line);
 		    
 		    if (matcher.find()) {
-		    	Float value = Float.parseFloat(matcher.group(1));
+		    	Integer value = Integer.parseInt(matcher.group(1));
 		    	
 		    	return Pair.of(issue, value);
 		    }
@@ -62,17 +61,17 @@ public class IssueStats {
 		return null;
 	}
 	
-	public float getStat(TrackedIssue issue)
+	public int getStat(TrackedIssue issue)
 	{
-		return stats.getOrDefault(issue, 0.0f);
+		return stats.getOrDefault(issue, 0);
 	}
 	
-	public void setStat(TrackedIssue issue, float value)
+	public void setStat(TrackedIssue issue, int value)
 	{
 		stats.put(issue, value);
 	}
 	
-	public void addStat(TrackedIssue issue, float value)
+	public void addStat(TrackedIssue issue, int value)
 	{
 		stats.put(issue, getStat(issue) + value);
 	}
@@ -91,13 +90,13 @@ public class IssueStats {
 		return result;
 	}
 	
-	public IssueStats divide(float divisor)
+	public IssueStats divide(int divisor)
 	{
 		IssueStats result = new IssueStats();
 		
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
-			result.setStat(issue, getStat(issue) / divisor);
+			result.setStat(issue, Math.round((float)getStat(issue) / divisor));
 		}
 		
 		result.explanation = explanation;
@@ -119,15 +118,17 @@ public class IssueStats {
 		return sb.toString();
 	}
 	
-	private String formatStatValue(float val)
+	private String formatStatValue(int val)
 	{
 		final String sign = (val > 0) ? "+" : (val < 0 ? "-" : "");
 		
-		if (Double.valueOf(Math.floor(val)).equals(Double.valueOf(val)))
-		{
-			return sign + String.valueOf((int)val);
-		}
+//		if (Double.valueOf(Math.floor(val)).equals(Double.valueOf(val)))
+//		{
+//			return sign + String.valueOf((int)val);
+//		}
+//		
+//		return sign + String.format("%.1f", val);
 		
-		return sign + String.format("%.1f", val);
+		return sign + String.valueOf(val);
 	}
 }
