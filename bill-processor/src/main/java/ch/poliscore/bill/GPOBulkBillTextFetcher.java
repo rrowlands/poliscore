@@ -3,6 +3,9 @@ package ch.poliscore.bill;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -32,7 +35,7 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 	
 	public static int[] FETCH_SESSION = new int[] { 1, 2 };
 	
-	public static String[] FETCH_BILL_TYPE = new String[] { "hconres", "hjres", "hr", "hres", "s", "sconres", "sjres", "sres" };
+	public static List<String> FETCH_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
 	@SneakyThrows
 	protected void process()

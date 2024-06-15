@@ -1,5 +1,8 @@
 package ch.poliscore.bill;
 
+import java.util.Arrays;
+import java.util.List;
+
 import lombok.Getter;
 
 @Getter
@@ -13,18 +16,24 @@ public enum BillType {
 	
 	S("s"),
 	
-	SJRES("jsres"),
+	SJRES("sjres"),
 	
 	SRES("sres"),
 	
 	HJRES("hjres"),
 	
 	HR("hr");
+
 	
 	private String name;
 	
 	private BillType(String name)
 	{
 		this.name = name;
+	}
+	
+	public static List<BillType> getIgnoredBillTypes()
+	{
+		return Arrays.asList(BillType.SCONRES, BillType.HCONRES, BillType.HRES, BillType.SRES);
 	}
 }
