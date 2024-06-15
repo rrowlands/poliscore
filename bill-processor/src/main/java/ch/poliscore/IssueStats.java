@@ -90,13 +90,13 @@ public class IssueStats {
 		return result;
 	}
 	
-	public IssueStats divide(int divisor)
+	public IssueStats divide(double divisor)
 	{
 		IssueStats result = new IssueStats();
 		
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
-			result.setStat(issue, Math.round((float)getStat(issue) / divisor));
+			result.setStat(issue, (int) Math.round((double)getStat(issue) / divisor));
 		}
 		
 		result.explanation = explanation;
@@ -104,13 +104,13 @@ public class IssueStats {
 		return result;
 	}
 	
-	public IssueStats multiply(float multiplier)
+	public IssueStats multiply(double multiplier)
 	{
 		IssueStats result = new IssueStats();
 		
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
-			result.setStat(issue, Math.round((float)getStat(issue) * multiplier));
+			result.setStat(issue, (int) Math.round((double)getStat(issue) * multiplier));
 		}
 		
 		result.explanation = explanation;

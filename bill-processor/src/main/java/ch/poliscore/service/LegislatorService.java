@@ -67,7 +67,7 @@ public class LegislatorService {
 	{
 		IssueStats stats = new IssueStats();
 		
-		int count = 0;
+		double weightSum = 0;
 		
 		for (val interact : leg.getInteractions())
 		{
@@ -75,11 +75,12 @@ public class LegislatorService {
 			{
 				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
 				stats = stats.sum(weightedStats);
-				count++;
+				weightSum += interact.getJudgementWeight();
 			}
 		}
 		
-		stats = stats.divide(count);
+		if (weightSum != 0)
+			stats = stats.divide(weightSum);
 		
 		leg.setIssueStats(stats);
 	}

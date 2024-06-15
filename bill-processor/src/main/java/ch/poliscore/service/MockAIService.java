@@ -8,6 +8,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 @Priority(1)
 public class MockAIService extends OpenAIService {
+	
+	private int num = 1;
+	
 	public String chat(String systemMsg, String userMsg)
     {
 //		return buildAggregateResponse();
@@ -21,9 +24,9 @@ public class MockAIService extends OpenAIService {
 		IssueStats stats = new IssueStats();
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
-			stats.addStat(issue, 1);
+			stats.addStat(issue, num);
 		}
-		stats.explanation = "Test Explanation 1.";
+		stats.explanation = "Test Explanation " + num++;
 		return stats.toString();
 	}
 	
