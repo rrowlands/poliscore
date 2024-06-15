@@ -40,7 +40,7 @@ public class BillInterpretation implements Persistable
 		this.text = text;
 		this.issueStats = IssueStats.parse(text);
 		
-		this.id = billId + "/" + getName();
+		this.calculateId();
 	}
 	
 	public void setText(String text)
@@ -65,6 +65,16 @@ public class BillInterpretation implements Persistable
 		else
 		{
 			return bill.getName();
+		}
+	}
+
+	public void calculateId()
+	{
+		this.id = bill.getCongress() + "/" + bill.getType() + "/" + bill.getId();
+		
+		if (metadata instanceof OpenAISliceInterpretationMetadata)
+		{
+			this.id += "-" + ((OpenAISliceInterpretationMetadata)metadata).getSliceIndex();
 		}
 	}
 }

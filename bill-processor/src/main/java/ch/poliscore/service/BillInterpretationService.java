@@ -39,7 +39,7 @@ public class BillInterpretationService {
 	protected OpenAIService ai;
 	
 	@Inject
-	protected PersistenceServiceIF pService;
+	protected S3PersistenceService s3;
 	
 	public BillInterpretation interpret(Bill bill)
 	{
@@ -91,6 +91,7 @@ public class BillInterpretationService {
 		aggregateStats.explanation = ai.chat(summaryPrompt, aggregateStats.explanation);
 		
 		bi.setText(aggregateStats.toString());
+		bi.calculateId();
 		
 		return bi;
 	}
@@ -113,12 +114,13 @@ public class BillInterpretationService {
 		}
 		
 		bi.setText(interpText);
+		bi.calculateId();
 		
 		return bi;
 	}
     
     protected void archiveInterpretation(BillInterpretation interp)
     {
-    	pService.store(interp);
+    	s3.store(interp);
     }
 }

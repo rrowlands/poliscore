@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @ApplicationScoped
 public class S3PersistenceService { // implements PersistenceServiceIF
 	
-	public static final String BUCKET_NAME = "PoliscoreProd";
+	public static final String BUCKET_NAME = "poliscore-prod";
 	
 	@SneakyThrows
 	public void store(Persistable obj)
@@ -23,7 +23,7 @@ public class S3PersistenceService { // implements PersistenceServiceIF
 		
         PutObjectRequest putOb = PutObjectRequest.builder()
                 .bucket(BUCKET_NAME)
-                .key(obj.getId())
+                .key(obj.getId() + ".json")
                 .build();
 
         client.putObject(putOb, RequestBody.fromString(new ObjectMapper().writeValueAsString(obj)));
