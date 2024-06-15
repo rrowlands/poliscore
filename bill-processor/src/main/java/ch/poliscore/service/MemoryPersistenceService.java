@@ -21,7 +21,7 @@ public class MemoryPersistenceService implements PersistenceServiceIF {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T> T retrieve(String id, Class<T> clazz)
+	public <T extends Persistable> T retrieve(String id, Class<T> clazz)
 	{
 		val key = clazz.getName() + SEPARATOR + id;
 		
@@ -33,5 +33,10 @@ public class MemoryPersistenceService implements PersistenceServiceIF {
 		{
 			throw new DataNotFoundException("Object with id [" + id + "] not found.");
 		}
+	}
+	
+	public <T> long count(Class<T> clazz)
+	{
+		return memoryStore.keySet().stream().filter(k -> k.startsWith(clazz.getName() + SEPARATOR)).count();
 	}
 }

@@ -39,6 +39,8 @@ public class BillInterpretation implements Persistable
 		this.billId = bill.getId();
 		this.text = text;
 		this.issueStats = IssueStats.parse(text);
+		
+		this.id = billId + "/" + getName();
 	}
 	
 	public void setText(String text)

@@ -2,14 +2,18 @@ package ch.poliscore.service;
 
 import ch.poliscore.IssueStats;
 import ch.poliscore.TrackedIssue;
-import io.quarkus.test.Mock;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
 
-//@Mock
+@ApplicationScoped
+@Priority(1)
 public class MockAIService extends OpenAIService {
 	public String chat(String systemMsg, String userMsg)
     {
 //		return buildAggregateResponse();
-		return userMsg;
+//		return userMsg;
+		
+		return buildIssueStatsResponse();
     }
 	
 	protected String buildIssueStatsResponse()

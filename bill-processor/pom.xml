@@ -19,9 +19,17 @@
         <quarkus.platform.version>3.10.0</quarkus.platform.version>
         <surefire-plugin.version>3.2.5</surefire-plugin.version>
         <lombok.version>1.18.32</lombok.version>
+        <aws.java.sdk.version>2.26.1</aws.java.sdk.version>
     </properties>
     <dependencyManagement>
         <dependencies>
+			<dependency>
+		        <groupId>software.amazon.awssdk</groupId>
+		        <artifactId>bom</artifactId>
+		        <version>${aws.java.sdk.version}</version>
+		        <type>pom</type>
+		        <scope>import</scope>
+		    </dependency>
             <dependency>
                 <groupId>${quarkus.platform.group-id}</groupId>
                 <artifactId>${quarkus.platform.artifact-id}</artifactId>
@@ -33,6 +41,27 @@
     </dependencyManagement>
     <dependencies>
 		
+		<dependency>
+		    <groupId>net.lingala.zip4j</groupId>
+		    <artifactId>zip4j</artifactId>
+		    <version>2.11.5</version>
+		</dependency>
+		
+		<dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
 		<dependency>
 		    <groupId>org.jsoup</groupId>
 		    <artifactId>jsoup</artifactId>

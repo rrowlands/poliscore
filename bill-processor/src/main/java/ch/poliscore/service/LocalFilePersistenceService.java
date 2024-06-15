@@ -5,9 +5,9 @@ import java.io.File;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.poliscore.DataNotFoundException;
-import ch.poliscore.Environment;
+import ch.poliscore.PoliscoreUtil;
 import ch.poliscore.model.Persistable;
-import io.quarkus.logging.Log;
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.SneakyThrows;
 
@@ -19,7 +19,7 @@ public class LocalFilePersistenceService implements PersistenceServiceIF
 	{
 //		return new File(Environment.getDeployedPath(), "../store");
 		
-		return new File("/Users/rrowlands/data/poliscore/store");
+		return new File(PoliscoreUtil.APP_DATA, "store");
 	}
 	
 	public File getStore(Class<?> clazz)
@@ -53,7 +53,7 @@ public class LocalFilePersistenceService implements PersistenceServiceIF
 
 	@Override
 	@SneakyThrows
-	public <T> T retrieve(String id, Class<T> clazz) throws DataNotFoundException {
+	public <T extends Persistable> T retrieve(String id, Class<T> clazz) throws DataNotFoundException {
 		File billStorage = getStore(clazz);
 		File stored = new File(billStorage, id + ".json");
 		

@@ -2,6 +2,7 @@ package ch.poliscore.model;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -39,6 +40,9 @@ public abstract class LegislatorBillInteration {
 	@EqualsAndHashCode.Exclude
 	protected Date date;
 	
+	@JsonIgnore
+	abstract public float getJudgementWeight();
+	
 	public boolean supercedes(LegislatorBillInteration similar)
 	{
 		return this.equals(similar) && date.after(similar.getDate());
@@ -50,17 +54,23 @@ public abstract class LegislatorBillInteration {
 		
 		protected VoteStatus voteStatus;
 		
+		public float getJudgementWeight() { return 0.5f; }
+		
 	}
 	
 	@Data
 	@EqualsAndHashCode(callSuper=true)
 	public static class LegislatorBillSponsor extends LegislatorBillInteration {
 		
+		public float getJudgementWeight() { return 1.0f; }
+		
 	}
 	
 	@Data
 	@EqualsAndHashCode(callSuper=true)
 	public static class LegislatorBillCosponsor extends LegislatorBillInteration {
+		
+		public float getJudgementWeight() { return 0.7f; }
 		
 	}
 	

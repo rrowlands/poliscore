@@ -104,6 +104,20 @@ public class IssueStats {
 		return result;
 	}
 	
+	public IssueStats multiply(float multiplier)
+	{
+		IssueStats result = new IssueStats();
+		
+		for (TrackedIssue issue : TrackedIssue.values())
+		{
+			result.setStat(issue, Math.round((float)getStat(issue) * multiplier));
+		}
+		
+		result.explanation = explanation;
+		
+		return result;
+	}
+	
 	@Override
 	public String toString()
 	{

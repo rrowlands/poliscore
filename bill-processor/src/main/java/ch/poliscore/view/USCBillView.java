@@ -17,6 +17,10 @@ public class USCBillView {
 	
 	protected String bill_type;
 	
+	protected String number;
+	
+	protected String congress;
+	
 //	protected JsonNode actions;
 	
 //	protected String enacted_as;

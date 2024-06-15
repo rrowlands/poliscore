@@ -1,10 +1,11 @@
 package ch.poliscore;
 
-import software.constructs.Construct;
+import java.util.HashMap;
+import java.util.Map;
+
 import software.amazon.awscdk.Duration;
 import software.amazon.awscdk.RemovalPolicy;
 import software.amazon.awscdk.Stack;
-import software.amazon.awscdk.services.apigateway.*;
 import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.Table;
@@ -13,11 +14,9 @@ import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.FunctionProps;
 import software.amazon.awscdk.services.lambda.Runtime;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import software.amazon.awscdk.services.s3.Bucket;
+import software.amazon.awscdk.services.s3.BucketProps;
+import software.constructs.Construct;
 
 class PoliscoreStack extends Stack {
     public PoliscoreStack(final Construct parent, final String name) {
@@ -50,6 +49,15 @@ class PoliscoreStack extends Stack {
                 .build());
 
         dynamodbTable.grantReadWriteData(getOneItemFunction);
+        
+        
+        
+        
+        new Bucket(this, "PoliscoreProdBucket",
+        		BucketProps.builder()
+        		.bucketName("PoliscoreProd")
+        		.publicReadAccess(false)
+        		.removalPolicy(RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE).build());
         
         
         

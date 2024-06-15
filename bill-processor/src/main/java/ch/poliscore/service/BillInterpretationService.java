@@ -12,16 +12,15 @@ import ch.poliscore.bill.parsing.BillSlicer;
 import ch.poliscore.bill.parsing.XMLBillSlicer;
 import ch.poliscore.model.Bill;
 import ch.poliscore.model.BillInterpretation;
-import jakarta.annotation.Priority;
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-@Priority(4)
 public class BillInterpretationService {
 	
 	final String prompt = """
-			Score the following bill (or bill section) on the estimated impact upon the following sectors of the United States, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful). Include a concise (single paragraph) summary of the bill at the end which references concrete, notable and specific text of the summarized bill where possible. Please format your response as a list in the example format:
+			Score the following bill (or bill section) on the estimated impact upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful). Include a concise (single paragraph) summary of the bill at the end which references concrete, notable and specific text of the summarized bill where possible. Please format your response as a list in the example format:
 
             {issuesList}
 			
@@ -39,8 +38,13 @@ public class BillInterpretationService {
 	@Inject
 	protected OpenAIService ai;
 	
+	@Inject
+	protected PersistenceServiceIF pService;
+	
 	public BillInterpretation interpret(Bill bill)
 	{
+		Log.info("Interpreting bill " + bill.getId() + " " + bill.getName());
+		
 		if (bill.getText().length() >= BillSlicer.MAX_SECTION_LENGTH)
     	{
     		List<BillSlice> slices = new XMLBillSlicer().slice(bill);
@@ -115,6 +119,6 @@ public class BillInterpretationService {
     
     protected void archiveInterpretation(BillInterpretation interp)
     {
-    	// TODO : Dynamodb
+    	pService.store(interp);
     }
 }

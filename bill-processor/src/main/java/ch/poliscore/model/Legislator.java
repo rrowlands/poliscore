@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import ch.poliscore.IssueStats;
 import ch.poliscore.view.USCLegislatorView;
 import lombok.Data;
 
@@ -18,6 +19,8 @@ public class Legislator implements Persistable {
 	protected String thomasId;
 	
 	protected String wikidataId;
+	
+	protected IssueStats issueStats;
 	
 	protected Set<LegislatorBillInteration> interactions = new HashSet<LegislatorBillInteration>();
 	

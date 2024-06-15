@@ -13,19 +13,17 @@ public class Bill implements Persistable {
 	@JsonIgnore
 	private String text;
 	
-	private String id;
+	private int congress;
 	
-//	private int number;
-//	
-//	private int session;
+	private String type;
+	
+	private int number;
 	
 	private String name;
 	
 	private String statusUrl;
 	
 //	private String textUrl;
-	
-	private String type;
 	
 	private USCBillSponsor sponsor;
 	
@@ -39,5 +37,20 @@ public class Bill implements Persistable {
 	public String getTextUrl()
 	{
 		return "";
+	}
+	
+	public String getPoliscoreId()
+	{
+		return congress + "-" + type + "-" + number;
+	}
+	
+	public String getUSCId()
+	{
+		return type + number + "-" + congress;
+	}
+	
+	public String getId()
+	{
+		return getPoliscoreId();
 	}
 }

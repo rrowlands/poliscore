@@ -7,5 +7,5 @@ public interface PersistenceServiceIF
 {
 	public void store(Persistable obj);
 	
-	public <T> T retrieve(String id, Class<T> clazz) throws DataNotFoundException;
+	public <T extends Persistable> T retrieve(String id, Class<T> clazz) throws DataNotFoundException;
 }

@@ -8,6 +8,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ch.poliscore.DataNotFoundException;
 import ch.poliscore.model.Bill;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillCosponsor;
@@ -39,9 +40,10 @@ public class BillService {
     	val bill = new Bill();
 //    	bill.setText(text);
     	bill.setName(view.getShort_title());
-    	bill.setStatusUrl(view.getUrl());
-    	bill.setId(view.getBill_id());
+    	bill.setCongress(Integer.parseInt(view.getCongress()));
     	bill.setType(view.getBill_type());
+    	bill.setNumber(Integer.parseInt(view.getNumber()));
+    	bill.setStatusUrl(view.getUrl());
     	bill.setLastUpdated(view.getUpdated_at());
     	bill.setSponsor(view.getSponsor());
     	bill.setCosponsors(view.getCosponsors());
@@ -110,14 +112,19 @@ public class BillService {
     }
     
     @SneakyThrows
-    protected String fetchBillText(String url)
+    protected void populateBillText(Bill bill)
     {
-    	String billText = IOUtils.toString(new URL(url), "UTF-8");
-    	
-    	System.out.println("Fetched bill text from url [" + url + "].");
-    	
-    	return billText;
+//    	String billText = IOUtils.toString(new URL(url), "UTF-8");
+//    	
+//    	System.out.println("Fetched bill text from url [" + url + "].");
+//    	
+//    	return billText;
     }
+    
+    public Bill getById(String id) throws DataNotFoundException
+	{
+		return pServ.retrieve(id, Bill.class);
+	}
     
     protected void archiveBill(Bill bill)
     {

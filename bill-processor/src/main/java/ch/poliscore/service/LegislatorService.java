@@ -8,12 +8,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.poliscore.DataNotFoundException;
+import ch.poliscore.IssueStats;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.view.USCLegislatorView;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
+import lombok.val;
 
 @ApplicationScoped
 public class LegislatorService {
@@ -59,6 +61,24 @@ public class LegislatorService {
 	public void persist(Legislator leg)
 	{
 		pServ.store(leg);
+	}
+
+	public void interpret(Legislator leg)
+	{
+		IssueStats stats = new IssueStats();
+		
+		for (val interact : leg.getInteractions())
+		{
+			if (interact.getIssueStats() != null)
+			{
+				interact.getIssueStats().multiply(interact.getJudgementWeight());
+				stats.sum(interact.getIssueStats());
+			}
+		}
+		
+		stats.divide(leg.getInteractions().size());
+		
+		leg.setIssueStats(stats);
 	}
 	
 }
