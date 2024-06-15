@@ -67,16 +67,19 @@ public class LegislatorService {
 	{
 		IssueStats stats = new IssueStats();
 		
+		int count = 0;
+		
 		for (val interact : leg.getInteractions())
 		{
 			if (interact.getIssueStats() != null)
 			{
-				interact.getIssueStats().multiply(interact.getJudgementWeight());
-				stats.sum(interact.getIssueStats());
+				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
+				stats = stats.sum(weightedStats);
+				count++;
 			}
 		}
 		
-		stats.divide(leg.getInteractions().size());
+		stats = stats.divide(count);
 		
 		leg.setIssueStats(stats);
 	}
