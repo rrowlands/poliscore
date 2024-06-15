@@ -13,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ch.poliscore.bill.BillType;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.service.BillService;
 import ch.poliscore.service.LegislatorService;
@@ -64,29 +65,36 @@ public class USCDataImporter implements QuarkusApplication
 		{
 			Log.info("Processing " + fCongress.getName() + " congress");
 			
-			int count = 0;
-			for (File data : PoliscoreUtil.allFilesWhere(new File(fCongress, "bills"), f -> f.getName().equals("data.json")))
+			for (BillType bt : BillType.values())
 			{
-				try (var fos = new FileInputStream(data))
-				{
-					billService.importUscData(fos);
-					count++;
-					totalBills++;
-				}
-			}
-			Log.info("Imported " + count + " bills");
+				Log.info("Processing bill types " + bt.getName() + " congress");
+				
+				File fBillType = new File(fCongress, "bills/" + bt.getName().toLowerCase());
 			
-			count = 0;
-			for (File data : PoliscoreUtil.allFilesWhere(new File(fCongress, "votes"), f -> f.getName().equals("data.json")))
-			{
-				try (var fos = new FileInputStream(data))
+				int count = 0;
+				for (File data : PoliscoreUtil.allFilesWhere(fBillType, f -> f.getName().equals("data.json")))
 				{
-					rollCallService.importUscData(fos);
-					count++;
-					totalVotes++;
+					try (var fos = new FileInputStream(data))
+					{
+						billService.importUscData(fos);
+						count++;
+						totalBills++;
+					}
 				}
+				Log.info("Imported " + count + " bills");
+				
+				count = 0;
+				for (File data : PoliscoreUtil.allFilesWhere(fBillType, f -> f.getName().equals("data.json")))
+				{
+					try (var fos = new FileInputStream(data))
+					{
+						rollCallService.importUscData(fos);
+						count++;
+						totalVotes++;
+					}
+				}
+				Log.info("Imported " + count + " votes");
 			}
-			Log.info("Imported " + count + " votes");
 		}
 		
 		legInterp.process();
