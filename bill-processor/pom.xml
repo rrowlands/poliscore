@@ -89,9 +89,20 @@
 		</dependency>
 		<dependency>
 		    <groupId>software.amazon.awssdk</groupId>
-		    <artifactId>secretsmanager</artifactId>
-		    <version>2.25.52</version>
+		    <artifactId>dynamodb</artifactId>
 		</dependency>
+		<dependency>
+	      <groupId>software.amazon.awssdk</groupId>
+	      <artifactId>dynamodb-enhanced</artifactId>
+	    </dependency>
+		<dependency>
+		    <groupId>software.amazon.awssdk</groupId>
+		    <artifactId>secretsmanager</artifactId>
+		</dependency>
+		<dependency>
+	      <groupId>software.amazon.awssdk</groupId>
+	      <artifactId>dynamodb-enhanced</artifactId>
+	    </dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>

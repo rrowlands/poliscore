@@ -3,22 +3,18 @@ package ch.poliscore;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ch.poliscore.bill.BillType;
+import ch.poliscore.interpretation.BillType;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.service.BillService;
+import ch.poliscore.service.LegislatorInterpretationService;
 import ch.poliscore.service.LegislatorService;
-import ch.poliscore.service.PersistenceServiceIF;
 import ch.poliscore.service.RollCallService;
+import ch.poliscore.service.storage.LocalFilePersistenceService;
+import ch.poliscore.service.storage.MemoryPersistenceService;
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
@@ -33,7 +29,10 @@ import lombok.val;
 public class USCDataImporter implements QuarkusApplication
 {
 	@Inject
-	private PersistenceServiceIF pService;
+	private MemoryPersistenceService memService;
+	
+	@Inject
+	private LocalFilePersistenceService localStore;
 	
 	@Inject
 	private BillService billService;
@@ -45,7 +44,9 @@ public class USCDataImporter implements QuarkusApplication
 	private RollCallService rollCallService;
 	
 	@Inject
-	private LegislatorBillInterpreter legInterp;
+	private LegislatorInterpretationService legInterp;
+	
+	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
 	public static void main(String[] args) {
 		Quarkus.run(USCDataImporter.class, args);
@@ -65,11 +66,11 @@ public class USCDataImporter implements QuarkusApplication
 		{
 			Log.info("Processing " + fCongress.getName() + " congress");
 			
-			for (BillType bt : BillType.values())
+			for (val bt : PROCESS_BILL_TYPE)
 			{
-				Log.info("Processing bill types " + bt.getName() + " congress");
+				Log.info("Processing bill types " + bt + " congress");
 				
-				File fBillType = new File(fCongress, "bills/" + bt.getName().toLowerCase());
+				File fBillType = new File(fCongress, "bills/" + bt);
 			
 				int count = 0;
 				for (File data : PoliscoreUtil.allFilesWhere(fBillType, f -> f.getName().equals("data.json")))
@@ -97,12 +98,16 @@ public class USCDataImporter implements QuarkusApplication
 			}
 		}
 		
-		legInterp.process();
+		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
+		{
+			legInterp.getOrCreate(legId);
+			
+			val legislator = memService.retrieve(legId, Legislator.class).orElseThrow();
+			
+			localStore.store(legislator);
+		}
 		
 		Log.info("USC import complete. Imported " + totalBills + " bills and " + totalVotes + " votes.");
-		
-		Log.info("Printing Bernie Sanders for testing to " + new File(PoliscoreUtil.APP_DATA, "bernie.json").getAbsolutePath());
-		FileUtils.write(new File(PoliscoreUtil.APP_DATA, "bernie.json"), new ObjectMapper().valueToTree(pService.retrieve(PoliscoreUtil.BERNIE_SANDERS_ID, Legislator.class)).toPrettyString(), "UTF-8");
 	}
 	
 	@Override

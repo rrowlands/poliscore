@@ -1,4 +1,4 @@
-package ch.poliscore.bill;
+package ch.poliscore.interpretation;
 
 import org.apache.commons.io.FilenameUtils;
 

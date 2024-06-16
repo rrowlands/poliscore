@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import ch.poliscore.interpretation.BillType;
 import ch.poliscore.view.USCBillView.USCBillSponsor;
 import lombok.Data;
 
@@ -15,7 +16,7 @@ public class Bill implements Persistable {
 	
 	private int congress;
 	
-	private String type;
+	private BillType type;
 	
 	private int number;
 	
@@ -29,7 +30,7 @@ public class Bill implements Persistable {
 	
 	private List<USCBillSponsor> cosponsors;
 	
-	private Date lastUpdated;
+	private Date introducedDate;
 	
 //	private LegislativeChamber originatingChamber;
 	
@@ -41,16 +42,21 @@ public class Bill implements Persistable {
 	
 	public String getPoliscoreId()
 	{
-		return congress + "-" + type + "-" + number;
+		return generateId(congress, type, number);
 	}
 	
 	public String getUSCId()
 	{
-		return type + number + "-" + congress;
+		return type.getName().toLowerCase() + number + "-" + congress;
 	}
 	
 	public String getId()
 	{
 		return getPoliscoreId();
+	}
+	
+	public static String generateId(int congress, BillType type, int number)
+	{
+		return congress + "/" + type.getName().toLowerCase() + "/" + number;
 	}
 }

@@ -18,7 +18,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 
-//@ApplicationScoped
+@ApplicationScoped
 public class OpenAIService {
 	public static final String MODEL = "gpt-4o";
 	

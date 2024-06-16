@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import ch.poliscore.IssueStats;
 import ch.poliscore.VoteStatus;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillCosponsor;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillSponsor;

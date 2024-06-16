@@ -3,18 +3,22 @@ package ch.poliscore.service;
 import java.util.Arrays;
 import java.util.List;
 
-import ch.poliscore.IssueStats;
+import ch.poliscore.DataNotFoundException;
 import ch.poliscore.TrackedIssue;
-import ch.poliscore.bill.OpenAIInterpretationMetadata;
-import ch.poliscore.bill.OpenAISliceInterpretationMetadata;
 import ch.poliscore.bill.parsing.BillSlice;
 import ch.poliscore.bill.parsing.BillSlicer;
 import ch.poliscore.bill.parsing.XMLBillSlicer;
+import ch.poliscore.interpretation.OpenAIInterpretationMetadata;
+import ch.poliscore.interpretation.OpenAISliceInterpretationMetadata;
 import ch.poliscore.model.Bill;
 import ch.poliscore.model.BillInterpretation;
+import ch.poliscore.model.IssueStats;
+import ch.poliscore.service.storage.ApplicationDataStoreIF;
+import ch.poliscore.service.storage.S3PersistenceService;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.val;
 
 @ApplicationScoped
 public class BillInterpretationService {
@@ -39,13 +43,41 @@ public class BillInterpretationService {
 	protected OpenAIService ai;
 	
 	@Inject
+	protected ApplicationDataStoreIF pService;
+	
+	@Inject
 	protected S3PersistenceService s3;
 	
-	public BillInterpretation interpret(Bill bill)
+	@Inject
+	protected BillService billService;
+	
+	public BillInterpretation getOrCreate(String billId)
+	{
+		val bill = billService.getById(billId).orElseThrow();
+		val interpId = calculateInterpId(bill, OpenAIInterpretationMetadata.construct());
+		val cached = s3.retrieve(interpId, BillInterpretation.class);
+		
+		if (cached.isPresent())
+		{
+			return cached.get();
+		}
+		else
+		{
+			val interp = interpret(bill);
+			
+			return interp;
+		}
+	}
+	
+	protected BillInterpretation interpret(Bill bill)
 	{
 		Log.info("Interpreting bill " + bill.getId() + " " + bill.getName());
 		
-		if (bill.getText().length() >= BillSlicer.MAX_SECTION_LENGTH)
+		val billText = billService.getBillText(bill).orElseThrow();
+		
+		bill.setText(billText);
+		
+		if (billText.length() >= BillSlicer.MAX_SECTION_LENGTH)
     	{
     		List<BillSlice> slices = new XMLBillSlicer().slice(bill);
     		
@@ -57,70 +89,102 @@ public class BillInterpretationService {
 	    		{
 	    			BillSlice slice = slices.get(i);
 	    			
-	    			BillInterpretation sliceInterp = fetchInterpretation(bill, slice);
-	    			
-	    			archiveInterpretation(sliceInterp);
+	    			BillInterpretation sliceInterp = getOrCreateInterpretation(bill, slice);
 	    			
 	    			billStats = billStats.sum(sliceInterp.getIssueStats());
 	    		}
 	    		
 	    		billStats = billStats.divide(slices.size()); // Dividing by the total slices here gives us an average
 	    		
- 	    		var bi = fetchAggregateInterpretation(bill, billStats);
-	    		
-	    		System.out.println(bi.getIssueStats().toString());	    		
-	    		archiveInterpretation(bi);
+ 	    		var bi = getOrCreateAggregateInterpretation(bill, billStats);
 	    		
 	    		return bi;
     		}
     	}
 		
-		var bi = fetchInterpretation(bill, null);
+		var bi = getOrCreateInterpretation(bill, null);
 		
-		archiveInterpretation(bi);
-    	
     	return bi;
 	}
 	
-	protected BillInterpretation fetchAggregateInterpretation(Bill bill, IssueStats aggregateStats)
+	protected BillInterpretation getOrCreateAggregateInterpretation(Bill bill, IssueStats aggregateStats)
 	{
-		BillInterpretation bi = new BillInterpretation();
-		bi.setBill(bill);
-		bi.setMetadata(OpenAIInterpretationMetadata.construct());
-		
-		aggregateStats.explanation = ai.chat(summaryPrompt, aggregateStats.explanation);
-		
-		bi.setText(aggregateStats.toString());
-		bi.calculateId();
-		
-		return bi;
+		val meta = OpenAIInterpretationMetadata.construct();
+		val id = calculateInterpId(bill, meta);
+//		val cached = s3.retrieve(id, BillInterpretation.class);
+//		
+//		if (cached.isPresent())
+//		{
+//			return cached.get();
+//		}
+//		else
+//		{
+			BillInterpretation bi = new BillInterpretation();
+			bi.setBill(bill);
+			bi.setMetadata(meta);
+			
+			aggregateStats.setExplanation(ai.chat(summaryPrompt, aggregateStats.getExplanation()));
+			
+			bi.setText(aggregateStats.toString());
+			bi.setId(id);
+			
+			archive(bi);
+			
+			return bi;
+//		}
 	}
 	
-	protected BillInterpretation fetchInterpretation(Bill bill, BillSlice slice)
+	protected BillInterpretation getOrCreateInterpretation(Bill bill, BillSlice slice)
 	{
-		BillInterpretation bi = new BillInterpretation();
-		bi.setBill(bill);
+		val meta = slice == null ? OpenAIInterpretationMetadata.construct() : OpenAISliceInterpretationMetadata.construct(slice);
+		val id = calculateInterpId(bill, meta);
+		val cached = s3.retrieve(id, BillInterpretation.class);
 		
-		String interpText;
-		if (slice == null)
+		if (cached.isPresent())
 		{
-			interpText = ai.chat(systemMsg, bill.getText());
-			bi.setMetadata(OpenAIInterpretationMetadata.construct());
+			return cached.get();
 		}
 		else
 		{
-			interpText = ai.chat(systemMsg, slice.getText());
-			bi.setMetadata(OpenAISliceInterpretationMetadata.construct(slice));
+			BillInterpretation bi = new BillInterpretation();
+			bi.setBill(bill);
+			
+			String interpText;
+			if (slice == null)
+			{
+				interpText = ai.chat(systemMsg, bill.getText());
+				bi.setMetadata(meta);
+			}
+			else
+			{
+				interpText = ai.chat(systemMsg, slice.getText());
+				bi.setMetadata(meta);
+			}
+			
+			bi.setText(interpText);
+			bi.setId(id);
+			
+			archive(bi);
+			
+			return bi;
+		}
+	}
+	
+	protected String calculateInterpId(Bill bill, OpenAIInterpretationMetadata metadata)
+	{
+		var id = bill.getId();
+		
+		if (metadata instanceof OpenAISliceInterpretationMetadata)
+		{
+			id += "-" + ((OpenAISliceInterpretationMetadata)metadata).getSliceIndex();
 		}
 		
-		bi.setText(interpText);
-		bi.calculateId();
-		
-		return bi;
+		return id;
 	}
     
-    protected void archiveInterpretation(BillInterpretation interp)
+    protected void archive(BillInterpretation interp)
     {
     	s3.store(interp);
+    	pService.store(interp);
     }
 }

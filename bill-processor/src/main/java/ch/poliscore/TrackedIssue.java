@@ -20,7 +20,7 @@ public enum TrackedIssue
 	WildlifeAndForestManagement("Wildlife and Forest Management"),
 	PublicLandsAndNaturalResources("Public Lands and Natural Resources"),
 	EnvironmentalManagementAndClimateChange("Environmental Management and Climate Change"),
-	Feasability("Feasability"),
+//	Feasibility("Feasibility"),
 	OverallBenefitToSociety("Overall Benefit to Society");
 	
 	private String name;

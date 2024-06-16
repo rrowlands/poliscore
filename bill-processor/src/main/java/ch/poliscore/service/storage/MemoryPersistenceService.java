@@ -1,15 +1,17 @@
-package ch.poliscore.service;
+package ch.poliscore.service.storage;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
-import ch.poliscore.DataNotFoundException;
 import ch.poliscore.model.Persistable;
+import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.val;
 
 @ApplicationScoped
-public class MemoryPersistenceService implements PersistenceServiceIF {
+@DefaultBean
+public class MemoryPersistenceService implements ApplicationDataStoreIF {
 	
 	private static final String SEPARATOR = "~~~~";
 	
@@ -21,22 +23,29 @@ public class MemoryPersistenceService implements PersistenceServiceIF {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Persistable> T retrieve(String id, Class<T> clazz)
+	public <T extends Persistable> Optional<T> retrieve(String id, Class<T> clazz)
 	{
 		val key = clazz.getName() + SEPARATOR + id;
 		
 		if (memoryStore.containsKey(key))
 		{
-			return (T) memoryStore.get(key);
+			return Optional.of((T) memoryStore.get(key));
 		}
 		else
 		{
-			throw new DataNotFoundException("Object with id [" + id + "] not found.");
+			return Optional.empty();
 		}
 	}
 	
 	public <T> long count(Class<T> clazz)
 	{
 		return memoryStore.keySet().stream().filter(k -> k.startsWith(clazz.getName() + SEPARATOR)).count();
+	}
+	
+	public <T> boolean contains(String id, Class<T> clazz)
+	{
+		val key = clazz.getName() + SEPARATOR + id;
+		
+		return memoryStore.containsKey(key);
 	}
 }

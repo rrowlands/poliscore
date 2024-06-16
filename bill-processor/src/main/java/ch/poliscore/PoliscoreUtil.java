@@ -18,6 +18,14 @@ public class PoliscoreUtil {
 	
 	public static String BERNIE_SANDERS_ID = "S000033";
 	
+	public static String MIKE_JOHNSON_ID = "J000299";
+	
+	public static String MITT_ROMNEY_ID = "R000615";
+	
+	public static String JOE_BIDEN_ID = "B000444";
+	
+	public static String[] SPRINT_1_LEGISLATORS = new String[] { BERNIE_SANDERS_ID }; // MIKE_JOHNSON_ID, MITT_ROMNEY_ID, JOE_BIDEN_ID
+	
 	public static List<File> allFilesWhere(File parent, Predicate<File> criteria)
 	{
 		List<File> all = new ArrayList<File>();

@@ -2,26 +2,25 @@ package ch.poliscore.service;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Optional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ch.poliscore.DataNotFoundException;
-import ch.poliscore.IssueStats;
 import ch.poliscore.model.Legislator;
+import ch.poliscore.service.storage.ApplicationDataStoreIF;
 import ch.poliscore.view.USCLegislatorView;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
-import lombok.val;
 
 @ApplicationScoped
 public class LegislatorService {
 	
 	@Inject
-	private PersistenceServiceIF pServ;
+	private ApplicationDataStoreIF pServ;
 	
 	@SneakyThrows
 	public void importLegislators()
@@ -53,7 +52,7 @@ public class LegislatorService {
 		Log.info("Imported " + count + " politicians");
 	}
 	
-	public Legislator getById(String id) throws DataNotFoundException
+	public Optional<Legislator> getById(String id)
 	{
 		return pServ.retrieve(id, Legislator.class);
 	}
@@ -61,28 +60,6 @@ public class LegislatorService {
 	public void persist(Legislator leg)
 	{
 		pServ.store(leg);
-	}
-
-	public void interpret(Legislator leg)
-	{
-		IssueStats stats = new IssueStats();
-		
-		double weightSum = 0;
-		
-		for (val interact : leg.getInteractions())
-		{
-			if (interact.getIssueStats() != null)
-			{
-				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
-				stats = stats.sum(weightedStats);
-				weightSum += interact.getJudgementWeight();
-			}
-		}
-		
-		if (weightSum != 0)
-			stats = stats.divide(weightSum);
-		
-		leg.setIssueStats(stats);
 	}
 	
 }

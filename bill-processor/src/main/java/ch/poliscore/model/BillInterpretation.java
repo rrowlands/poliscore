@@ -2,9 +2,8 @@ package ch.poliscore.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import ch.poliscore.IssueStats;
-import ch.poliscore.bill.OpenAIInterpretationMetadata;
-import ch.poliscore.bill.OpenAISliceInterpretationMetadata;
+import ch.poliscore.interpretation.OpenAIInterpretationMetadata;
+import ch.poliscore.interpretation.OpenAISliceInterpretationMetadata;
 import lombok.Data;
 
 @Data
@@ -39,8 +38,6 @@ public class BillInterpretation implements Persistable
 		this.billId = bill.getId();
 		this.text = text;
 		this.issueStats = IssueStats.parse(text);
-		
-		this.calculateId();
 	}
 	
 	public void setText(String text)
@@ -65,16 +62,6 @@ public class BillInterpretation implements Persistable
 		else
 		{
 			return bill.getName();
-		}
-	}
-
-	public void calculateId()
-	{
-		this.id = bill.getCongress() + "/" + bill.getType() + "/" + bill.getId();
-		
-		if (metadata instanceof OpenAISliceInterpretationMetadata)
-		{
-			this.id += "-" + ((OpenAISliceInterpretationMetadata)metadata).getSliceIndex();
 		}
 	}
 }

@@ -1,12 +1,12 @@
 package ch.poliscore.service;
 
-import ch.poliscore.IssueStats;
 import ch.poliscore.TrackedIssue;
+import ch.poliscore.model.IssueStats;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 
-@ApplicationScoped
-@Priority(1)
+//@ApplicationScoped
+//@Priority(1)
 public class MockAIService extends OpenAIService {
 	
 	private int num = 1;
@@ -26,7 +26,7 @@ public class MockAIService extends OpenAIService {
 		{
 			stats.addStat(issue, num);
 		}
-		stats.explanation = "Test Explanation " + num++;
+		stats.setExplanation("Test Explanation " + num++);
 		return stats.toString();
 	}
 	

@@ -3,13 +3,14 @@ package ch.poliscore.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import ch.poliscore.IssueStats;
 import ch.poliscore.view.USCLegislatorView;
 import lombok.Data;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @Data
+@DynamoDbBean
 public class Legislator implements Persistable {
 	
 	protected USCLegislatorView.USCLegislatorName name;
@@ -20,11 +21,11 @@ public class Legislator implements Persistable {
 	
 	protected String wikidataId;
 	
-	protected IssueStats issueStats;
+	protected LegislatorInterpretation interpretation;
 	
 	protected Set<LegislatorBillInteration> interactions = new HashSet<LegislatorBillInteration>();
 	
-	@JsonIgnore
+	@DynamoDbPartitionKey
 	public String getId()
 	{
 		if (bioguideId != null) return getBioguideId();

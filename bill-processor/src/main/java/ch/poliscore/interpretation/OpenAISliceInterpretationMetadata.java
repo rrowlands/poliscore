@@ -1,4 +1,4 @@
-package ch.poliscore.bill;
+package ch.poliscore.interpretation;
 
 import ch.poliscore.bill.parsing.BillSlice;
 import ch.poliscore.service.OpenAIService;

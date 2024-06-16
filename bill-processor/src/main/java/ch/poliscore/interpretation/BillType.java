@@ -1,4 +1,4 @@
-package ch.poliscore.bill;
+package ch.poliscore.interpretation;
 
 import java.util.Arrays;
 import java.util.List;

@@ -1,17 +1,18 @@
-package ch.poliscore.service;
+package ch.poliscore.service.storage;
 
 import java.io.File;
+import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ch.poliscore.DataNotFoundException;
 import ch.poliscore.PoliscoreUtil;
 import ch.poliscore.model.Persistable;
-import jakarta.annotation.Priority;
+import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
 import lombok.SneakyThrows;
 
-//@ApplicationScoped
+@ApplicationScoped
 public class LocalFilePersistenceService implements PersistenceServiceIF
 {
 
@@ -39,7 +40,6 @@ public class LocalFilePersistenceService implements PersistenceServiceIF
 		return f;
 	}
 	
-	@Override
 	@SneakyThrows
 	public void store(Persistable obj) {
 		File storage = getStore(obj.getClass());
@@ -51,16 +51,17 @@ public class LocalFilePersistenceService implements PersistenceServiceIF
 //		Log.info("Wrote file to " + out.getAbsolutePath());
 	}
 
-	@Override
 	@SneakyThrows
-	public <T extends Persistable> T retrieve(String id, Class<T> clazz) throws DataNotFoundException {
+	public <T extends Persistable> Optional<T> retrieve(String id, Class<T> clazz)
+	{
 		File billStorage = getStore(clazz);
 		File stored = new File(billStorage, id + ".json");
 		
-		if (!stored.exists()) throw new DataNotFoundException("Could not find " + clazz.getName() + " with id " + id);
+		if (!stored.exists())
+			return Optional.empty();
 		
 		var mapper = new ObjectMapper();
-		return mapper.readValue(stored, clazz);
+		return Optional.of(mapper.readValue(stored, clazz));
 	}
 	
 }

@@ -1,18 +1,23 @@
 package ch.poliscore.service;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.net.URI;
-import java.net.URL;
+import java.util.Arrays;
+import java.util.Optional;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ch.poliscore.DataNotFoundException;
+import ch.poliscore.PoliscoreUtil;
+import ch.poliscore.interpretation.BillTextPublishVersion;
+import ch.poliscore.interpretation.BillType;
 import ch.poliscore.model.Bill;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillCosponsor;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillSponsor;
+import ch.poliscore.service.storage.ApplicationDataStoreIF;
 import ch.poliscore.view.USCBillView;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -26,7 +31,7 @@ import software.amazon.awssdk.utils.StringUtils;
 public class BillService {
 	
 	@Inject
-	private PersistenceServiceIF pServ;
+	private ApplicationDataStoreIF pServ;
 	
 	@Inject
 	protected LegislatorService lService;
@@ -41,20 +46,20 @@ public class BillService {
 //    	bill.setText(text);
     	bill.setName(view.getShort_title());
     	bill.setCongress(Integer.parseInt(view.getCongress()));
-    	bill.setType(view.getBill_type());
+    	bill.setType(BillType.valueOf(view.getBill_type().toUpperCase()));
     	bill.setNumber(Integer.parseInt(view.getNumber()));
     	bill.setStatusUrl(view.getUrl());
-    	bill.setLastUpdated(view.getUpdated_at());
+    	bill.setIntroducedDate(view.getIntroduced_at());
     	bill.setSponsor(view.getSponsor());
     	bill.setCosponsors(view.getCosponsors());
     	
     	if (view.getSponsor() != null && !StringUtils.isBlank(view.getSponsor().getBioguide_id()))
     	{
-			Legislator leg = lService.getById(view.getSponsor().getBioguide_id());
+			Legislator leg = lService.getById(view.getSponsor().getBioguide_id()).orElseThrow();
 			
 			LegislatorBillSponsor interaction = new LegislatorBillSponsor();
 			interaction.setBillId(bill.getId());
-			interaction.setDate(view.getUpdated_at());
+			interaction.setDate(view.getIntroduced_at());
 			leg.addBillInteraction(interaction);
 			
 			lService.persist(leg);
@@ -62,11 +67,11 @@ public class BillService {
     	
     	view.getCosponsors().forEach(cs -> {
     		if (!StringUtils.isBlank(cs.getBioguide_id())) {
-	    		Legislator leg = lService.getById(cs.getBioguide_id());
+	    		Legislator leg = lService.getById(cs.getBioguide_id()).orElseThrow();
 				
 				LegislatorBillCosponsor interaction = new LegislatorBillCosponsor();
 				interaction.setBillId(bill.getId());
-				interaction.setDate(view.getUpdated_at());
+				interaction.setDate(view.getIntroduced_at());
 				leg.addBillInteraction(interaction);
 				
 				lService.persist(leg);
@@ -112,16 +117,26 @@ public class BillService {
     }
     
     @SneakyThrows
-    protected void populateBillText(Bill bill)
-    {
-//    	String billText = IOUtils.toString(new URL(url), "UTF-8");
-//    	
-//    	System.out.println("Fetched bill text from url [" + url + "].");
-//    	
-//    	return billText;
-    }
+	protected Optional<String> getBillText(Bill bill)
+	{
+		val parent = new File(PoliscoreUtil.APP_DATA, "bill-text/" + bill.getCongress() + "/" + bill.getType());
+		
+		val text = Arrays.asList(parent.listFiles()).stream()
+				.filter(f -> f.getName().contains(bill.getCongress() + bill.getType().getName().toLowerCase() + bill.getNumber()))
+				.sorted((a,b) -> BillTextPublishVersion.parseFromBillTextName(a.getName()).billMaturityCompareTo(BillTextPublishVersion.parseFromBillTextName(b.getName())))
+				.findFirst();
+		
+		if (text.isPresent())
+		{
+			return Optional.of(FileUtils.readFileToString(text.get(), "UTF-8"));
+		}
+		else
+		{
+			return Optional.empty();
+		}
+	}
     
-    public Bill getById(String id) throws DataNotFoundException
+    public Optional<Bill> getById(String id)
 	{
 		return pServ.retrieve(id, Bill.class);
 	}

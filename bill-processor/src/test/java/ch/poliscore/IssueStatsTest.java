@@ -3,9 +3,11 @@ package ch.poliscore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import ch.poliscore.model.IssueStats;
+
 public class IssueStatsTest {
 	@Test
-	public void TestSumStats()
+	public void testSumStats()
 	{
 		IssueStats stats = buildStats();
 		IssueStats stats2 = buildStats();
@@ -19,7 +21,7 @@ public class IssueStatsTest {
 	}
 	
 	@Test
-	public void TestParseStats()
+	public void testParseStats()
 	{
 		IssueStats stats = buildStats();
 		
@@ -33,7 +35,7 @@ public class IssueStatsTest {
 		{
 			stats.addStat(issue, 1);
 		}
-		stats.explanation = "Test Explanation 1.";
+		stats.setExplanation("Test Explanation 1.");
 		return stats;
 	}
 }

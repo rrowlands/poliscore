@@ -1,4 +1,4 @@
-package ch.poliscore;
+package ch.poliscore.model;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,13 +7,18 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import ch.poliscore.TrackedIssue;
+import lombok.Data;
 import software.amazon.awssdk.utils.Pair;
 
+@Data
 public class IssueStats {
 	
-	public Map<TrackedIssue, Integer> stats = new HashMap<TrackedIssue, Integer>();
+	protected Map<TrackedIssue, Integer> stats = new HashMap<TrackedIssue, Integer>();
 	
-	public String explanation = "";
+	protected String explanation = "";
 	
 	public static IssueStats parse(String text)
 	{
@@ -61,6 +66,7 @@ public class IssueStats {
 		return null;
 	}
 	
+	@JsonIgnore
 	public int getStat(TrackedIssue issue)
 	{
 		return stats.getOrDefault(issue, 0);

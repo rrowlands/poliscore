@@ -31,6 +31,8 @@ public class USCBillView {
 	
 	protected Date updated_at;
 	
+	protected Date introduced_at;
+	
 	protected USCBillSponsor sponsor;
 	
 	protected List<USCBillSponsor> cosponsors;

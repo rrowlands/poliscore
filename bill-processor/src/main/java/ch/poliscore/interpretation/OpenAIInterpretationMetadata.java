@@ -1,10 +1,10 @@
-package ch.poliscore.bill;
+package ch.poliscore.interpretation;
 
 import ch.poliscore.service.OpenAIService;
 import lombok.Data;
 
 @Data
-public class OpenAIInterpretationMetadata extends BillInterpretationMetadata {
+public class OpenAIInterpretationMetadata extends InterpretationMetadata {
 	protected String model;
 	
 	protected int promptVersion;

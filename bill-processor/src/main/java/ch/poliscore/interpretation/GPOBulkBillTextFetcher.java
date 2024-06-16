@@ -1,4 +1,4 @@
-package ch.poliscore.bill;
+package ch.poliscore.interpretation;
 
 import java.io.File;
 import java.io.FileOutputStream;

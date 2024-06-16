@@ -1,11 +1,13 @@
 package ch.poliscore.service;
 
 import java.io.InputStream;
+import java.util.NoSuchElementException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ch.poliscore.DataNotFoundException;
 import ch.poliscore.VoteStatus;
+import ch.poliscore.interpretation.BillType;
+import ch.poliscore.model.Bill;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillVote;
 import ch.poliscore.view.USCRollCallData;
@@ -38,10 +40,10 @@ public class RollCallService {
 	{
 		try
 		{
-			Legislator leg = lService.getById(vote.getId());
+			Legislator leg = lService.getById(vote.getId()).orElseThrow();
 			
-			var bill = rollCall.getBill();
-			var billId = bill.getType() + bill.getNumber() + "-" + bill.getCongress();
+			var billView = rollCall.getBill();
+			var billId = Bill.generateId(billView.getCongress(), BillType.valueOf(billView.getType().toUpperCase()), billView.getNumber());
 			
 			LegislatorBillVote interaction = new LegislatorBillVote();
 			interaction.setBillId(billId);
@@ -52,7 +54,7 @@ public class RollCallService {
 			
 			lService.persist(leg);
 		}
-		catch (DataNotFoundException ex)
+		catch (NoSuchElementException ex)
 		{
 			Log.warn("Could not find legislator with id [" + vote.getId() + "] referenced in file ?");
 		}
