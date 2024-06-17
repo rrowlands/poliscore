@@ -22,10 +22,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.val;
 
-/**
- * This bill interpreter interprets the last x bills for a given politician.
- */
-//@QuarkusMain(name="LegislatorBillInterpreter")
 @ApplicationScoped
 public class LegislatorInterpretationService
 {
@@ -115,7 +111,6 @@ public class LegislatorInterpretationService
 				aiUserMsg.add(interact.describe() + ": " + interact.getIssueStats().getExplanation());
 				
 				periodStart = (periodStart == -1) ? interact.getDate().getTime() : Math.min(periodStart, interact.getDate().getTime());
-//				periodEnd = (periodEnd == -1) ? interact.getDate().getTime() : Math.max(periodEnd, interact.getDate().getTime());
 			}
 		}
 		

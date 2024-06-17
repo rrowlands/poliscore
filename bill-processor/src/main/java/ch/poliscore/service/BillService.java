@@ -14,6 +14,7 @@ import ch.poliscore.PoliscoreUtil;
 import ch.poliscore.interpretation.BillTextPublishVersion;
 import ch.poliscore.interpretation.BillType;
 import ch.poliscore.model.Bill;
+import ch.poliscore.model.BillText;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillCosponsor;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillSponsor;
@@ -117,7 +118,7 @@ public class BillService {
     }
     
     @SneakyThrows
-	public Optional<String> getBillText(Bill bill)
+	public Optional<BillText> getBillText(Bill bill)
 	{
 		val parent = new File(PoliscoreUtil.APP_DATA, "bill-text/" + bill.getCongress() + "/" + bill.getType());
 		
@@ -128,7 +129,7 @@ public class BillService {
 		
 		if (text.isPresent())
 		{
-			return Optional.of(FileUtils.readFileToString(text.get(), "UTF-8"));
+			return Optional.of(new ObjectMapper().readValue(FileUtils.readFileToString(text.get(), "UTF-8"), BillText.class));
 		}
 		else
 		{

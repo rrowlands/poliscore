@@ -35,7 +35,7 @@ public class XMLBillSlicer implements BillSlicer {
 		factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 		
 		DocumentBuilder builder = factory.newDocumentBuilder();
-		Document doc = builder.parse(new ByteArrayInputStream(bill.getText().getBytes("UTF-8")));
+		Document doc = builder.parse(new ByteArrayInputStream(bill.getText().getXml().getBytes("UTF-8")));
 
 		StringBuilder cur = new StringBuilder();
 		int start = 0;

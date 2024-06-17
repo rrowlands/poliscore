@@ -5,7 +5,7 @@ import java.util.Set;
 
 import ch.poliscore.view.USCLegislatorView;
 import lombok.Data;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import lombok.NonNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
@@ -13,6 +13,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 @DynamoDbBean
 public class Legislator implements Persistable {
 	
+	@NonNull
 	protected USCLegislatorView.USCLegislatorName name;
 	
 	protected String bioguideId;
@@ -23,14 +24,18 @@ public class Legislator implements Persistable {
 	
 	protected LegislatorInterpretation interpretation;
 	
+	@NonNull
 	protected Set<LegislatorBillInteration> interactions = new HashSet<LegislatorBillInteration>();
 	
 	@DynamoDbPartitionKey
 	public String getId()
 	{
-		if (bioguideId != null) return getBioguideId();
-		if (thomasId != null) return getThomasId();
-		return null;
+		String namespace = LegislativeNamespace.US_CONGRESS.getNamespace();
+		
+		if (bioguideId != null) return namespace + "/" + getBioguideId();
+		if (thomasId != null) return namespace + "/" + getThomasId();
+		
+		throw new NullPointerException();
 	}
 	
 	public void addBillInteraction(LegislatorBillInteration incoming)

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import ch.poliscore.interpretation.OpenAIInterpretationMetadata;
 import ch.poliscore.interpretation.OpenAISliceInterpretationMetadata;
 import lombok.Data;
+import lombok.NonNull;
 
 @Data
 public class BillInterpretation implements Persistable
@@ -15,15 +16,19 @@ public class BillInterpretation implements Persistable
 	@JsonIgnore
 	protected IssueStats issueStats = null;
 	
+	@NonNull
 	protected String id;
 	
+	@NonNull
 	protected String billId;
 	
 	/**
 	 * The actual interpretation text of the bill or bill slice, as produced by AI.
 	 */
+	@NonNull
 	protected String text;
 	
+	@NonNull
 	protected OpenAIInterpretationMetadata metadata;
 	
 	public BillInterpretation()
@@ -63,5 +68,17 @@ public class BillInterpretation implements Persistable
 		{
 			return bill.getName();
 		}
+	}
+	
+	public static String generateId(String billId, Integer sliceIndex)
+	{
+		var id = billId;
+		
+		if (sliceIndex != null)
+		{
+			id += "-" + sliceIndex;
+		}
+		
+		return id;
 	}
 }

@@ -12,7 +12,9 @@ import lombok.Data;
 @Data
 public class Bill implements Persistable {
 	@JsonIgnore
-	private String text;
+	private BillText text;
+	
+	private LegislativeNamespace namespace = LegislativeNamespace.US_CONGRESS;
 	
 	private int congress;
 	
@@ -57,6 +59,6 @@ public class Bill implements Persistable {
 	
 	public static String generateId(int congress, BillType type, int number)
 	{
-		return congress + "/" + type.getName().toLowerCase() + "/" + number;
+		return LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + congress + "/" + type.getName().toLowerCase() + "/" + number;
 	}
 }

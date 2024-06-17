@@ -1,23 +1,28 @@
 package ch.poliscore.interpretation;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.jsoup.Jsoup;
 
 import ch.poliscore.PoliscoreUtil;
+import ch.poliscore.model.Bill;
+import ch.poliscore.model.BillText;
+import ch.poliscore.service.storage.S3PersistenceService;
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
+import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.val;
-import net.lingala.zip4j.ZipFile;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Used to fetch bulk bill data from the GPO's bulk bill store. More info at:
@@ -37,6 +42,9 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 	
 	public static List<String> FETCH_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
+	@Inject
+	private S3PersistenceService s3;
+	
 	@SneakyThrows
 	protected void process()
 	{
@@ -48,38 +56,72 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 			val congressStore = new File(store, String.valueOf(congress));
 			congressStore.mkdir();
 			
-			for (int session : FETCH_SESSION)
+			
+			for (String billType : FETCH_BILL_TYPE)
 			{
-				for (String billType : FETCH_BILL_TYPE)
+				val typeStore = new File(congressStore, String.valueOf(billType));
+				typeStore.mkdir();
+				
+//				for (int session : FETCH_SESSION)
+//				{
+//					val url = URL_TEMPLATE.replaceAll("\\{\\{congress\\}\\}", String.valueOf(congress))
+//								.replaceAll("\\{\\{session\\}\\}", String.valueOf(session))
+//								.replaceAll("\\{\\{type\\}\\}", String.valueOf(billType));
+//					
+//					val zip = new File(typeStore, congress + "-" + billType + ".zip");
+//					
+//					Log.info("Downloading " + url + " to " + zip.getAbsolutePath());
+//					IOUtils.copy(new URL(url).openStream(), new FileOutputStream(zip));
+//					
+//					Log.info("Extracting " + zip.getAbsolutePath() + " to " + typeStore.getAbsolutePath());
+//					new ZipFile(zip).extractAll(typeStore.getAbsolutePath());
+//					
+//					FileUtils.delete(zip);
+//				}
+				
+				for (File f : PoliscoreUtil.allFilesWhere(typeStore, f -> f.getName().endsWith(".xml")))
 				{
-					val typeStore = new File(congressStore, String.valueOf(billType));
-					typeStore.mkdir();
+					String number = f.getName().replace("BILLS-" + congress + billType, "").replaceAll("\\D", "");
+					val billId = Bill.generateId(congress, BillType.valueOf(billType.toUpperCase()), Integer.parseInt(number));
+					val date = parseDate(f);
 					
-					val doneMarker = new File(typeStore, "done.marker");
-					
-					if (!doneMarker.exists())
-					{
-						val url = URL_TEMPLATE.replaceAll("\\{\\{congress\\}\\}", String.valueOf(congress))
-									.replaceAll("\\{\\{session\\}\\}", String.valueOf(session))
-									.replaceAll("\\{\\{type\\}\\}", String.valueOf(billType));
-						
-						val zip = new File(typeStore, congress + "-" + billType + ".zip");
-						
-						Log.info("Downloading " + url + " to " + zip.getAbsolutePath());
-						IOUtils.copy(new URL(url).openStream(), new FileOutputStream(zip));
-						
-						Log.info("Extracting " + zip.getAbsolutePath() + " to " + typeStore.getAbsolutePath());
-						new ZipFile(zip).extractAll(typeStore.getAbsolutePath());
-						
-						FileUtils.delete(zip);
-						
-						FileUtils.write(doneMarker, "done!");
-					}
+					BillText bt = new BillText(billId, FileUtils.readFileToString(f, "UTF-8"), date);
+					s3.store(bt);
 				}
 			}
 		}
 		
 		Log.info("Downloaded all bill text!");
+	}
+	
+	@SneakyThrows
+	protected Date parseDate(File f)
+	{
+		val text = Jsoup.parse(f, "UTF-8").select("bill dublinCore dc|date").text();
+		
+		if (StringUtils.isBlank(text)) return null;
+		
+		return new SimpleDateFormat("yyyy-MM-DD").parse(text);
+	}
+	
+	@SneakyThrows
+	public Optional<String> getBillText(Bill bill)
+	{
+		val parent = new File(PoliscoreUtil.APP_DATA, "bill-text/" + bill.getCongress() + "/" + bill.getType());
+		
+		val text = Arrays.asList(parent.listFiles()).stream()
+				.filter(f -> f.getName().contains(bill.getCongress() + bill.getType().getName().toLowerCase() + bill.getNumber()))
+				.sorted((a,b) -> BillTextPublishVersion.parseFromBillTextName(a.getName()).billMaturityCompareTo(BillTextPublishVersion.parseFromBillTextName(b.getName())))
+				.findFirst();
+		
+		if (text.isPresent())
+		{
+			return Optional.of(FileUtils.readFileToString(text.get(), "UTF-8"));
+		}
+		else
+		{
+			return Optional.empty();
+		}
 	}
 	
 	public static void main(String[] args) {

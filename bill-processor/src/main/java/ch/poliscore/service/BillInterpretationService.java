@@ -54,7 +54,7 @@ public class BillInterpretationService {
 	public BillInterpretation getOrCreate(String billId)
 	{
 		val bill = billService.getById(billId).orElseThrow();
-		val interpId = calculateInterpId(bill, OpenAIInterpretationMetadata.construct());
+		val interpId = BillInterpretation.generateId(bill.getId(), null);
 		val cached = s3.retrieve(interpId, BillInterpretation.class);
 		
 		if (cached.isPresent())
@@ -77,7 +77,7 @@ public class BillInterpretationService {
 		
 		bill.setText(billText);
 		
-		if (billText.length() >= BillSlicer.MAX_SECTION_LENGTH)
+		if (billText.getXml().length() >= BillSlicer.MAX_SECTION_LENGTH)
     	{
     		List<BillSlice> slices = new XMLBillSlicer().slice(bill);
     		
@@ -109,35 +109,23 @@ public class BillInterpretationService {
 	
 	protected BillInterpretation getOrCreateAggregateInterpretation(Bill bill, IssueStats aggregateStats)
 	{
-		val meta = OpenAIInterpretationMetadata.construct();
-		val id = calculateInterpId(bill, meta);
-//		val cached = s3.retrieve(id, BillInterpretation.class);
-//		
-//		if (cached.isPresent())
-//		{
-//			return cached.get();
-//		}
-//		else
-//		{
-			BillInterpretation bi = new BillInterpretation();
-			bi.setBill(bill);
-			bi.setMetadata(meta);
-			
-			aggregateStats.setExplanation(ai.chat(summaryPrompt, aggregateStats.getExplanation()));
-			
-			bi.setText(aggregateStats.toString());
-			bi.setId(id);
-			
-			archive(bi);
-			
-			return bi;
-//		}
+		BillInterpretation bi = new BillInterpretation();
+		bi.setBill(bill);
+		bi.setMetadata(OpenAIInterpretationMetadata.construct());
+		
+		aggregateStats.setExplanation(ai.chat(summaryPrompt, aggregateStats.getExplanation()));
+		
+		bi.setText(aggregateStats.toString());
+		bi.setId(BillInterpretation.generateId(bill.getId(), null));
+		
+		archive(bi);
+		
+		return bi;
 	}
 	
 	protected BillInterpretation getOrCreateInterpretation(Bill bill, BillSlice slice)
 	{
-		val meta = slice == null ? OpenAIInterpretationMetadata.construct() : OpenAISliceInterpretationMetadata.construct(slice);
-		val id = calculateInterpId(bill, meta);
+		val id = BillInterpretation.generateId(bill.getId(), slice == null ? null : slice.getSliceIndex());
 		val cached = s3.retrieve(id, BillInterpretation.class);
 		
 		if (cached.isPresent())
@@ -152,13 +140,13 @@ public class BillInterpretationService {
 			String interpText;
 			if (slice == null)
 			{
-				interpText = ai.chat(systemMsg, bill.getText());
-				bi.setMetadata(meta);
+				interpText = ai.chat(systemMsg, bill.getText().getXml());
+				bi.setMetadata(OpenAIInterpretationMetadata.construct());
 			}
 			else
 			{
 				interpText = ai.chat(systemMsg, slice.getText());
-				bi.setMetadata(meta);
+				bi.setMetadata(OpenAISliceInterpretationMetadata.construct(slice));
 			}
 			
 			bi.setText(interpText);
@@ -170,18 +158,6 @@ public class BillInterpretationService {
 		}
 	}
 	
-	protected String calculateInterpId(Bill bill, OpenAIInterpretationMetadata metadata)
-	{
-		var id = bill.getId();
-		
-		if (metadata instanceof OpenAISliceInterpretationMetadata)
-		{
-			id += "-" + ((OpenAISliceInterpretationMetadata)metadata).getSliceIndex();
-		}
-		
-		return id;
-	}
-    
     protected void archive(BillInterpretation interp)
     {
     	s3.store(interp);
