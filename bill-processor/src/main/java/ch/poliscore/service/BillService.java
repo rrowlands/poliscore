@@ -1,17 +1,11 @@
 package ch.poliscore.service;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Optional;
-
-import org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ch.poliscore.PoliscoreUtil;
-import ch.poliscore.interpretation.BillTextPublishVersion;
 import ch.poliscore.interpretation.BillType;
 import ch.poliscore.model.Bill;
 import ch.poliscore.model.BillText;
@@ -19,6 +13,7 @@ import ch.poliscore.model.Legislator;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillCosponsor;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillSponsor;
 import ch.poliscore.service.storage.ApplicationDataStoreIF;
+import ch.poliscore.service.storage.S3PersistenceService;
 import ch.poliscore.view.USCBillView;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -30,6 +25,9 @@ import software.amazon.awssdk.utils.StringUtils;
 @ApplicationScoped
 @Priority(4)
 public class BillService {
+	
+	@Inject
+	private S3PersistenceService s3;
 	
 	@Inject
 	private ApplicationDataStoreIF pServ;
@@ -120,21 +118,23 @@ public class BillService {
     @SneakyThrows
 	public Optional<BillText> getBillText(Bill bill)
 	{
-		val parent = new File(PoliscoreUtil.APP_DATA, "bill-text/" + bill.getCongress() + "/" + bill.getType());
-		
-		val text = Arrays.asList(parent.listFiles()).stream()
-				.filter(f -> f.getName().contains(bill.getCongress() + bill.getType().getName().toLowerCase() + bill.getNumber()))
-				.sorted((a,b) -> BillTextPublishVersion.parseFromBillTextName(a.getName()).billMaturityCompareTo(BillTextPublishVersion.parseFromBillTextName(b.getName())))
-				.findFirst();
-		
-		if (text.isPresent())
-		{
-			return Optional.of(new ObjectMapper().readValue(FileUtils.readFileToString(text.get(), "UTF-8"), BillText.class));
-		}
-		else
-		{
-			return Optional.empty();
-		}
+//		val parent = new File(PoliscoreUtil.APP_DATA, "bill-text/" + bill.getCongress() + "/" + bill.getType());
+//		
+//		val text = Arrays.asList(parent.listFiles()).stream()
+//				.filter(f -> f.getName().contains(bill.getCongress() + bill.getType().getName().toLowerCase() + bill.getNumber()))
+//				.sorted((a,b) -> BillTextPublishVersion.parseFromBillTextName(a.getName()).billMaturityCompareTo(BillTextPublishVersion.parseFromBillTextName(b.getName())))
+//				.findFirst();
+//		
+//		if (text.isPresent())
+//		{
+//			return Optional.of(new ObjectMapper().readValue(FileUtils.readFileToString(text.get(), "UTF-8"), BillText.class));
+//		}
+//		else
+//		{
+//			return Optional.empty();
+//		}
+    	
+    	return s3.retrieve(bill.getId(), BillText.class);
 	}
     
     public Optional<Bill> getById(String id)

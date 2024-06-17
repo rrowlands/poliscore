@@ -87,6 +87,8 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 					
 					BillText bt = new BillText(billId, FileUtils.readFileToString(f, "UTF-8"), date);
 					s3.store(bt);
+					
+					FileUtils.delete(f);
 				}
 			}
 		}
