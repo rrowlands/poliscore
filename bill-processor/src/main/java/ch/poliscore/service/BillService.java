@@ -117,7 +117,7 @@ public class BillService {
     }
     
     @SneakyThrows
-	protected Optional<String> getBillText(Bill bill)
+	public Optional<String> getBillText(Bill bill)
 	{
 		val parent = new File(PoliscoreUtil.APP_DATA, "bill-text/" + bill.getCongress() + "/" + bill.getType());
 		

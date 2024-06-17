@@ -42,6 +42,9 @@ public abstract class LegislatorBillInteration {
 	@JsonIgnore
 	abstract public float getJudgementWeight();
 	
+	@JsonIgnore
+	abstract public String describe();
+	
 	public boolean supercedes(LegislatorBillInteration similar)
 	{
 		return this.equals(similar) && date.after(similar.getDate());
@@ -51,9 +54,12 @@ public abstract class LegislatorBillInteration {
 	@EqualsAndHashCode(callSuper=true)
 	public static class LegislatorBillVote extends LegislatorBillInteration {
 		
+		@NonNull
 		protected VoteStatus voteStatus;
 		
-		public float getJudgementWeight() { return 0.5f; }
+		public float getJudgementWeight() { return voteStatus.equals(VoteStatus.NAY) ? -0.5f : 0.5f; }
+		
+		public String describe() { return "Voted " + voteStatus.describe(); }
 		
 	}
 	
@@ -63,6 +69,8 @@ public abstract class LegislatorBillInteration {
 		
 		public float getJudgementWeight() { return 1.0f; }
 		
+		public String describe() { return "Sponsor"; }
+		
 	}
 	
 	@Data
@@ -70,6 +78,8 @@ public abstract class LegislatorBillInteration {
 	public static class LegislatorBillCosponsor extends LegislatorBillInteration {
 		
 		public float getJudgementWeight() { return 0.7f; }
+		
+		public String describe() { return "Cosponsor"; }
 		
 	}
 	

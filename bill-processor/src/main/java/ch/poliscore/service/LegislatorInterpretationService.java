@@ -1,14 +1,19 @@
 package ch.poliscore.service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import ch.poliscore.VoteStatus;
 import ch.poliscore.interpretation.OpenAIInterpretationMetadata;
 import ch.poliscore.model.IssueStats;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.model.LegislatorBillInteration;
+import ch.poliscore.model.LegislatorBillInteration.LegislatorBillVote;
 import ch.poliscore.model.LegislatorInterpretation;
 import ch.poliscore.service.storage.ApplicationDataStoreIF;
 import ch.poliscore.service.storage.S3PersistenceService;
@@ -68,13 +73,18 @@ public class LegislatorInterpretationService
 	protected LegislatorInterpretation interpret(Legislator leg)
 	{
 		// Make sure all their bills are interpreted
-		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteration::getDate).reversed()).limit(LIMIT_BILLS).collect(Collectors.toList()))
+		int interpretedBills = 0;
+		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteration::getDate).reversed()).collect(Collectors.toList()))
 		{
+			if (interpretedBills > LIMIT_BILLS) break;
+			
 			try
 			{
 				val interp = billInterpreter.getOrCreate(interact.getBillId());
 				
 				interact.setIssueStats(interp.getIssueStats());
+				
+				interpretedBills++;
 			}
 			catch (NoSuchElementException ex)
 			{
@@ -86,20 +96,26 @@ public class LegislatorInterpretationService
 		IssueStats stats = new IssueStats();
 		
 		double weightSum = 0;
-		
 		long periodStart = -1;
-		long periodEnd = -1;
+		long periodEnd = new Date().getTime();
+		List<String> aiUserMsg = new ArrayList<String>();
 		
 		for (val interact : leg.getInteractions())
 		{
 			if (interact.getIssueStats() != null)
 			{
+				if (interact instanceof LegislatorBillVote
+						&& (((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.NOT_VOTING) || ((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.PRESENT)))
+					continue;
+				
 				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
 				stats = stats.sum(weightedStats);
 				weightSum += interact.getJudgementWeight();
 				
+				aiUserMsg.add(interact.describe() + ": " + interact.getIssueStats().getExplanation());
+				
 				periodStart = (periodStart == -1) ? interact.getDate().getTime() : Math.min(periodStart, interact.getDate().getTime());
-				periodEnd = (periodEnd == -1) ? interact.getDate().getTime() : Math.max(periodEnd, interact.getDate().getTime());
+//				periodEnd = (periodEnd == -1) ? interact.getDate().getTime() : Math.max(periodEnd, interact.getDate().getTime());
 			}
 		}
 		
@@ -111,8 +127,8 @@ public class LegislatorInterpretationService
 				.replace("{{time_period}}", describeTimePeriod(periodStart, periodEnd));
 		
 		System.out.println(prompt);
-		System.out.println(stats.getExplanation());
-		val interpText = ai.chat(prompt, stats.getExplanation());
+		System.out.println(String.join("\n", aiUserMsg));
+		val interpText = ai.chat(prompt, String.join("\n", aiUserMsg));
 		stats.setExplanation(interpText);
 		
 		val interp = new LegislatorInterpretation(OpenAIInterpretationMetadata.construct(), leg, stats);

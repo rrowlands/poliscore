@@ -31,7 +31,14 @@ public class CachedDynamoDbService implements ApplicationDataStoreIF
 			return memory.retrieve(id, clazz);
 		}
 		
-		return dynamodb.retrieve(id, clazz);
+		Optional<T> result = dynamodb.retrieve(id, clazz);
+		
+		if (result.isPresent())
+		{
+			memory.store(result.get());
+		}
+		
+		return result;
 	}
 	
 }

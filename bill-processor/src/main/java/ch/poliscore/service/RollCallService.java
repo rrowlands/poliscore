@@ -45,9 +45,8 @@ public class RollCallService {
 			var billView = rollCall.getBill();
 			var billId = Bill.generateId(billView.getCongress(), BillType.valueOf(billView.getType().toUpperCase()), billView.getNumber());
 			
-			LegislatorBillVote interaction = new LegislatorBillVote();
+			LegislatorBillVote interaction = new LegislatorBillVote(vs);
 			interaction.setBillId(billId);
-			interaction.setVoteStatus(vs);
 			interaction.setDate(rollCall.getDate());
 			
 			leg.addBillInteraction(interaction);
