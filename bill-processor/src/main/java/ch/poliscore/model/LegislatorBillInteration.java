@@ -1,13 +1,12 @@
 package ch.poliscore.model;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import ch.poliscore.VoteStatus;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillCosponsor;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillSponsor;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillVote;
@@ -16,6 +15,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 @RequiredArgsConstructor
 @NoArgsConstructor
+@DynamoDbBean
 public abstract class LegislatorBillInteration {
 	
 	@NonNull
@@ -37,7 +38,7 @@ public abstract class LegislatorBillInteration {
 	
 	@NonNull
 	@EqualsAndHashCode.Exclude
-	protected Date date;
+	protected LocalDate date;
 	
 	@JsonIgnore
 	abstract public float getJudgementWeight();
@@ -47,7 +48,7 @@ public abstract class LegislatorBillInteration {
 	
 	public boolean supercedes(LegislatorBillInteration similar)
 	{
-		return this.equals(similar) && date.after(similar.getDate());
+		return this.equals(similar) && date.isAfter(similar.getDate());
 	}
 	
 	@Data

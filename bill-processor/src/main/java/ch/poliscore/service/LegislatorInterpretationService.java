@@ -1,20 +1,20 @@
 package ch.poliscore.service;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import ch.poliscore.VoteStatus;
 import ch.poliscore.interpretation.OpenAIInterpretationMetadata;
 import ch.poliscore.model.IssueStats;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.model.LegislatorBillInteration;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillVote;
 import ch.poliscore.model.LegislatorInterpretation;
+import ch.poliscore.model.VoteStatus;
 import ch.poliscore.service.storage.ApplicationDataStoreIF;
 import ch.poliscore.service.storage.S3PersistenceService;
 import io.quarkus.logging.Log;
@@ -92,8 +92,8 @@ public class LegislatorInterpretationService
 		IssueStats stats = new IssueStats();
 		
 		double weightSum = 0;
-		long periodStart = -1;
-		long periodEnd = new Date().getTime();
+		LocalDate periodStart = null;
+		val periodEnd = LocalDate.now();
 		List<String> aiUserMsg = new ArrayList<String>();
 		
 		for (val interact : leg.getInteractions())
@@ -110,7 +110,7 @@ public class LegislatorInterpretationService
 				
 				aiUserMsg.add(interact.describe() + ": " + interact.getIssueStats().getExplanation());
 				
-				periodStart = (periodStart == -1) ? interact.getDate().getTime() : Math.min(periodStart, interact.getDate().getTime());
+				periodStart = (periodStart == null) ? interact.getDate() : (periodStart.isAfter(interact.getDate()) ? interact.getDate() : periodStart);
 			}
 		}
 		
@@ -136,12 +136,11 @@ public class LegislatorInterpretationService
 		return interp;
 	}
 	
-	protected String describeTimePeriod(long periodStart, long periodEnd)
+	protected String describeTimePeriod(LocalDate periodStart, LocalDate periodEnd)
 	{
-		if (periodStart == -1 || periodEnd == -1) return "several months";
+		if (periodStart == null || periodEnd == null) return "several months";
 		
-		long diffInMillies = periodEnd - periodStart;
-	    long dayDiff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+		long dayDiff = ChronoUnit.DAYS.between(periodEnd, periodStart);
 	    
 	    if (dayDiff < 30)
 	    {

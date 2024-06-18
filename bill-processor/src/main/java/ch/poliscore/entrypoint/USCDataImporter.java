@@ -1,4 +1,4 @@
-package ch.poliscore;
+package ch.poliscore.entrypoint;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import ch.poliscore.PoliscoreUtil;
 import ch.poliscore.interpretation.BillType;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.service.BillService;
@@ -56,6 +57,7 @@ public class USCDataImporter implements QuarkusApplication
 	{
 		legService.importLegislators();
 		
+		/*
 		long totalBills = 0;
 		long totalVotes = 0;
 		
@@ -98,6 +100,7 @@ public class USCDataImporter implements QuarkusApplication
 			}
 		}
 		
+		// Interpret legislators
 		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
 		{
 			legInterp.getOrCreate(legId);
@@ -108,6 +111,7 @@ public class USCDataImporter implements QuarkusApplication
 		}
 		
 		Log.info("USC import complete. Imported " + totalBills + " bills and " + totalVotes + " votes.");
+		*/
 	}
 	
 	@Override

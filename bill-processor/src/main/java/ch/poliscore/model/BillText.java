@@ -1,15 +1,18 @@
 package ch.poliscore.model;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class BillText implements Persistable
 {
 	
@@ -19,9 +22,10 @@ public class BillText implements Persistable
 	@NonNull
 	protected String xml;
 	
-	protected Date lastUpdated;
+	protected LocalDate lastUpdated;
 	
 	@JsonIgnore
+	@DynamoDbPartitionKey
 	public String getId()
 	{
 		return billId;

@@ -1,4 +1,4 @@
-package ch.poliscore;
+package ch.poliscore.entrypoint;
 
 import java.util.Map;
 
@@ -9,7 +9,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class Entrypoint {
+public class Lambda {
 
     @Inject
     BillProcessingService bill;

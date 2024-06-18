@@ -1,7 +1,7 @@
 package ch.poliscore.service;
 
-import ch.poliscore.TrackedIssue;
 import ch.poliscore.model.IssueStats;
+import ch.poliscore.model.TrackedIssue;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 

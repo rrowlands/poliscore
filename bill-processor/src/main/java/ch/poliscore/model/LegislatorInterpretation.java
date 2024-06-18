@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ch.poliscore.interpretation.OpenAIInterpretationMetadata;
 import lombok.Data;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @Data
+@DynamoDbBean
 public class LegislatorInterpretation implements Persistable
 {
 	@JsonIgnore
@@ -37,6 +40,7 @@ public class LegislatorInterpretation implements Persistable
 	}
 	
 	@JsonIgnore
+	@DynamoDbPartitionKey
 	public String getId()
 	{
 		return legislatorId;

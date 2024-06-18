@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import ch.poliscore.model.IssueStats;
+import ch.poliscore.model.TrackedIssue;
 
 public class IssueStatsTest {
 	@Test

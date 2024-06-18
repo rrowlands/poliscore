@@ -6,8 +6,11 @@ import ch.poliscore.interpretation.OpenAIInterpretationMetadata;
 import ch.poliscore.interpretation.OpenAISliceInterpretationMetadata;
 import lombok.Data;
 import lombok.NonNull;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @Data
+@DynamoDbBean
 public class BillInterpretation implements Persistable
 {
 	@JsonIgnore
@@ -43,6 +46,12 @@ public class BillInterpretation implements Persistable
 		this.billId = bill.getId();
 		this.text = text;
 		this.issueStats = IssueStats.parse(text);
+	}
+	
+	@DynamoDbPartitionKey
+	public String getId()
+	{
+		return this.id;
 	}
 	
 	public void setText(String text)

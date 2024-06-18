@@ -1,17 +1,26 @@
-package ch.poliscore.interpretation;
+package ch.poliscore.entrypoint;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 
 import ch.poliscore.PoliscoreUtil;
+import ch.poliscore.interpretation.BillTextPublishVersion;
+import ch.poliscore.interpretation.BillType;
 import ch.poliscore.model.Bill;
 import ch.poliscore.model.BillText;
 import ch.poliscore.service.storage.S3PersistenceService;
@@ -22,6 +31,7 @@ import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.val;
+import net.lingala.zip4j.ZipFile;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -36,7 +46,7 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 	
 	public static final String URL_TEMPLATE = "https://www.govinfo.gov/bulkdata/BILLS/{{congress}}/{{session}}/{{type}}/BILLS-{{congress}}-{{session}}-{{type}}.zip";
 	
-	public static int[] FETCH_CONGRESS = new int[] { 113, 114, 115, 116, 117, 118 };
+	public static int[] FETCH_CONGRESS = new int[] {  116, 117, 118 }; // 113, 114, 115,
 	
 	public static int[] FETCH_SESSION = new int[] { 1, 2 };
 	
@@ -49,6 +59,7 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 	protected void process()
 	{
 		val store = new File(PoliscoreUtil.APP_DATA, "bill-text");
+		FileUtils.deleteQuietly(store);
 		store.mkdirs();
 		
 		for (int congress : FETCH_CONGRESS)
@@ -62,33 +73,42 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 				val typeStore = new File(congressStore, String.valueOf(billType));
 				typeStore.mkdir();
 				
-//				for (int session : FETCH_SESSION)
-//				{
-//					val url = URL_TEMPLATE.replaceAll("\\{\\{congress\\}\\}", String.valueOf(congress))
-//								.replaceAll("\\{\\{session\\}\\}", String.valueOf(session))
-//								.replaceAll("\\{\\{type\\}\\}", String.valueOf(billType));
-//					
-//					val zip = new File(typeStore, congress + "-" + billType + ".zip");
-//					
-//					Log.info("Downloading " + url + " to " + zip.getAbsolutePath());
-//					IOUtils.copy(new URL(url).openStream(), new FileOutputStream(zip));
-//					
-//					Log.info("Extracting " + zip.getAbsolutePath() + " to " + typeStore.getAbsolutePath());
-//					new ZipFile(zip).extractAll(typeStore.getAbsolutePath());
-//					
-//					FileUtils.delete(zip);
-//				}
+				// Download and unzip
+				for (int session : FETCH_SESSION)
+				{
+					val url = URL_TEMPLATE.replaceAll("\\{\\{congress\\}\\}", String.valueOf(congress))
+								.replaceAll("\\{\\{session\\}\\}", String.valueOf(session))
+								.replaceAll("\\{\\{type\\}\\}", String.valueOf(billType));
+					
+					val zip = new File(typeStore, congress + "-" + billType + ".zip");
+					
+					Log.info("Downloading " + url + " to " + zip.getAbsolutePath());
+					IOUtils.copy(new URL(url).openStream(), new FileOutputStream(zip));
+					
+					Log.info("Extracting " + zip.getAbsolutePath() + " to " + typeStore.getAbsolutePath());
+					new ZipFile(zip).extractAll(typeStore.getAbsolutePath());
+					
+					FileUtils.delete(zip);
+				}
 				
-				for (File f : PoliscoreUtil.allFilesWhere(typeStore, f -> f.getName().endsWith(".xml")))
+				// Upload to S3
+				Set<String> processedBills = new HashSet<String>();
+				for (File f : PoliscoreUtil.allFilesWhere(typeStore, f -> f.getName().endsWith(".xml")).stream()
+						.sorted(Comparator.comparing(File::getName).thenComparing((a,b) -> BillTextPublishVersion.parseFromBillTextName(a.getName()).billMaturityCompareTo(BillTextPublishVersion.parseFromBillTextName(b.getName()))))
+						.collect(Collectors.toList()))
 				{
 					String number = f.getName().replace("BILLS-" + congress + billType, "").replaceAll("\\D", "");
 					val billId = Bill.generateId(congress, BillType.valueOf(billType.toUpperCase()), Integer.parseInt(number));
-					val date = parseDate(f);
 					
-					BillText bt = new BillText(billId, FileUtils.readFileToString(f, "UTF-8"), date);
-					s3.store(bt);
-					
-					FileUtils.delete(f);
+					if (!processedBills.contains(billId) && !s3.exists(billId, BillText.class))
+					{
+						val date = parseDate(f);
+						
+						BillText bt = new BillText(billId, FileUtils.readFileToString(f, "UTF-8"), date);
+						s3.store(bt);
+						
+						processedBills.add(billId);
+					}
 				}
 			}
 		}
@@ -97,13 +117,13 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 	}
 	
 	@SneakyThrows
-	protected Date parseDate(File f)
+	protected LocalDate parseDate(File f)
 	{
 		val text = Jsoup.parse(f, "UTF-8").select("bill dublinCore dc|date").text();
 		
 		if (StringUtils.isBlank(text)) return null;
 		
-		return new SimpleDateFormat("yyyy-MM-DD").parse(text);
+		return LocalDate.parse(text, DateTimeFormatter.ofPattern("yyyy-MM-DD"));
 	}
 	
 	@SneakyThrows

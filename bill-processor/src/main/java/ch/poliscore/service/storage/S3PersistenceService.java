@@ -13,6 +13,7 @@ import lombok.val;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -27,12 +28,22 @@ public class S3PersistenceService implements PersistenceServiceIF
 		return clazz.getSimpleName() + "/" + id + ".json";
 	}
 	
+	private S3Client client;
+	
+	private S3Client getClient()
+	{
+		if (client == null)
+		{
+			client = S3Client.builder()
+	                .build();
+		}
+		
+		return client;
+	}
+	
 	@SneakyThrows
 	public void store(Persistable obj)
 	{
-		S3Client client = S3Client.builder()
-                .build();
-		
 		val key = getKey(obj.getId(), obj.getClass());
 		
         PutObjectRequest putOb = PutObjectRequest.builder()
@@ -40,7 +51,7 @@ public class S3PersistenceService implements PersistenceServiceIF
                 .key(key)
                 .build();
 
-        client.putObject(putOb, RequestBody.fromString(new ObjectMapper().writeValueAsString(obj)));
+        getClient().putObject(putOb, RequestBody.fromString(new ObjectMapper().writeValueAsString(obj)));
         
         Log.info("Uploaded to S3 " + key);
 	}
@@ -48,9 +59,6 @@ public class S3PersistenceService implements PersistenceServiceIF
 	@SneakyThrows
 	public <T extends Persistable> Optional<T> retrieve(String id, Class<T> clazz)
 	{
-		S3Client client = S3Client.builder()
-                .build();
-		
 		val key = getKey(id, clazz);
 		
         GetObjectRequest req = GetObjectRequest.builder()
@@ -59,18 +67,37 @@ public class S3PersistenceService implements PersistenceServiceIF
                 .build();
 
         try {
-        	@Cleanup val resp = client.getObject(req);
+        	@Cleanup val resp = getClient().getObject(req);
         	
-        	Log.info("Retrieved interp from S3 " + key);
+        	Log.info("Retrieved " + clazz.getSimpleName() + " from S3 " + key);
         	
         	return Optional.of(new ObjectMapper().readValue(resp, clazz));
         }
         catch (NoSuchKeyException ex)
         {
-        	Log.info("Interp not found on S3 " + key);
+        	Log.info(clazz.getSimpleName() + " not found on S3 " + key);
         	
         	return Optional.empty();
         }
+	}
+	
+	public <T> boolean exists(String id, Class<T> clazz)
+	{
+		val key = getKey(id, clazz);
+		
+		try
+		{
+			val resp = getClient().headObject(HeadObjectRequest.builder()
+					.bucket(BUCKET_NAME)
+					.key(key)
+					.build());
+			
+			return true;
+		}
+		catch (NoSuchKeyException ex)
+		{
+			return false;
+		}
 	}
 	
 }

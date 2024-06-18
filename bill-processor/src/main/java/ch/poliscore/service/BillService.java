@@ -3,12 +3,14 @@ package ch.poliscore.service;
 import java.io.FileInputStream;
 import java.net.URI;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.poliscore.interpretation.BillType;
 import ch.poliscore.model.Bill;
 import ch.poliscore.model.BillText;
+import ch.poliscore.model.LegislativeNamespace;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillCosponsor;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillSponsor;
@@ -49,12 +51,12 @@ public class BillService {
     	bill.setNumber(Integer.parseInt(view.getNumber()));
     	bill.setStatusUrl(view.getUrl());
     	bill.setIntroducedDate(view.getIntroduced_at());
-    	bill.setSponsor(view.getSponsor());
-    	bill.setCosponsors(view.getCosponsors());
+    	bill.setSponsor(view.getSponsor().convert());
+    	bill.setCosponsors(view.getCosponsors().stream().map(s -> s.convert()).collect(Collectors.toList()));
     	
     	if (view.getSponsor() != null && !StringUtils.isBlank(view.getSponsor().getBioguide_id()))
     	{
-			Legislator leg = lService.getById(view.getSponsor().getBioguide_id()).orElseThrow();
+			Legislator leg = lService.getById(LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + view.getSponsor().getBioguide_id()).orElseThrow();
 			
 			LegislatorBillSponsor interaction = new LegislatorBillSponsor();
 			interaction.setBillId(bill.getId());
@@ -66,7 +68,7 @@ public class BillService {
     	
     	view.getCosponsors().forEach(cs -> {
     		if (!StringUtils.isBlank(cs.getBioguide_id())) {
-	    		Legislator leg = lService.getById(cs.getBioguide_id()).orElseThrow();
+	    		Legislator leg = lService.getById(LegislativeNamespace.US_CONGRESS.getNamespace() + "/" +cs.getBioguide_id()).orElseThrow();
 				
 				LegislatorBillCosponsor interaction = new LegislatorBillCosponsor();
 				interaction.setBillId(bill.getId());

@@ -1,5 +1,8 @@
-package ch.poliscore;
+package ch.poliscore.model;
 
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+
+@DynamoDbBean
 public enum VoteStatus {
 	AYE("for"),
 	NAY("against"),

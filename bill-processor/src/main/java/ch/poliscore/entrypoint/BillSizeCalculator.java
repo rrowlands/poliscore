@@ -1,4 +1,4 @@
-package ch.poliscore;
+package ch.poliscore.entrypoint;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ch.poliscore.PoliscoreUtil;
 import ch.poliscore.interpretation.BillType;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.service.BillService;

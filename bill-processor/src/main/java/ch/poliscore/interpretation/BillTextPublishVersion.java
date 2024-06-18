@@ -78,7 +78,12 @@ public enum BillTextPublishVersion {
 	{
 		for (BillTextPublishVersion v : BillTextPublishVersion.values())
 		{
-			val bn = FilenameUtils.getBaseName(fileName);
+			var bn = FilenameUtils.getBaseName(fileName);
+			
+			if (String.valueOf(bn.charAt(bn.length()-1)).matches("\\d"))
+			{
+				bn = bn.substring(0, bn.length()-1); // TODO : We should probably create a 'GPOBillTextName' Comparator which accounts for this properly
+			}
 			
 			if (bn.endsWith(v.name().toLowerCase()) || bn.endsWith(v.name().toUpperCase()))
 			{
@@ -86,7 +91,7 @@ public enum BillTextPublishVersion {
 			}
 		}
 		
-		return null;
+		throw new RuntimeException("file name " + fileName + " could not be parsed");
 	}
 
 	/**

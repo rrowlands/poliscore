@@ -9,11 +9,13 @@ import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import ch.poliscore.TrackedIssue;
 import lombok.Data;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.utils.Pair;
 
 @Data
+@DynamoDbBean
 public class IssueStats {
 	
 	protected Map<TrackedIssue, Integer> stats = new HashMap<TrackedIssue, Integer>();
@@ -64,6 +66,13 @@ public class IssueStats {
 		}
 		
 		return null;
+	}
+	
+//	@DynamoDbConvertedBy(EnumMapAttributeConverter.class)
+	@DynamoDbIgnore // TODO
+	public Map<TrackedIssue, Integer> getStats()
+	{
+		return this.stats;
 	}
 	
 	@JsonIgnore

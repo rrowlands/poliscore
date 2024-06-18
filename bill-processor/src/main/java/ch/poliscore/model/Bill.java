@@ -1,16 +1,22 @@
 package ch.poliscore.model;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ch.poliscore.interpretation.BillType;
-import ch.poliscore.view.USCBillView.USCBillSponsor;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @Data
+@DynamoDbBean
 public class Bill implements Persistable {
+	
 	@JsonIgnore
 	private BillText text;
 	
@@ -28,13 +34,20 @@ public class Bill implements Persistable {
 	
 //	private String textUrl;
 	
-	private USCBillSponsor sponsor;
+	private BillSponsor sponsor;
 	
-	private List<USCBillSponsor> cosponsors;
+	private List<BillSponsor> cosponsors;
 	
-	private Date introducedDate;
+	private LocalDate introducedDate;
 	
 //	private LegislativeChamber originatingChamber;
+	
+	@DynamoDbIgnore
+	@JsonIgnore
+	public BillText getText()
+	{
+		return text;
+	}
 	
 	@JsonIgnore
 	public String getTextUrl()
@@ -52,6 +65,7 @@ public class Bill implements Persistable {
 		return type.getName().toLowerCase() + number + "-" + congress;
 	}
 	
+	@DynamoDbPartitionKey
 	public String getId()
 	{
 		return getPoliscoreId();
@@ -60,5 +74,17 @@ public class Bill implements Persistable {
 	public static String generateId(int congress, BillType type, int number)
 	{
 		return LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + congress + "/" + type.getName().toLowerCase() + "/" + number;
+	}
+	
+	@Data
+	@DynamoDbBean
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class BillSponsor {
+		
+		protected String bioguide_id;
+		
+		protected String name;
+		
 	}
 }

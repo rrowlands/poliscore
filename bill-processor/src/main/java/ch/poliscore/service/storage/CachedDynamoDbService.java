@@ -3,12 +3,12 @@ package ch.poliscore.service.storage;
 import java.util.Optional;
 
 import ch.poliscore.model.Persistable;
+import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-@Alternative
+@DefaultBean
 public class CachedDynamoDbService implements ApplicationDataStoreIF
 {
 	@Inject

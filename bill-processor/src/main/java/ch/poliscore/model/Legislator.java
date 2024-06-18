@@ -3,14 +3,20 @@ package ch.poliscore.model;
 import java.util.HashSet;
 import java.util.Set;
 
+import ch.poliscore.service.storage.DynamoDBPersistenceService;
 import ch.poliscore.view.USCLegislatorView;
+import io.quarkus.amazon.dynamodb.enhanced.runtime.NamedDynamoDbTable;
+import jakarta.inject.Inject;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @Data
 @DynamoDbBean
+@NoArgsConstructor
 public class Legislator implements Persistable {
 	
 	@NonNull

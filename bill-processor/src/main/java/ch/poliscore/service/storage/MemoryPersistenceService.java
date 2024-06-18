@@ -5,13 +5,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import ch.poliscore.model.Persistable;
-import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
 import lombok.val;
 
 @ApplicationScoped
-@DefaultBean
-public class MemoryPersistenceService implements ApplicationDataStoreIF {
+public class MemoryPersistenceService implements PersistenceServiceIF {
 	
 	private static final String SEPARATOR = "~~~~";
 	

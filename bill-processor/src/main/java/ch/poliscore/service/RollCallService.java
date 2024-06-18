@@ -5,10 +5,11 @@ import java.util.NoSuchElementException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ch.poliscore.VoteStatus;
 import ch.poliscore.interpretation.BillType;
 import ch.poliscore.model.Bill;
+import ch.poliscore.model.LegislativeNamespace;
 import ch.poliscore.model.Legislator;
+import ch.poliscore.model.VoteStatus;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillVote;
 import ch.poliscore.view.USCRollCallData;
 import ch.poliscore.view.USCRollCallData.USCRollCallVote;
@@ -40,7 +41,7 @@ public class RollCallService {
 	{
 		try
 		{
-			Legislator leg = lService.getById(vote.getId()).orElseThrow();
+			Legislator leg = lService.getById(LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + vote.getId()).orElseThrow();
 			
 			var billView = rollCall.getBill();
 			var billId = Bill.generateId(billView.getCongress(), BillType.valueOf(billView.getType().toUpperCase()), billView.getNumber());

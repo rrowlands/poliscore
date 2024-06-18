@@ -3,8 +3,6 @@ package ch.poliscore.service;
 import java.util.Arrays;
 import java.util.List;
 
-import ch.poliscore.DataNotFoundException;
-import ch.poliscore.TrackedIssue;
 import ch.poliscore.bill.parsing.BillSlice;
 import ch.poliscore.bill.parsing.BillSlicer;
 import ch.poliscore.bill.parsing.XMLBillSlicer;
@@ -13,6 +11,7 @@ import ch.poliscore.interpretation.OpenAISliceInterpretationMetadata;
 import ch.poliscore.model.Bill;
 import ch.poliscore.model.BillInterpretation;
 import ch.poliscore.model.IssueStats;
+import ch.poliscore.model.TrackedIssue;
 import ch.poliscore.service.storage.ApplicationDataStoreIF;
 import ch.poliscore.service.storage.S3PersistenceService;
 import io.quarkus.logging.Log;

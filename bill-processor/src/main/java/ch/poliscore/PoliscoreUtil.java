@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+import ch.poliscore.model.LegislativeNamespace;
+
 public class PoliscoreUtil {
 	
 	public static File USC_DATA = new File("/Users/rrowlands/dev/projects/congress/data");
@@ -16,15 +18,15 @@ public class PoliscoreUtil {
 	
 	public static int OLDEST_SUPPORTED_CONGRESS = 113;
 	
-	public static String BERNIE_SANDERS_ID = "S000033";
+	public static String BERNIE_SANDERS_ID = LegislativeNamespace.US_CONGRESS.getNamespace() + "/S000033";
 	
-	public static String MIKE_JOHNSON_ID = "J000299";
+	public static String MIKE_JOHNSON_ID = LegislativeNamespace.US_CONGRESS.getNamespace() + "/J000299";
 	
-	public static String MITT_ROMNEY_ID = "R000615";
+	public static String MITT_ROMNEY_ID = LegislativeNamespace.US_CONGRESS.getNamespace() + "/R000615";
 	
-	public static String JOE_BIDEN_ID = "B000444";
+	public static String JOE_BIDEN_ID = LegislativeNamespace.US_CONGRESS.getNamespace() + "/B000444";
 	
-	public static String[] SPRINT_1_LEGISLATORS = new String[] { BERNIE_SANDERS_ID }; // MIKE_JOHNSON_ID, MITT_ROMNEY_ID, JOE_BIDEN_ID
+	public static String[] SPRINT_1_LEGISLATORS = new String[] { BERNIE_SANDERS_ID, MIKE_JOHNSON_ID, MITT_ROMNEY_ID, JOE_BIDEN_ID }; // MIKE_JOHNSON_ID, MITT_ROMNEY_ID, JOE_BIDEN_ID
 	
 	public static List<File> allFilesWhere(File parent, Predicate<File> criteria)
 	{

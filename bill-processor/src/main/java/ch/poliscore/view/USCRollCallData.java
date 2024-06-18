@@ -1,7 +1,7 @@
 package ch.poliscore.view;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -19,7 +19,7 @@ public class USCRollCallData {
 	
 	protected String chamber;
 	
-	protected Date date;
+	protected LocalDate date;
 	
 	protected String question;
 	

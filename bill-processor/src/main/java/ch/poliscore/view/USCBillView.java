@@ -1,10 +1,11 @@
 package ch.poliscore.view;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import ch.poliscore.model.Bill.BillSponsor;
 import lombok.Data;
 
 @Data
@@ -29,9 +30,9 @@ public class USCBillView {
 	
 	protected String url;
 	
-	protected Date updated_at;
+	protected LocalDate updated_at;
 	
-	protected Date introduced_at;
+	protected LocalDate introduced_at;
 	
 	protected USCBillSponsor sponsor;
 	
@@ -52,6 +53,11 @@ public class USCBillView {
 		protected String title;
 		
 		protected String type;
+		
+		public BillSponsor convert()
+		{
+			return new BillSponsor(bioguide_id, name);
+		}
 		
 	}
 	

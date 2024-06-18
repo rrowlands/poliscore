@@ -1,6 +1,9 @@
-package ch.poliscore;
+package ch.poliscore.model;
+
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
 // Often called "Policy Issues" by our government
+@DynamoDbBean
 public enum TrackedIssue
 {
 	AgricultureAndFood("Agriculture and Food"),
