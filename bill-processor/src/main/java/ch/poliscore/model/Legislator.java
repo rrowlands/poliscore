@@ -44,6 +44,8 @@ public class Legislator implements Persistable {
 		throw new NullPointerException();
 	}
 	
+	public void setId(String id) { this.bioguideId = id; }
+	
 	public void addBillInteraction(LegislatorBillInteration incoming)
 	{
 		interactions.removeIf(existing -> incoming.supercedes(existing));

@@ -55,7 +55,11 @@ public class USCDataImporter implements QuarkusApplication
 	
 	protected void process() throws IOException
 	{
+		Log.info("Importing");
+		
 		legService.importLegislators();
+		
+		Log.info("Import complete");
 		
 		/*
 		long totalBills = 0;
