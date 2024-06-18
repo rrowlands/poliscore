@@ -40,7 +40,7 @@ public class LegislatorService {
 			USCLegislatorView view = mapper.treeToValue(it.next(), USCLegislatorView.class);
 			
 			Legislator leg = new Legislator();
-			leg.setName(view.getName());
+			leg.setName(view.getName().convert());
 			leg.setBioguideId(view.getId().getBioguide());
 			leg.setThomasId(view.getId().getThomas());
 			leg.setWikidataId(view.getId().getWikidata());

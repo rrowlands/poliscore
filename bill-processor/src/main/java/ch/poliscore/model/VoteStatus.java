@@ -1,23 +1,32 @@
 package ch.poliscore.model;
 
+import ch.poliscore.model.dynamodb.WorkaroundEnumAttributeConverter.VoteStatusAttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
-@DynamoDbBean
 public enum VoteStatus {
-	AYE("for"),
-	NAY("against"),
-	PRESENT("present"),
-	NOT_VOTING("skip");
+	AYE,
+	NAY,
+	PRESENT,
+	NOT_VOTING;
 	
-	private String description;
-	
-	private VoteStatus(String description)
-	{
-		this.description = description;
-	}
+	private VoteStatus() {}
 	
 	public String describe()
 	{
-		return this.description;
+		if (this.equals(AYE))
+		{
+			return "for";
+		}
+		else if (this.equals(NAY))
+		{
+			return "against";
+		}
+		else if (this.equals(PRESENT))
+		{
+			return "present";
+		}
+		
+		return "skip";
 	}
 }

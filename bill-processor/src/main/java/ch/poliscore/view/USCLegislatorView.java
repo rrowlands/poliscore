@@ -2,6 +2,7 @@ package ch.poliscore.view;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import ch.poliscore.model.Legislator.LegislatorName;
 import lombok.Data;
 
 @Data
@@ -21,6 +22,11 @@ public class USCLegislatorView {
 		protected String last;
 		
 		protected String official_full;
+		
+		public LegislatorName convert()
+		{
+			return new LegislatorName(first, last, official_full);
+		}
 		
 	}
 	

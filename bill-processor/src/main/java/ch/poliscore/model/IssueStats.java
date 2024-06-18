@@ -69,7 +69,7 @@ public class IssueStats {
 	}
 	
 //	@DynamoDbConvertedBy(EnumMapAttributeConverter.class)
-	@DynamoDbIgnore // TODO
+	@DynamoDbIgnore
 	public Map<TrackedIssue, Integer> getStats()
 	{
 		return this.stats;

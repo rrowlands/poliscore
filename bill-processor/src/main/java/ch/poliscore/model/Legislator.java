@@ -3,15 +3,13 @@ package ch.poliscore.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import ch.poliscore.service.storage.DynamoDBPersistenceService;
-import ch.poliscore.view.USCLegislatorView;
-import io.quarkus.amazon.dynamodb.enhanced.runtime.NamedDynamoDbTable;
-import jakarta.inject.Inject;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @Data
@@ -20,7 +18,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 public class Legislator implements Persistable {
 	
 	@NonNull
-	protected USCLegislatorView.USCLegislatorName name;
+	protected LegislatorName name;
 	
 	protected String bioguideId;
 	
@@ -28,9 +26,11 @@ public class Legislator implements Persistable {
 	
 	protected String wikidataId;
 	
+	@Getter(onMethod_ = {@DynamoDbIgnore})
 	protected LegislatorInterpretation interpretation;
 	
 	@NonNull
+	@Getter(onMethod_ = {@DynamoDbIgnore})
 	protected Set<LegislatorBillInteration> interactions = new HashSet<LegislatorBillInteration>();
 	
 	@DynamoDbPartitionKey
@@ -48,6 +48,20 @@ public class Legislator implements Persistable {
 	{
 		interactions.removeIf(existing -> incoming.supercedes(existing));
 		interactions.add(incoming);
+	}
+	
+	@Data
+	@DynamoDbBean
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class LegislatorName {
+		
+		protected String first;
+		
+		protected String last;
+		
+		protected String official_full;
+		
 	}
 	
 }

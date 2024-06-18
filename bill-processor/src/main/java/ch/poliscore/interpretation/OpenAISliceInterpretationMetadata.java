@@ -1,10 +1,14 @@
 package ch.poliscore.interpretation;
 
 import ch.poliscore.bill.parsing.BillSlice;
+import ch.poliscore.model.DynamoDbJacksonAttributeConverter.DynamoDbJacksonStringifiedConverterProvider;
 import ch.poliscore.service.OpenAIService;
 import lombok.Data;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
 @Data
+@DynamoDbBean(converterProviders = {DynamoDbJacksonStringifiedConverterProvider.class, DefaultAttributeConverterProvider.class})
 public class OpenAISliceInterpretationMetadata extends OpenAIInterpretationMetadata {
 	protected int sectionStart;
 	

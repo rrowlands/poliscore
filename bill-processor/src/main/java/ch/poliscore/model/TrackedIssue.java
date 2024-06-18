@@ -3,38 +3,103 @@ package ch.poliscore.model;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
 // Often called "Policy Issues" by our government
-@DynamoDbBean
 public enum TrackedIssue
 {
-	AgricultureAndFood("Agriculture and Food"),
-	Education("Education"),
-	Transportation("Transportation"),
-	EconomicsAndCommerce("Economics and Commerce"),
-	ForeignRelations("Foreign Relations"),
-	SocialEquity("Social Equity"),
-	Government("Government Efficiency and Management"),
-	Healthcare("Healthcare"),
-	Housing("Housing"),
-	Energy("Energy"),
-	Technology("Technology"),
-	Immigration("immigration"),
-	NationalDefense("National Defense"),
-	CrimeAndLawEnforcement("Crime and Law Enforcement"),
-	WildlifeAndForestManagement("Wildlife and Forest Management"),
-	PublicLandsAndNaturalResources("Public Lands and Natural Resources"),
-	EnvironmentalManagementAndClimateChange("Environmental Management and Climate Change"),
+	AgricultureAndFood,
+	Education,
+	Transportation,
+	EconomicsAndCommerce,
+	ForeignRelations,
+	SocialEquity,
+	Government,
+	Healthcare,
+	Housing,
+	Energy,
+	Technology,
+	Immigration,
+	NationalDefense,
+	CrimeAndLawEnforcement,
+	WildlifeAndForestManagement,
+	PublicLandsAndNaturalResources,
+	EnvironmentalManagementAndClimateChange,
 //	Feasibility("Feasibility"),
-	OverallBenefitToSociety("Overall Benefit to Society");
-	
-	private String name;
-	
-	private TrackedIssue(String name)
-	{
-		this.name = name;
-	}
+	OverallBenefitToSociety;
 	
 	public String getName()
 	{
-		return this.name;
+		if (this.equals(AgricultureAndFood))
+		{
+			return "Agriculture and Food";
+		}
+		else if (this.equals(Education))
+		{
+			return "Education";
+		}
+		else if (this.equals(Transportation))
+		{
+			return "Transportation";
+		}
+		else if (this.equals(EconomicsAndCommerce))
+		{
+			return "Economics and Commerce";
+		}
+		else if (this.equals(ForeignRelations))
+		{
+			return "Foreign Relations";
+		}
+		else if (this.equals(SocialEquity))
+		{
+			return "Social Equity";
+		}
+		else if (this.equals(Government))
+		{
+			return "Government Efficiency and Management";
+		}
+		else if (this.equals(Healthcare))
+		{
+			return "Healthcare";
+		}
+		else if (this.equals(Housing))
+		{
+			return "Housing";
+		}
+		else if (this.equals(Energy))
+		{
+			return "Energy";
+		}
+		else if (this.equals(Technology))
+		{
+			return "Technology";
+		}
+		else if (this.equals(Immigration))
+		{
+			return "Immigration";
+		}
+		else if (this.equals(NationalDefense))
+		{
+			return "National Defense";
+		}
+		else if (this.equals(CrimeAndLawEnforcement))
+		{
+			return "Crime and Law Enforcement";
+		}
+		else if (this.equals(WildlifeAndForestManagement))
+		{
+			return "Wildlife and Forest Management";
+		}
+		else if (this.equals(PublicLandsAndNaturalResources))
+		{
+			return "Public Lands and Natural Resources";
+		}
+		else if (this.equals(EnvironmentalManagementAndClimateChange))
+		{
+			return "Environmental Management and Climate Change";
+		}
+		else if (this.equals(OverallBenefitToSociety))
+		{
+			return "Overall Benefit to Society";
+		}
+		
+		return "unknown";
 	}
 }
