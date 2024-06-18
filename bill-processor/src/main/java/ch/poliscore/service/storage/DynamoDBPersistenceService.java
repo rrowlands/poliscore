@@ -3,14 +3,12 @@ package ch.poliscore.service.storage;
 import java.util.Optional;
 
 import ch.poliscore.model.Legislator;
+import ch.poliscore.model.LegislatorInterpretation;
 import ch.poliscore.model.Persistable;
 import io.quarkus.amazon.dynamodb.enhanced.runtime.NamedDynamoDbTable;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import lombok.val;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 @ApplicationScoped
 public class DynamoDBPersistenceService implements PersistenceServiceIF
@@ -22,6 +20,10 @@ public class DynamoDBPersistenceService implements PersistenceServiceIF
 	@Inject
     @NamedDynamoDbTable(DynamoDBPersistenceService.TABLE_NAME)
     DynamoDbTable<Legislator> legislatorTable;
+	
+//	@Inject
+//    @NamedDynamoDbTable(DynamoDBPersistenceService.TABLE_NAME)
+//    DynamoDbTable<LegislatorInterpretation> legislatorInterpTable;
 	
 //	protected DynamoDbEnhancedClient getClient()
 //	{

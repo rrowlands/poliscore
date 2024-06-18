@@ -3,6 +3,8 @@ package ch.poliscore.model;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -17,6 +19,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 @NoArgsConstructor
 public class Legislator implements Persistable {
 	
+	public static final String ID_CLASS_PREFIX = "LEG";
+	
 	@NonNull
 	protected LegislatorName name;
 	
@@ -26,7 +30,6 @@ public class Legislator implements Persistable {
 	
 	protected String wikidataId;
 	
-	@Getter(onMethod_ = {@DynamoDbIgnore})
 	protected LegislatorInterpretation interpretation;
 	
 	@NonNull
@@ -36,10 +39,8 @@ public class Legislator implements Persistable {
 	@DynamoDbPartitionKey
 	public String getId()
 	{
-		String namespace = LegislativeNamespace.US_CONGRESS.getNamespace();
-		
-		if (bioguideId != null) return namespace + "/" + getBioguideId();
-		if (thomasId != null) return namespace + "/" + getThomasId();
+		if (bioguideId != null) return generateId(LegislativeNamespace.US_CONGRESS, bioguideId);
+		if (thomasId != null) return generateId(LegislativeNamespace.US_CONGRESS, thomasId);
 		
 		throw new NullPointerException();
 	}
@@ -51,6 +52,13 @@ public class Legislator implements Persistable {
 		interactions.removeIf(existing -> incoming.supercedes(existing));
 		interactions.add(incoming);
 	}
+	
+	public static String generateId(LegislativeNamespace ns, String bioguideId)
+	{
+		return ID_CLASS_PREFIX + "/" + ns.getNamespace() + "/" + bioguideId;
+	}
+	
+	@Override @JsonIgnore @DynamoDbIgnore public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
 	
 	@Data
 	@DynamoDbBean

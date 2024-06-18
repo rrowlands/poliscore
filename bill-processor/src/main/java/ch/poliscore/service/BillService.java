@@ -5,8 +5,7 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import ch.poliscore.PoliscoreUtil;
 import ch.poliscore.interpretation.BillType;
 import ch.poliscore.model.Bill;
 import ch.poliscore.model.BillText;
@@ -14,7 +13,7 @@ import ch.poliscore.model.LegislativeNamespace;
 import ch.poliscore.model.Legislator;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillCosponsor;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillSponsor;
-import ch.poliscore.service.storage.ApplicationDataStoreIF;
+import ch.poliscore.service.storage.MemoryPersistenceService;
 import ch.poliscore.service.storage.S3PersistenceService;
 import ch.poliscore.view.USCBillView;
 import jakarta.annotation.Priority;
@@ -32,14 +31,14 @@ public class BillService {
 	private S3PersistenceService s3;
 	
 	@Inject
-	private ApplicationDataStoreIF pServ;
+	private MemoryPersistenceService pServ;
 	
 	@Inject
 	protected LegislatorService lService;
 	
 	@SneakyThrows
 	public void importUscData(FileInputStream fos) {
-		val view = new ObjectMapper().readValue(fos, USCBillView.class);
+		val view = PoliscoreUtil.getObjectMapper().readValue(fos, USCBillView.class);
 		
 //		String text = fetchBillText(view.getUrl());
     	
@@ -49,14 +48,14 @@ public class BillService {
     	bill.setCongress(Integer.parseInt(view.getCongress()));
     	bill.setType(BillType.valueOf(view.getBill_type().toUpperCase()));
     	bill.setNumber(Integer.parseInt(view.getNumber()));
-    	bill.setStatusUrl(view.getUrl());
+//    	bill.setStatusUrl(view.getUrl());
     	bill.setIntroducedDate(view.getIntroduced_at());
-    	bill.setSponsor(view.getSponsor().convert());
+    	bill.setSponsor(view.getSponsor() == null ? null : view.getSponsor().convert());
     	bill.setCosponsors(view.getCosponsors().stream().map(s -> s.convert()).collect(Collectors.toList()));
     	
     	if (view.getSponsor() != null && !StringUtils.isBlank(view.getSponsor().getBioguide_id()))
     	{
-			Legislator leg = lService.getById(LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + view.getSponsor().getBioguide_id()).orElseThrow();
+			Legislator leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, view.getSponsor().getBioguide_id())).orElseThrow();
 			
 			LegislatorBillSponsor interaction = new LegislatorBillSponsor();
 			interaction.setBillId(bill.getId());
@@ -68,7 +67,7 @@ public class BillService {
     	
     	view.getCosponsors().forEach(cs -> {
     		if (!StringUtils.isBlank(cs.getBioguide_id())) {
-	    		Legislator leg = lService.getById(LegislativeNamespace.US_CONGRESS.getNamespace() + "/" +cs.getBioguide_id()).orElseThrow();
+	    		Legislator leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, view.getSponsor().getBioguide_id())).orElseThrow();
 				
 				LegislatorBillCosponsor interaction = new LegislatorBillCosponsor();
 				interaction.setBillId(bill.getId());
@@ -129,14 +128,14 @@ public class BillService {
 //		
 //		if (text.isPresent())
 //		{
-//			return Optional.of(new ObjectMapper().readValue(FileUtils.readFileToString(text.get(), "UTF-8"), BillText.class));
+//			return Optional.of(PoliscoreUtil.getObjectMapper().readValue(FileUtils.readFileToString(text.get(), "UTF-8"), BillText.class));
 //		}
 //		else
 //		{
 //			return Optional.empty();
 //		}
     	
-    	return s3.retrieve(bill.getId(), BillText.class);
+    	return s3.retrieve(BillText.generateId(bill.getId()), BillText.class);
 	}
     
     public Optional<Bill> getById(String id)

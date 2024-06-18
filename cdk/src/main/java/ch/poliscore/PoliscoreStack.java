@@ -54,11 +54,17 @@ class PoliscoreStack extends Stack {
         
         
         
-        new Bucket(this, "PoliscoreProdBucket",
-        		BucketProps.builder()
-        		.bucketName("poliscore-prod")
-        		.publicReadAccess(false)
-        		.removalPolicy(RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE).build());
+//        new Bucket(this, "PoliscoreProdBucket",
+//        		BucketProps.builder()
+//        		.bucketName("poliscore-prod")
+//        		.publicReadAccess(false)
+//        		.removalPolicy(RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE).build());
+        
+        
+        
+        
+        
+        
         
         
         

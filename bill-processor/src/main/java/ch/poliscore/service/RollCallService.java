@@ -3,14 +3,13 @@ package ch.poliscore.service;
 import java.io.InputStream;
 import java.util.NoSuchElementException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import ch.poliscore.PoliscoreUtil;
 import ch.poliscore.interpretation.BillType;
 import ch.poliscore.model.Bill;
 import ch.poliscore.model.LegislativeNamespace;
 import ch.poliscore.model.Legislator;
-import ch.poliscore.model.VoteStatus;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillVote;
+import ch.poliscore.model.VoteStatus;
 import ch.poliscore.view.USCRollCallData;
 import ch.poliscore.view.USCRollCallData.USCRollCallVote;
 import io.quarkus.logging.Log;
@@ -27,7 +26,7 @@ public class RollCallService {
 	@SneakyThrows
 	public void importUscData(InputStream is)
 	{
-		USCRollCallData rollCall = new ObjectMapper().readValue(is, USCRollCallData.class);
+		USCRollCallData rollCall = PoliscoreUtil.getObjectMapper().readValue(is, USCRollCallData.class);
 		
 		if (!"passage".equals(rollCall.getCategory()) || rollCall.getBill() == null) return;
 		
@@ -41,7 +40,7 @@ public class RollCallService {
 	{
 		try
 		{
-			Legislator leg = lService.getById(LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + vote.getId()).orElseThrow();
+			Legislator leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, vote.getId())).orElseThrow();
 			
 			var billView = rollCall.getBill();
 			var billId = Bill.generateId(billView.getCongress(), BillType.valueOf(billView.getType().toUpperCase()), billView.getNumber());

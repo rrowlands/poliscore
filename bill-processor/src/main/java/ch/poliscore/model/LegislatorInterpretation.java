@@ -4,14 +4,19 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ch.poliscore.interpretation.OpenAIInterpretationMetadata;
 import lombok.Data;
+import lombok.Getter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @Data
 @DynamoDbBean
 public class LegislatorInterpretation implements Persistable
 {
+	public static final String ID_CLASS_PREFIX = "LIT";
+	
 	@JsonIgnore
+	@Getter(onMethod_ = {@DynamoDbIgnore})
 	protected transient Legislator legislator;
 	
 	protected IssueStats issueStats;
@@ -43,6 +48,12 @@ public class LegislatorInterpretation implements Persistable
 	@DynamoDbPartitionKey
 	public String getId()
 	{
-		return legislatorId;
+		return generateId(legislatorId);
 	}
+	
+	public void setId(String id) { this.legislatorId = id; }
+	
+	public String generateId(String legislatorId) { return legislatorId.replace(Bill.ID_CLASS_PREFIX, ID_CLASS_PREFIX); }
+	
+	@Override @JsonIgnore @DynamoDbIgnore public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
 }

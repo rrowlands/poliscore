@@ -46,8 +46,6 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 	
 	public static final String URL_TEMPLATE = "https://www.govinfo.gov/bulkdata/BILLS/{{congress}}/{{session}}/{{type}}/BILLS-{{congress}}-{{session}}-{{type}}.zip";
 	
-	public static int[] FETCH_CONGRESS = new int[] {  116, 117, 118 }; // 113, 114, 115,
-	
 	public static int[] FETCH_SESSION = new int[] { 1, 2 };
 	
 	public static List<String> FETCH_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
@@ -62,7 +60,7 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 		FileUtils.deleteQuietly(store);
 		store.mkdirs();
 		
-		for (int congress : FETCH_CONGRESS)
+		for (int congress : PoliscoreUtil.SUPPORTED_CONGRESSES)
 		{
 			val congressStore = new File(store, String.valueOf(congress));
 			congressStore.mkdir();
@@ -123,7 +121,7 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 		
 		if (StringUtils.isBlank(text)) return null;
 		
-		return LocalDate.parse(text, DateTimeFormatter.ofPattern("yyyy-MM-DD"));
+		return LocalDate.parse(text, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 	}
 	
 	@SneakyThrows

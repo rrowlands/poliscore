@@ -2,8 +2,7 @@ package ch.poliscore.service.storage;
 
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import ch.poliscore.PoliscoreUtil;
 import ch.poliscore.model.Persistable;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -23,9 +22,9 @@ public class S3PersistenceService implements PersistenceServiceIF
 	
 	public static final String BUCKET_NAME = "poliscore-prod";
 	
-	protected String getKey(String id, Class<?> clazz)
+	protected String getKey(String id)
 	{
-		return clazz.getSimpleName() + "/" + id + ".json";
+		return id + ".json";
 	}
 	
 	private S3Client client;
@@ -44,14 +43,14 @@ public class S3PersistenceService implements PersistenceServiceIF
 	@SneakyThrows
 	public void store(Persistable obj)
 	{
-		val key = getKey(obj.getId(), obj.getClass());
+		val key = getKey(obj.getId());
 		
         PutObjectRequest putOb = PutObjectRequest.builder()
                 .bucket(BUCKET_NAME)
                 .key(key)
                 .build();
 
-        getClient().putObject(putOb, RequestBody.fromString(new ObjectMapper().writeValueAsString(obj)));
+        getClient().putObject(putOb, RequestBody.fromString(PoliscoreUtil.getObjectMapper().writeValueAsString(obj)));
         
         Log.info("Uploaded to S3 " + key);
 	}
@@ -59,7 +58,7 @@ public class S3PersistenceService implements PersistenceServiceIF
 	@SneakyThrows
 	public <T extends Persistable> Optional<T> retrieve(String id, Class<T> clazz)
 	{
-		val key = getKey(id, clazz);
+		val key = getKey(id);
 		
         GetObjectRequest req = GetObjectRequest.builder()
                 .bucket(BUCKET_NAME)
@@ -71,7 +70,7 @@ public class S3PersistenceService implements PersistenceServiceIF
         	
         	Log.info("Retrieved " + clazz.getSimpleName() + " from S3 " + key);
         	
-        	return Optional.of(new ObjectMapper().readValue(resp, clazz));
+        	return Optional.of(PoliscoreUtil.getObjectMapper().readValue(resp, clazz));
         }
         catch (NoSuchKeyException ex)
         {
@@ -83,7 +82,7 @@ public class S3PersistenceService implements PersistenceServiceIF
 	
 	public <T> boolean exists(String id, Class<T> clazz)
 	{
-		val key = getKey(id, clazz);
+		val key = getKey(id);
 		
 		try
 		{

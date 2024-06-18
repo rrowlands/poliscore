@@ -2,10 +2,15 @@ package ch.poliscore;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+
 import ch.poliscore.model.LegislativeNamespace;
+import ch.poliscore.model.Legislator;
 
 public class PoliscoreUtil {
 	
@@ -16,17 +21,17 @@ public class PoliscoreUtil {
 		APP_DATA.mkdirs();
 	}
 	
-	public static int OLDEST_SUPPORTED_CONGRESS = 113;
+	public static List<Integer> SUPPORTED_CONGRESSES = Arrays.asList(118);
 	
-	public static String BERNIE_SANDERS_ID = LegislativeNamespace.US_CONGRESS.getNamespace() + "/S000033";
+	public static String BERNIE_SANDERS_ID = Legislator.generateId(LegislativeNamespace.US_CONGRESS, "S000033");
 	
-	public static String MIKE_JOHNSON_ID = LegislativeNamespace.US_CONGRESS.getNamespace() + "/J000299";
+	public static String MIKE_JOHNSON_ID = Legislator.generateId(LegislativeNamespace.US_CONGRESS, "J000299");
 	
-	public static String MITT_ROMNEY_ID = LegislativeNamespace.US_CONGRESS.getNamespace() + "/R000615";
+	public static String MITT_ROMNEY_ID = Legislator.generateId(LegislativeNamespace.US_CONGRESS, "R000615");
 	
-	public static String JOE_BIDEN_ID = LegislativeNamespace.US_CONGRESS.getNamespace() + "/B000444";
+	public static String JOE_BIDEN_ID = Legislator.generateId(LegislativeNamespace.US_CONGRESS, "B000444");
 	
-	public static String[] SPRINT_1_LEGISLATORS = new String[] { BERNIE_SANDERS_ID, MIKE_JOHNSON_ID, MITT_ROMNEY_ID, JOE_BIDEN_ID }; // MIKE_JOHNSON_ID, MITT_ROMNEY_ID, JOE_BIDEN_ID
+	public static String[] SPRINT_1_LEGISLATORS = new String[] { BERNIE_SANDERS_ID }; // , MIKE_JOHNSON_ID, MITT_ROMNEY_ID, JOE_BIDEN_ID
 	
 	public static List<File> allFilesWhere(File parent, Predicate<File> criteria)
 	{
@@ -48,5 +53,7 @@ public class PoliscoreUtil {
 		
 		return all;
 	}
+	
+	public static ObjectMapper getObjectMapper() { return JsonMapper.builder().findAndAddModules().build(); }
 	
 }

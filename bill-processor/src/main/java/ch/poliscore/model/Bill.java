@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import ch.poliscore.interpretation.BillType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
@@ -17,8 +18,10 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 @DynamoDbBean
 public class Bill implements Persistable {
 	
+	public static final String ID_CLASS_PREFIX = "BIL";
+	
 	@JsonIgnore
-	private BillText text;
+	private transient BillText text;
 	
 	private LegislativeNamespace namespace = LegislativeNamespace.US_CONGRESS;
 	
@@ -30,7 +33,7 @@ public class Bill implements Persistable {
 	
 	private String name;
 	
-	private String statusUrl;
+//	private String statusUrl;
 	
 //	private String textUrl;
 	
@@ -49,12 +52,6 @@ public class Bill implements Persistable {
 		return text;
 	}
 	
-	@JsonIgnore
-	public String getTextUrl()
-	{
-		return "";
-	}
-	
 	public String getPoliscoreId()
 	{
 		return generateId(congress, type, number);
@@ -71,9 +68,13 @@ public class Bill implements Persistable {
 		return getPoliscoreId();
 	}
 	
+	public void setId(String id) { }
+	
+	@Override @JsonIgnore @DynamoDbIgnore public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
+	
 	public static String generateId(int congress, BillType type, int number)
 	{
-		return LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + congress + "/" + type.getName().toLowerCase() + "/" + number;
+		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + congress + "/" + type.getName().toLowerCase() + "/" + number;
 	}
 	
 	@Data

@@ -15,7 +15,7 @@ import ch.poliscore.model.LegislatorBillInteration;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillVote;
 import ch.poliscore.model.LegislatorInterpretation;
 import ch.poliscore.model.VoteStatus;
-import ch.poliscore.service.storage.ApplicationDataStoreIF;
+import ch.poliscore.service.storage.MemoryPersistenceService;
 import ch.poliscore.service.storage.S3PersistenceService;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -26,7 +26,7 @@ import lombok.val;
 public class LegislatorInterpretationService
 {
 	// Only process the x most recent bills
-	public static final int LIMIT_BILLS = 6;
+	public static final int LIMIT_BILLS = 3;
 	
 	public static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) summarization of this history, highlighting the accomplishments pointing out major focuses and priorities of the legislator. In your summary, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
 	
@@ -34,7 +34,7 @@ public class LegislatorInterpretationService
 	private S3PersistenceService s3;
 	
 	@Inject
-	private ApplicationDataStoreIF pService;
+	private MemoryPersistenceService pService;
 	
 	@Inject
 	private BillService billService;
@@ -140,7 +140,7 @@ public class LegislatorInterpretationService
 	{
 		if (periodStart == null || periodEnd == null) return "several months";
 		
-		long dayDiff = ChronoUnit.DAYS.between(periodEnd, periodStart);
+		long dayDiff = ChronoUnit.DAYS.between(periodStart, periodEnd);
 	    
 	    if (dayDiff < 30)
 	    {

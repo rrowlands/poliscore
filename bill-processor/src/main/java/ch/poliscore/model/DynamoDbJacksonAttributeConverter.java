@@ -2,8 +2,7 @@ package ch.poliscore.model;
 
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import ch.poliscore.PoliscoreUtil;
 import ch.poliscore.model.DynamoDbJacksonAttributeConverter.DynamoDbJacksonStringified;
 import lombok.SneakyThrows;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
@@ -17,13 +16,13 @@ public class DynamoDbJacksonAttributeConverter implements AttributeConverter<Dyn
 
 	@Override
 	public AttributeValue transformFrom(DynamoDbJacksonStringified input) {
-		return AttributeValue.fromS(new ObjectMapper().valueToTree(input).toString());
+		return AttributeValue.fromS(PoliscoreUtil.getObjectMapper().valueToTree(input).toString());
 	}
 
 	@Override
 	@SneakyThrows
 	public DynamoDbJacksonStringified transformTo(AttributeValue input) {
-		return new ObjectMapper().readValue(input.s(), DynamoDbJacksonStringified.class);
+		return PoliscoreUtil.getObjectMapper().readValue(input.s(), DynamoDbJacksonStringified.class);
 	}
 
 	@Override

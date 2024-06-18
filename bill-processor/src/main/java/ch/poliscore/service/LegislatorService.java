@@ -8,8 +8,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ch.poliscore.PoliscoreUtil;
 import ch.poliscore.model.Legislator;
-import ch.poliscore.service.storage.ApplicationDataStoreIF;
+import ch.poliscore.service.storage.MemoryPersistenceService;
 import ch.poliscore.view.USCLegislatorView;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -20,7 +21,7 @@ import lombok.SneakyThrows;
 public class LegislatorService {
 	
 	@Inject
-	private ApplicationDataStoreIF pServ;
+	private MemoryPersistenceService pServ;
 	
 	@SneakyThrows
 	public void importLegislators()
@@ -32,7 +33,7 @@ public class LegislatorService {
 	private void importUSCJson(String file) throws IOException, JsonProcessingException {
 		int count = 0;
 		
-		ObjectMapper mapper = new ObjectMapper();
+		ObjectMapper mapper = PoliscoreUtil.getObjectMapper();
 		JsonNode jn = mapper.readTree(LegislatorService.class.getResourceAsStream(file));
 		Iterator<JsonNode> it = jn.elements();
 		while (it.hasNext())

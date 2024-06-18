@@ -14,6 +14,7 @@ import ch.poliscore.service.BillService;
 import ch.poliscore.service.LegislatorInterpretationService;
 import ch.poliscore.service.LegislatorService;
 import ch.poliscore.service.RollCallService;
+import ch.poliscore.service.storage.DynamoDBPersistenceService;
 import ch.poliscore.service.storage.LocalFilePersistenceService;
 import ch.poliscore.service.storage.MemoryPersistenceService;
 import io.quarkus.logging.Log;
@@ -36,6 +37,9 @@ public class USCDataImporter implements QuarkusApplication
 	private LocalFilePersistenceService localStore;
 	
 	@Inject
+	private DynamoDBPersistenceService dynamoDb;
+	
+	@Inject
 	private BillService billService;
 	
 	@Inject
@@ -55,13 +59,8 @@ public class USCDataImporter implements QuarkusApplication
 	
 	protected void process() throws IOException
 	{
-		Log.info("Importing");
-		
 		legService.importLegislators();
 		
-		Log.info("Import complete");
-		
-		/*
 		long totalBills = 0;
 		long totalVotes = 0;
 		
@@ -70,6 +69,8 @@ public class USCDataImporter implements QuarkusApplication
 				.sorted((a,b) -> a.getName().compareTo(b.getName()))
 				.collect(Collectors.toList()))
 		{
+			if (!PoliscoreUtil.SUPPORTED_CONGRESSES.contains(Integer.valueOf(fCongress.getName()))) continue;
+			
 			Log.info("Processing " + fCongress.getName() + " congress");
 			
 			for (val bt : PROCESS_BILL_TYPE)
@@ -107,15 +108,16 @@ public class USCDataImporter implements QuarkusApplication
 		// Interpret legislators
 		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
 		{
-			legInterp.getOrCreate(legId);
+			val interp = legInterp.getOrCreate(legId);
+			interp.getIssueStats().setExplanation(interp.getIssueStats().getExplanation());
 			
 			val legislator = memService.retrieve(legId, Legislator.class).orElseThrow();
+			legislator.setInterpretation(interp);
 			
-			localStore.store(legislator);
+			dynamoDb.store(legislator);
 		}
 		
 		Log.info("USC import complete. Imported " + totalBills + " bills and " + totalVotes + " votes.");
-		*/
 	}
 	
 	@Override

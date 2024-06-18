@@ -1,6 +1,7 @@
 package ch.poliscore.view;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -30,7 +31,7 @@ public class USCBillView {
 	
 	protected String url;
 	
-	protected LocalDate updated_at;
+//	protected LocalDateTime updated_at;
 	
 	protected LocalDate introduced_at;
 	

@@ -5,19 +5,24 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import ch.poliscore.interpretation.OpenAIInterpretationMetadata;
 import ch.poliscore.interpretation.OpenAISliceInterpretationMetadata;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @Data
 @DynamoDbBean
 public class BillInterpretation implements Persistable
 {
+	public static final String ID_CLASS_PREFIX = "BIT";
+	
 	@JsonIgnore
 	protected transient Bill bill;
 	
 	@JsonIgnore
-	protected IssueStats issueStats = null;
+	@Getter(onMethod_ = {@DynamoDbIgnore})
+	protected transient IssueStats issueStats = null;
 	
 	@NonNull
 	protected String id;
@@ -79,9 +84,11 @@ public class BillInterpretation implements Persistable
 		}
 	}
 	
+	@Override @JsonIgnore @DynamoDbIgnore public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
+	
 	public static String generateId(String billId, Integer sliceIndex)
 	{
-		var id = billId;
+		var id = billId.replace(Bill.ID_CLASS_PREFIX, ID_CLASS_PREFIX);
 		
 		if (sliceIndex != null)
 		{

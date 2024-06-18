@@ -23,14 +23,14 @@ public class LocalFilePersistenceService implements PersistenceServiceIF
 		return new File(PoliscoreUtil.APP_DATA, "store");
 	}
 	
-	public File getStore(Class<?> clazz)
+	public File getStore(String idClassPrefix)
 	{
 //		if (Bill.class.equals(clazz)) return new File(getLocalStorage(), "bills");
 //		else if (BillInterpretation.class.equals(clazz)) return new File(getLocalStorage(), "interpretations");
 //		else if (Legislator.class.equals(clazz)) return new File(getLocalStorage(), "legislators");
 //		else return new File(getLocalStorage(), clazz.getName());
 		
-		File f = new File(getLocalStorage(), clazz.getSimpleName());
+		File f = new File(getLocalStorage(), idClassPrefix);
 		
 		if (!f.exists())
 		{
@@ -42,10 +42,10 @@ public class LocalFilePersistenceService implements PersistenceServiceIF
 	
 	@SneakyThrows
 	public void store(Persistable obj) {
-		File storage = getStore(obj.getClass());
+		File storage = getStore(obj.getIdClassPrefix());
 		File out = new File(storage, obj.getId() + ".json");
 		
-		var mapper = new ObjectMapper();
+		var mapper = PoliscoreUtil.getObjectMapper();
 		mapper.writerWithDefaultPrettyPrinter().writeValue(out, obj);
 		
 //		Log.info("Wrote file to " + out.getAbsolutePath());
@@ -54,13 +54,13 @@ public class LocalFilePersistenceService implements PersistenceServiceIF
 	@SneakyThrows
 	public <T extends Persistable> Optional<T> retrieve(String id, Class<T> clazz)
 	{
-		File billStorage = getStore(clazz);
+		File billStorage = getStore(id.substring(0, 3));
 		File stored = new File(billStorage, id + ".json");
 		
 		if (!stored.exists())
 			return Optional.empty();
 		
-		var mapper = new ObjectMapper();
+		var mapper = PoliscoreUtil.getObjectMapper();
 		return Optional.of(mapper.readValue(stored, clazz));
 	}
 	

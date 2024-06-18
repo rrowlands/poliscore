@@ -12,7 +12,7 @@ import ch.poliscore.model.Bill;
 import ch.poliscore.model.BillInterpretation;
 import ch.poliscore.model.IssueStats;
 import ch.poliscore.model.TrackedIssue;
-import ch.poliscore.service.storage.ApplicationDataStoreIF;
+import ch.poliscore.service.storage.MemoryPersistenceService;
 import ch.poliscore.service.storage.S3PersistenceService;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -42,7 +42,7 @@ public class BillInterpretationService {
 	protected OpenAIService ai;
 	
 	@Inject
-	protected ApplicationDataStoreIF pService;
+	protected MemoryPersistenceService pService;
 	
 	@Inject
 	protected S3PersistenceService s3;
