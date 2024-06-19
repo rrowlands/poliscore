@@ -15,7 +15,7 @@ public class IssueStatsMapAttributeConverter implements AttributeConverter<Map<T
     Map<String, AttributeValue> attributeValueMap = input.entrySet().stream()
             .collect(
                 Collectors.toMap(
-                    k -> k.getKey().getName(),
+                    k -> k.getKey().name(),
                     v -> AttributeValue.builder().n(String.valueOf(v.getValue())).build()));
     return AttributeValue.builder().m(attributeValueMap).build();
   }
