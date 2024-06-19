@@ -14,8 +14,8 @@ import software.amazon.awscdk.services.dynamodb.TableProps;
 import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.FunctionProps;
-import software.amazon.awscdk.services.s3.Bucket;
-import software.amazon.awscdk.services.s3.BucketProps;
+import software.amazon.awscdk.services.lambda.FunctionUrl;
+import software.amazon.awscdk.services.lambda.FunctionUrlAuthType;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.constructs.Construct;
 
@@ -39,17 +39,22 @@ class PoliscoreStack extends Stack {
         lambdaEnvMap.put("TABLE_NAME", dynamodbTable.getTableName());
         lambdaEnvMap.put("PRIMARY_KEY","id");
 
-        Function getOneItemFunction = new Function(this, "bill-processor",
+        Function fPoliscore = new Function(this, "bill-processor",
         		FunctionProps.builder()
-                .code(Code.fromAsset("../bill-processor/target/bill-processor-0.0.1-SNAPSHOT.jar"))
-                .handler("ch.poliscore.entrypoint.Lambda")
+                .code(Code.fromAsset("../bill-processor/target/function.zip"))
+                .handler("io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest")
                 .runtime(Runtime.JAVA_21)
                 .environment(lambdaEnvMap)
                 .timeout(Duration.minutes(15))
                 .memorySize(512)
                 .build());
+        
+        FunctionUrl.Builder.create(this, "poliscore-bill-processor-url")
+        	.function(fPoliscore)
+        	.authType(FunctionUrlAuthType.NONE)
+        	.build();
 
-        dynamodbTable.grantReadWriteData(getOneItemFunction);
+        dynamodbTable.grantReadWriteData(fPoliscore);
         
         
         
