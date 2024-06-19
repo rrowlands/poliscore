@@ -1,0 +1,37 @@
+
+# Angular front-end
+https://h66r5lk6xcbyhbqemd53jl5m2e0uorod.lambda-url.us-east-1.on.aws/
+
+# Fetch Bernie
+https://h66r5lk6xcbyhbqemd53jl5m2e0uorod.lambda-url.us-east-1.on.aws/getLegislator?id=LEG%2Fus%2Fcongress%2FS000033
+
+
+========
+
+
+=== USC Management Commands ===
+
+// Update all data
+usc-run govinfo --bulkdata=BILLSTATUS
+usc-run votes --congress=118
+
+
+// Pull bill text
+usc-run govinfo --collections=BILLS --congress=118 --store=xml --bulkdata=False
+
+// Delete all ‘text-versions’ directories, recursively
+find . -name text-versions -type d -exec rm -rf {} \;
+
+// Recursively extract all zip files into their current folder
+find . -name "*.zip" | xargs -P 5 -I fileName sh -c 'unzip -o -d "$(dirname "fileName")/$(basename -s .zip "fileName")" "fileName"'
+
+
+
+=====
+
+
+
+// Find all votes with Bernie Sanders
+grep -R "S000033" data/*/votes/**/*.json
+
+

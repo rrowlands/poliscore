@@ -36,10 +36,15 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets"
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles/styles.scss",
+              "src/styles/fontawesome-all.min.css"
             ],
             "scripts": []
           },
@@ -95,10 +100,15 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets"
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles/styles.scss",
+              "src/styles/fontawesome-all.min.css"
             ],
             "scripts": []
           }
