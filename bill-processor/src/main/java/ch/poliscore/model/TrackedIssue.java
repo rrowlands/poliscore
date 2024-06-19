@@ -1,7 +1,5 @@
 package ch.poliscore.model;
 
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-
 // Often called "Policy Issues" by our government
 public enum TrackedIssue
 {

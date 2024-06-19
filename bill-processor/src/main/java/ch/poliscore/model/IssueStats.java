@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.utils.Pair;
 
@@ -69,7 +70,8 @@ public class IssueStats {
 	}
 	
 //	@DynamoDbConvertedBy(EnumMapAttributeConverter.class)
-	@DynamoDbIgnore
+//	@DynamoDbIgnore
+	@DynamoDbConvertedBy(IssueStatsMapAttributeConverter.class)
 	public Map<TrackedIssue, Integer> getStats()
 	{
 		return this.stats;
