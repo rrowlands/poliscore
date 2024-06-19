@@ -4,12 +4,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import ch.poliscore.PoliscoreUtil;
 import ch.poliscore.interpretation.BillType;
 import ch.poliscore.model.Legislator;
+import ch.poliscore.model.LegislatorBillInteration;
+import ch.poliscore.service.BillInterpretationService;
 import ch.poliscore.service.BillService;
 import ch.poliscore.service.LegislatorInterpretationService;
 import ch.poliscore.service.LegislatorService;
@@ -41,6 +45,9 @@ public class USCDataImporter implements QuarkusApplication
 	
 	@Inject
 	private BillService billService;
+	
+	@Inject
+	private BillInterpretationService billInterpreter;
 	
 	@Inject
 	private LegislatorService legService;
@@ -113,6 +120,27 @@ public class USCDataImporter implements QuarkusApplication
 			
 			val legislator = memService.retrieve(legId, Legislator.class).orElseThrow();
 			legislator.setInterpretation(interp);
+			
+			int persisted = 0;
+			for (val interact : legislator.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteration::getDate).reversed()).collect(Collectors.toList()))
+			{
+				if (persisted > LegislatorInterpretationService.LIMIT_BILLS) break;
+				
+				try
+				{
+					val billInterp = billInterpreter.getById(interact.getBillId()).get();
+					
+					dynamoDb.store(billService.getById(interact.getBillId()).get());
+					dynamoDb.store(billInterp);
+					
+					persisted++;
+				}
+				catch (NoSuchElementException ex)
+				{
+					// TODO
+					Log.error("Could not find text for bill " + interact.getBillId());
+				}
+			}
 			
 			dynamoDb.store(legislator);
 		}

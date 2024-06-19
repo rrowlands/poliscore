@@ -2,63 +2,28 @@ package ch.poliscore.service.storage;
 
 import java.util.Optional;
 
-import ch.poliscore.model.Legislator;
-import ch.poliscore.model.LegislatorInterpretation;
 import ch.poliscore.model.Persistable;
-import io.quarkus.amazon.dynamodb.enhanced.runtime.NamedDynamoDbTable;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.val;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 @ApplicationScoped
 public class DynamoDBPersistenceService implements PersistenceServiceIF
 {
 	public static final String TABLE_NAME = "poliscore";
 	
-//	private DynamoDbEnhancedClient ddb;
-	
 	@Inject
-    @NamedDynamoDbTable(DynamoDBPersistenceService.TABLE_NAME)
-    DynamoDbTable<Legislator> legislatorTable;
-	
-//	@Inject
-//    @NamedDynamoDbTable(DynamoDBPersistenceService.TABLE_NAME)
-//    DynamoDbTable<LegislatorInterpretation> legislatorInterpTable;
-	
-//	protected DynamoDbEnhancedClient getClient()
-//	{
-//		if (ddb == null)
-//		{
-//			Region region = Region.US_EAST_1;
-//	        DynamoDbClient standardClient = DynamoDbClient.builder()
-//	                .region(region)
-//	                .build();
-//	        
-//	        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
-//	        	    .dynamoDbClient(standardClient)
-//	        	    .build();
-//	        
-//	        ddb = enhancedClient;
-//		}
-//		
-//		return ddb;
-//	}
+    DynamoDbEnhancedClient ddb;
 	
 	public <T extends Persistable> void store(T obj)
 	{
-//		@SuppressWarnings("unchecked")
-//		val table = ((DynamoDbTable<T>) ddb.table(TABLE_NAME, TableSchema.fromBean(obj.getClass())));
-//		
-//		table.putItem(obj);
+		@SuppressWarnings("unchecked")
+		val table = ((DynamoDbTable<T>) ddb.table(TABLE_NAME, TableSchema.fromBean(obj.getClass())));
 		
-		if (obj instanceof Legislator)
-		{
-			legislatorTable.putItem((Legislator) obj);
-		}
-		else
-		{
-			throw new UnsupportedOperationException();
-		}
+		table.putItem(obj);
 	}
 	
 	public <T extends Persistable> Optional<T> retrieve(String id, Class<T> clazz)

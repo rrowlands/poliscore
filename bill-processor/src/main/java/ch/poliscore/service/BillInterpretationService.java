@@ -2,6 +2,7 @@ package ch.poliscore.service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import ch.poliscore.bill.parsing.BillSlice;
 import ch.poliscore.bill.parsing.BillSlicer;
@@ -49,6 +50,11 @@ public class BillInterpretationService {
 	
 	@Inject
 	protected BillService billService;
+	
+	public Optional<BillInterpretation> getById(String billId)
+	{
+		return s3.retrieve(BillInterpretation.generateId(billId, null), BillInterpretation.class);
+	}
 	
 	public BillInterpretation getOrCreate(String billId)
 	{

@@ -15,6 +15,7 @@ import ch.poliscore.model.LegislatorBillInteration;
 import ch.poliscore.model.LegislatorBillInteration.LegislatorBillVote;
 import ch.poliscore.model.LegislatorInterpretation;
 import ch.poliscore.model.VoteStatus;
+import ch.poliscore.service.storage.DynamoDBPersistenceService;
 import ch.poliscore.service.storage.MemoryPersistenceService;
 import ch.poliscore.service.storage.S3PersistenceService;
 import io.quarkus.logging.Log;
