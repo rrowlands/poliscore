@@ -5,7 +5,6 @@ import { LegislatorComponent } from './legislator/legislator.component';
 import { PoliscoreComponent } from './poliscore/poliscore.component';
 
 export const routes: Routes = [
-  { path: '', component: AppComponent },
-  { path: 'poliscore', component: PoliscoreComponent },
+  { path: "", component: PoliscoreComponent },
   { path: 'legislator', component: LegislatorComponent },
 ];
