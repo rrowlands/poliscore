@@ -5,6 +5,6 @@ import { LegislatorComponent } from './legislator/legislator.component';
 import { PoliscoreComponent } from './poliscore/poliscore.component';
 
 export const routes: Routes = [
-  { path: "", component: PoliscoreComponent },
-  { path: 'legislator', component: LegislatorComponent },
+  { path: "", component: PoliscoreComponent, data: { animation: 'poliscorePage' } },
+  { path: 'legislator', component: LegislatorComponent, data: { animation: 'legislatorPage' } },
 ];
