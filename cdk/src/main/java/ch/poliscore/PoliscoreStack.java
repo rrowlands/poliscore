@@ -1,5 +1,6 @@
 package ch.poliscore;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +17,8 @@ import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.FunctionProps;
 import software.amazon.awscdk.services.lambda.FunctionUrl;
 import software.amazon.awscdk.services.lambda.FunctionUrlAuthType;
+import software.amazon.awscdk.services.lambda.FunctionUrlCorsOptions;
+import software.amazon.awscdk.services.lambda.HttpMethod;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.constructs.Construct;
 
@@ -52,6 +55,7 @@ class PoliscoreStack extends Stack {
         FunctionUrl.Builder.create(this, "poliscore-bill-processor-url")
         	.function(fPoliscore)
         	.authType(FunctionUrlAuthType.NONE)
+        	.cors(FunctionUrlCorsOptions.builder().allowedOrigins(Arrays.asList("*")).allowedMethods(Arrays.asList(HttpMethod.ALL)).build())
         	.build();
 
         dynamodbTable.grantReadWriteData(fPoliscore);
