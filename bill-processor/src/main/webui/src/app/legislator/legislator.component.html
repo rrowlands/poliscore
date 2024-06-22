@@ -8,10 +8,14 @@
             <div class="card-body">
               <h5 class="card-title">{{leg?.name?.official_full}}</h5>
               <div class="card-text">
+                <!-- <canvas baseChart [data]="barChartData" [options]="barChartOptions" [plugins]="[]" [legend]="true" [type]="'bar'"> </canvas> -->
+                 <canvas id="barChart"></canvas>
+                <!--
                 <div *ngFor="let stat of leg?.interpretation?.issueStats?.stats | keyvalue">
                     <label>{{stat.key}}</label>
                     <label>{{stat.value}}</label>
                 </div>
+                -->
               </div>
               <p class="card-text"><small class="text-body-secondary">{{leg?.interpretation?.issueStats?.explanation}}</small></p>
               <!-- <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small></p> -->
