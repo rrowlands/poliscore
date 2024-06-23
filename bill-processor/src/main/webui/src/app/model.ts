@@ -17,3 +17,29 @@ export class IssueStats {
     stats: any;
     explanation!: string;
 }
+
+export function issueKeyToLabel(key: string): string
+{
+  const map: {[key: string]: string} = {
+    "AgricultureAndFood": "Agriculture and Food",
+    "Education": "Education",
+    "Transportation": "Transportation",
+    "EconomicsAndCommerce": "Economics and Commerce",
+    "ForeignRelations": "Foreign Relations",
+    "SocialEquity": "Social Equity",
+    "Government": "Government",
+    "Healthcare": "Healthcare",
+    "Housing": "Housing",
+    "Energy": "Energy",
+    "Technology": "Technology",
+    "Immigration": "Immigaration",
+    "NationalDefense": "National Defense",
+    "CrimeAndLawEnforcement": "Crime and Law Enforcement",
+    "WildlifeAndForestManagement": "Wildlife And Forest Management",
+    "PublicLandsAndNaturalResources": "Public Lands And Natural Resources",
+    "EnvironmentalManagementAndClimateChange": "Environmental Management And Climate Change",
+    "OverallBenefitToSociety": "Overall Benefit To Society"
+  };
+
+  return map[key];
+}

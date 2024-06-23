@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import { Legislator } from '../model';
+import { Legislator, issueKeyToLabel } from '../model';
 import { HttpHeaders, HttpClient, HttpParams, HttpHandler, HttpClientModule } from '@angular/common/http';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement} from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { ActivatedRoute } from '@angular/router';
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels);
 
@@ -31,7 +32,7 @@ export class LegislatorComponent implements OnInit {
 
   public leg?: Legislator;
 
-  private bernieId: string = "LEG/us/congress/S000033";
+  private legId?: string;
 
   public barChartData: ChartConfiguration<'bar'>['data'] = {
     labels: [ '2006', '2007', '2008', '2009', '2010', '2011', '2012' ],
@@ -69,14 +70,16 @@ export class LegislatorComponent implements OnInit {
     }
   };
 
-  constructor(private service: AppService) {}
+  constructor(private service: AppService, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
-    this.service.getLegislator(this.bernieId).then(leg => {
+    this.legId = this.route.snapshot.paramMap.get('id') as string;
+
+    this.service.getLegislator(this.legId).then(leg => {
       this.leg = leg;
 
       this.buildBarChartData();
-    })
+    });
   }
 
   buildBarChartData(): void {
@@ -93,7 +96,7 @@ export class LegislatorComponent implements OnInit {
       data.push(value as number);
       labels.push(key);
     }
-    labels = labels.map(l => this.issueKeyToLabel(l));
+    labels = labels.map(l => issueKeyToLabel(l));
 
     this.barChartData.labels = labels;
     this.barChartData.datasets = [ {
@@ -124,8 +127,6 @@ export class LegislatorComponent implements OnInit {
       borderWidth: 1
     } ];
 
-    console.log(this.barChartData);
-
     /*
     const DATA_COUNT = 7;
     const NUMBER_CFG = {count: DATA_COUNT, min: -100, max: 100};
@@ -150,31 +151,5 @@ export class LegislatorComponent implements OnInit {
         options: this.barChartOptions
       }
     );
-  }
-
-  issueKeyToLabel(key: string): string
-  {
-    const map: {[key: string]: string} = {
-      "AgricultureAndFood": "Agriculture and Food",
-      "Education": "Education",
-      "Transportation": "Transportation",
-      "EconomicsAndCommerce": "Economics and Commerce",
-      "ForeignRelations": "Foreign Relations",
-      "SocialEquity": "Social Equity",
-      "Government": "Government",
-      "Healthcare": "Healthcare",
-      "Housing": "Housing",
-      "Energy": "Energy",
-      "Technology": "Technology",
-      "Immigration": "Immigaration",
-      "NationalDefense": "National Defense",
-      "CrimeAndLawEnforcement": "Crime and Law Enforcement",
-      "WildlifeAndForestManagement": "Wildlife And Forest Management",
-      "PublicLandsAndNaturalResources": "Public Lands And Natural Resources",
-      "EnvironmentalManagementAndClimateChange": "Environmental Management And Climate Change",
-      "OverallBenefitToSociety": "Overall Benefit To Society"
-    };
-
-    return map[key];
   }
 }

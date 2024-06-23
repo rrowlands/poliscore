@@ -17,4 +17,10 @@ export class AppService {
         return firstValueFrom(this.http.get<Legislator>(backendUrl + "/getLegislator", { params: params }));
     }
 
+    getLegislators(): Promise<Legislator[]> {
+        let params: HttpParams = new HttpParams();
+
+        return firstValueFrom(this.http.get<Legislator[]>(backendUrl + "/getLegislators", { params: params }));
+    }
+
 }
