@@ -1,5 +1,6 @@
 package ch.poliscore.entrypoint;
 
+import java.util.List;
 import java.util.Map;
 
 import ch.poliscore.model.Legislator;
@@ -18,5 +19,10 @@ public class Lambda {
     @Funq
     public Legislator getLegislator(Map<String, String> queryParams) {
     	return ddb.retrieve(queryParams.get("id"), Legislator.class).orElseThrow();
+    }
+    
+    @Funq
+    public List<Legislator> getLegislators(Map<String, String> queryParams) {
+    	return ddb.query(Legislator.class);
     }
 }

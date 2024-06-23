@@ -2,6 +2,7 @@ package ch.poliscore;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import software.amazon.awscdk.Duration;
@@ -10,6 +11,8 @@ import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
+import software.amazon.awscdk.services.dynamodb.GlobalSecondaryIndexProps;
+import software.amazon.awscdk.services.dynamodb.ProjectionType;
 import software.amazon.awscdk.services.dynamodb.Table;
 import software.amazon.awscdk.services.dynamodb.TableProps;
 import software.amazon.awscdk.services.lambda.Code;
@@ -26,7 +29,7 @@ class PoliscoreStack extends Stack {
     public PoliscoreStack(final Construct parent, final String name, final StackProps props) {
         super(parent, name, props);
 
-        Table dynamodbTable = new Table(this, "poliscore", TableProps.builder()
+        Table table = new Table(this, "poliscore", TableProps.builder()
                 .tableName("poliscore")
                 .partitionKey(Attribute.builder()
                         .name("id")
@@ -34,12 +37,23 @@ class PoliscoreStack extends Stack {
                         .build())
                 .removalPolicy(RemovalPolicy.DESTROY)
                 .build());
-
+        
+        table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
+                .indexName("ObjectClass")
+                .partitionKey(Attribute.builder()
+                        .name("idClassPrefix")
+                        .type(AttributeType.STRING)
+                        .build())
+                .sortKey(Attribute.builder()
+                        .name("id")
+                        .type(AttributeType.STRING)
+                        .build())
+                .build());
         
 
         
         Map<String, String> lambdaEnvMap = new HashMap<>();
-        lambdaEnvMap.put("TABLE_NAME", dynamodbTable.getTableName());
+        lambdaEnvMap.put("TABLE_NAME", table.getTableName());
         lambdaEnvMap.put("PRIMARY_KEY","id");
 
         Function fPoliscore = new Function(this, "bill-processor",
@@ -58,7 +72,7 @@ class PoliscoreStack extends Stack {
         	.cors(FunctionUrlCorsOptions.builder().allowedOrigins(Arrays.asList("*")).allowedMethods(Arrays.asList(HttpMethod.ALL)).build())
         	.build();
 
-        dynamodbTable.grantReadWriteData(fPoliscore);
+        table.grantReadWriteData(fPoliscore);
         
         
         

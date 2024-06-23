@@ -83,6 +83,9 @@ export class LegislatorComponent implements OnInit {
     let data: number[] = [];
     let labels: string[]= [];
 
+    data.push(Object.entries(this.leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number);
+    labels.push(Object.entries(this.leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][0]);
+
     let i = 0;
     for (const [key, value] of Object.entries(this.leg?.interpretation?.issueStats?.stats)
       .filter(kv => kv[0] != "OverallBenefitToSociety")
@@ -90,8 +93,6 @@ export class LegislatorComponent implements OnInit {
       data.push(value as number);
       labels.push(key);
     }
-    data.push(Object.entries(this.leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number);
-    labels.push(Object.entries(this.leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][0]);
     labels = labels.map(l => this.issueKeyToLabel(l));
 
     this.barChartData.labels = labels;
@@ -170,7 +171,7 @@ export class LegislatorComponent implements OnInit {
       "CrimeAndLawEnforcement": "Crime and Law Enforcement",
       "WildlifeAndForestManagement": "Wildlife And Forest Management",
       "PublicLandsAndNaturalResources": "Public Lands And Natural Resources",
-      "EnvironmentalManagementAndClimateChange": "Environmental Management And ClimateChange",
+      "EnvironmentalManagementAndClimateChange": "Environmental Management And Climate Change",
       "OverallBenefitToSociety": "Overall Benefit To Society"
     };
 

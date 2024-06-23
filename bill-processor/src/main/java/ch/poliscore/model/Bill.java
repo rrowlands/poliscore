@@ -6,13 +6,14 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ch.poliscore.interpretation.BillType;
+import ch.poliscore.service.storage.DynamoDBPersistenceService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 @Data
 @DynamoDbBean
@@ -70,7 +71,8 @@ public class Bill implements Persistable {
 	
 	public void setId(String id) { }
 	
-	@Override @JsonIgnore @DynamoDbIgnore public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { DynamoDBPersistenceService.OBJECT_CLASS_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
+	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
 	
 	public static String generateId(int congress, BillType type, int number)
 	{

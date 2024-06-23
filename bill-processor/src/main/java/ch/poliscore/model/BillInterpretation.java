@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ch.poliscore.interpretation.OpenAIInterpretationMetadata;
 import ch.poliscore.interpretation.OpenAISliceInterpretationMetadata;
+import ch.poliscore.service.storage.DynamoDBPersistenceService;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 @Data
 @DynamoDbBean
@@ -84,7 +86,9 @@ public class BillInterpretation implements Persistable
 		}
 	}
 	
-	@Override @JsonIgnore @DynamoDbIgnore public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { DynamoDBPersistenceService.OBJECT_CLASS_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
+	
+	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
 	
 	public static String generateId(String billId, Integer sliceIndex)
 	{

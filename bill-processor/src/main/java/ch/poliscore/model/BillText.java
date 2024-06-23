@@ -4,11 +4,13 @@ import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import ch.poliscore.service.storage.DynamoDBPersistenceService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 @Data
 @AllArgsConstructor
@@ -35,6 +37,8 @@ public class BillText implements Persistable
 	
 	public static String generateId(String billId) { return billId.replace(Bill.ID_CLASS_PREFIX, ID_CLASS_PREFIX); }
 	
-	@Override @JsonIgnore @DynamoDbIgnore public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { DynamoDBPersistenceService.OBJECT_CLASS_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
+	
+	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
 	
 }
