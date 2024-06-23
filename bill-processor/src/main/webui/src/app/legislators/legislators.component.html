@@ -1,6 +1,6 @@
 <div class="stripedbg">
-	<div class="tran-div" *ngFor="let leg of legs">
-        <div class="card mb-3" style="max-width: 540px;" [routerLink]="['/legislator', leg.id]">
+	<div class="tran-div container" style="display:flex; flex-direction: column; align-items:center;">
+        <div *ngFor="let leg of legs" class="row card mb-3" style="max-width: 540px;" [routerLink]="['/legislator', leg.id]">
             <div class="row g-0">
                 <div class="col-md-4">
                 <img [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" class="img-fluid rounded-start" alt="legislator photo">
@@ -8,8 +8,8 @@
                 <div class="col-md-8">
                 <div class="card-body">
                     <h5 class="card-title row" style="margin-bottom:-10px;">
-                        <span class="col text-start">{{leg.name.official_full}}</span>
-                        <span class="col g-0"><p class="text-end" style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForLegislator(leg))}">{{gradeForLegislator(leg)}}</p></span>
+                        <span class="col-10 text-start">{{leg.name.official_full}}</span>
+                        <span class="col-2 g-0"><p class="text-end" style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForLegislator(leg))}">{{gradeForLegislator(leg)}}</p></span>
                     </h5>
                     <h6 class="card-subtitle mb-2 text-muted" style="font-size:0.8rem;">{{subtitleForLegislator(leg)}}</h6>
                     <p style="margin-top:17px;" class="card-text">{{descriptionForLegislator(leg)}}</p>

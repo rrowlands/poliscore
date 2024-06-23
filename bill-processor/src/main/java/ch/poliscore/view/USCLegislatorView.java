@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import ch.poliscore.model.Legislator.LegislatorName;
 import lombok.Data;
+import software.amazon.awssdk.utils.StringUtils;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,6 +26,9 @@ public class USCLegislatorView {
 		
 		public LegislatorName convert()
 		{
+			if (StringUtils.isBlank(official_full))
+				official_full = first + " " + last;
+			
 			return new LegislatorName(first, last, official_full);
 		}
 		

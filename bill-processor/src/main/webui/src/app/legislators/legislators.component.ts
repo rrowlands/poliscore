@@ -42,12 +42,11 @@ export class LegislatorsComponent implements OnInit {
   {
     let credit = Object.entries(leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number;
 
-    if (credit > 50) return "A";
-    else if (credit > 30 && credit < 50) return "B";
-    else if (credit > 0 && credit < 30) return "C";
-    else if (credit < 0 && credit > -30) return "D";
-    else if (credit < -30 && credit > -50) return "F";
-    else if (credit < -50) return "F";
+    if (credit >= 50) return "A";
+    else if (credit >= 30 && credit < 50) return "B";
+    else if (credit >= 10 && credit < 30) return "C";
+    else if (credit > 0 && credit < 10) return "D";
+    else if (credit <= 0) return "F";
     else return "Not enough data";
   }
 
@@ -55,12 +54,14 @@ export class LegislatorsComponent implements OnInit {
   {
     let credit = Object.entries(leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number;
 
-    if (credit > 50) return "Credit to humanity";
-    else if (credit > 30 && credit < 50) return "Fighting the good fight";
-    else if (credit > 0 && credit < 30) return "Mostly positive";
-    else if (credit < 0 && credit > -30) return "Mostly negative";
-    else if (credit < -30 && credit > -50) return "Public enemy";
-    else if (credit < -50) return "Menace to society";
+    if (credit >= 50) return "Credit to humanity";
+    else if (credit >= 30 && credit < 50) return "Fighting the good fight";
+    else if (credit >= 15 && credit < 30) return "Positive";
+    else if (credit >= 0 && credit < 30) return "Barely positive";
+    else if (credit >= -15 && credit < 0) return "Slighty negative";
+    else if (credit >= -30 && credit < 15) return "Negative";
+    else if (credit > -50 && credit < -30) return "Public enemy";
+    else if (credit <= -50) return "Menace to society";
     else return "Not enough data";
   }
 
@@ -69,7 +70,7 @@ export class LegislatorsComponent implements OnInit {
     const map: {[key: string]: string} = {
       A: "#1a9641",
       B: "#a6d96a",
-      C: "#ffffbf",
+      C: "rgb(179, 179, 0)",
       D: "#fdae61",
       F: "#d7191c"
     };

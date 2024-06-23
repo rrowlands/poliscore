@@ -31,7 +31,9 @@ public class PoliscoreUtil {
 	
 	public static String JOE_BIDEN_ID = Legislator.generateId(LegislativeNamespace.US_CONGRESS, "B000444");
 	
-	public static String[] SPRINT_1_LEGISLATORS = new String[] { BERNIE_SANDERS_ID }; // , MIKE_JOHNSON_ID, MITT_ROMNEY_ID, JOE_BIDEN_ID
+	public static String CHUCK_SCHUMER_ID = Legislator.generateId(LegislativeNamespace.US_CONGRESS, "S000148");
+	
+	public static String[] SPRINT_1_LEGISLATORS = new String[] { BERNIE_SANDERS_ID, MIKE_JOHNSON_ID, MITT_ROMNEY_ID, CHUCK_SCHUMER_ID };
 	
 	public static List<File> allFilesWhere(File parent, Predicate<File> criteria)
 	{
