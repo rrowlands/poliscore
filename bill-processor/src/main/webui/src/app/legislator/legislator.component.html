@@ -1,27 +1,32 @@
-<div class="stripedbg">
-    <div class="card mb-3" style="max-width: 1000px;">
+<div>
+    <!--
+    <div style="width:800px; height:800px">
+        <canvas id="barChart"></canvas>
+    </div>
+-->
+    <div class="h-100 d-flex align-items-center justify-content-center" style="padding:40px;">
+    <div class="card mb-3" style="max-width:1200px;">
         <div class="row g-0">
           <div class="col-md-4">
             <img src="https://s3.amazonaws.com/poliscore.ch/assets/legislators/bernie-mittens.jpg" class="img-fluid rounded-start" alt="...">
           </div>
           <div class="col-md-8">
+            <canvas id="barChart"></canvas>
+            <!--
             <div class="card-body">
               <h5 class="card-title">{{leg?.name?.official_full}}</h5>
               <div class="card-text">
-                <!-- <canvas baseChart [data]="barChartData" [options]="barChartOptions" [plugins]="[]" [legend]="true" [type]="'bar'"> </canvas> -->
                  <canvas id="barChart"></canvas>
-                <!--
-                <div *ngFor="let stat of leg?.interpretation?.issueStats?.stats | keyvalue">
-                    <label>{{stat.key}}</label>
-                    <label>{{stat.value}}</label>
-                </div>
-                -->
               </div>
-              <p class="card-text"><small class="text-body-secondary">{{leg?.interpretation?.issueStats?.explanation}}</small></p>
-              <!-- <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small></p> -->
             </div>
+        -->
           </div>
         </div>
+        <p class="card-text" style="padding:10px; padding-left: 20px; padding-right: 20px;"><small class="text-body-secondary">{{leg?.interpretation?.issueStats?.explanation}}</small></p>
+      </div>
       </div>
 </div>
 
+
+<!-- <p class="card-text"><small class="text-body-secondary">{{leg?.interpretation?.issueStats?.explanation}}</small></p> -->
+<!-- <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small></p> -->

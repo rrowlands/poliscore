@@ -8,6 +8,16 @@ import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, B
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement);
 
+export const CHART_COLORS = {
+  red: 'rgb(255, 99, 132)',
+  orange: 'rgb(255, 159, 64)',
+  yellow: 'rgb(255, 205, 86)',
+  green: 'rgb(75, 192, 192)',
+  blue: 'rgb(54, 162, 235)',
+  purple: 'rgb(153, 102, 255)',
+  grey: 'rgb(201, 203, 207)'
+};
+
 @Component({
   selector: 'app-legislator',
   standalone: true,
@@ -30,7 +40,16 @@ export class LegislatorComponent implements OnInit {
   };
 
   public barChartOptions: ChartConfiguration<'bar'>['options'] = {
-    responsive: false,
+    indexAxis: "y",
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Chart.js Floating Bar Chart'
+      }
+    }
   };
 
   constructor(private service: AppService) {}
@@ -47,24 +66,68 @@ export class LegislatorComponent implements OnInit {
     let data: number[] = [];
     let labels: string[]= [];
 
-    for (const [key, value] of Object.entries(this.leg?.interpretation?.issueStats?.stats)) {
-      console.log(`${key}: ${value}`);
-
+    let i = 0;
+    for (const [key, value] of Object.entries(this.leg?.interpretation?.issueStats?.stats)
+      .filter(kv => kv[0] != "OverallBenefitToSociety")
+      .sort((a,b) => (b[1] as number) - (a[1] as number))) {
       data.push(value as number);
       labels.push(key);
     }
 
     this.barChartData.labels = labels;
-    this.barChartData.datasets = [ { data: data, label: "" } ];
+    this.barChartData.datasets = [ {
+      data: data,
+      label: "",
+      backgroundColor: [
+        'rgba(255, 99, 132, 0.2)',
+        'rgba(255, 159, 64, 0.2)',
+        'rgba(255, 205, 86, 0.2)',
+        'rgba(75, 192, 192, 0.2)',
+        'rgba(54, 162, 235, 0.2)',
+        'rgba(153, 102, 255, 0.2)',
+        'rgba(201, 203, 207, 0.2)',
+        'rgba(255, 99, 132, 0.2)',
+        'rgba(255, 159, 64, 0.2)'
+      ],
+      borderColor: [
+        'rgb(255, 99, 132)',
+        'rgb(255, 159, 64)',
+        'rgb(255, 205, 86)',
+        'rgb(75, 192, 192)',
+        'rgb(54, 162, 235)',
+        'rgb(153, 102, 255)',
+        'rgb(201, 203, 207)',
+        'rgb(255, 99, 132)',
+        'rgb(255, 159, 64)'
+      ],
+      borderWidth: 1
+    } ];
 
+    console.log(this.barChartData);
+
+    /*
+    const DATA_COUNT = 7;
+    const NUMBER_CFG = {count: DATA_COUNT, min: -100, max: 100};
+
+    const data2 = {
+      labels: ["1","2","3"],
+      datasets: [
+        {
+          label: 'Dataset 1',
+          data: [-1,2,3],
+          backgroundColor: CHART_COLORS.red,
+        }
+      ]
+    };
+    */
 
     new Chart(
       document.getElementById('barChart') as any,
       {
         type: 'bar',
-        data: this.barChartData
+        data: this.barChartData,
+        options: this.barChartOptions
       }
     );
   }
-
 }
