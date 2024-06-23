@@ -5,8 +5,9 @@ import { HttpHeaders, HttpClient, HttpParams, HttpHandler, HttpClientModule } fr
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement} from 'chart.js'
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-Chart.register(BarController, CategoryScale, LinearScale, BarElement);
+Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels);
 
 export const CHART_COLORS = {
   red: 'rgb(255, 99, 132)',
@@ -48,7 +49,23 @@ export class LegislatorComponent implements OnInit {
       title: {
         display: true,
         text: 'Chart.js Floating Bar Chart'
+      },
+      datalabels: {
+        anchor: 'start', // Anchor the labels to the start of the datapoint
+        align: 'center', // Align the text after the anchor point
+        formatter: function(value, context) { // Show the label instead of the value
+            return context?.chart?.data?.labels![context.dataIndex];
+        },
+        // font: { weight: "bold" }
       }
+    },
+    scales: {
+      x: {
+        min: -100,
+        max: 100
+      },
+      // y: {ticks: {mirror: true, crossAlign: "center", align: "center", z: 1}}
+      y: {ticks: {display: false}}
     }
   };
 
@@ -75,6 +92,7 @@ export class LegislatorComponent implements OnInit {
     }
     data.push(Object.entries(this.leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number);
     labels.push(Object.entries(this.leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][0]);
+    labels = labels.map(l => this.issueKeyToLabel(l));
 
     this.barChartData.labels = labels;
     this.barChartData.datasets = [ {
@@ -131,5 +149,31 @@ export class LegislatorComponent implements OnInit {
         options: this.barChartOptions
       }
     );
+  }
+
+  issueKeyToLabel(key: string): string
+  {
+    const map: {[key: string]: string} = {
+      "AgricultureAndFood": "Agriculture and Food",
+      "Education": "Education",
+      "Transportation": "Transportation",
+      "EconomicsAndCommerce": "Economics and Commerce",
+      "ForeignRelations": "Foreign Relations",
+      "SocialEquity": "Social Equity",
+      "Government": "Government",
+      "Healthcare": "Healthcare",
+      "Housing": "Housing",
+      "Energy": "Energy",
+      "Technology": "Technology",
+      "Immigration": "Immigaration",
+      "NationalDefense": "National Defense",
+      "CrimeAndLawEnforcement": "Crime and Law Enforcement",
+      "WildlifeAndForestManagement": "Wildlife And Forest Management",
+      "PublicLandsAndNaturalResources": "Public Lands And Natural Resources",
+      "EnvironmentalManagementAndClimateChange": "Environmental Management And ClimateChange",
+      "OverallBenefitToSociety": "Overall Benefit To Society"
+    };
+
+    return map[key];
   }
 }
