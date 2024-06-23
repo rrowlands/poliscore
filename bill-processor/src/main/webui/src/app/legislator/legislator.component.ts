@@ -73,6 +73,8 @@ export class LegislatorComponent implements OnInit {
       data.push(value as number);
       labels.push(key);
     }
+    data.push(Object.entries(this.leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number);
+    labels.push(Object.entries(this.leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][0]);
 
     this.barChartData.labels = labels;
     this.barChartData.datasets = [ {
