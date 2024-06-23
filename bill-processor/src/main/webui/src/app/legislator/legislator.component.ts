@@ -82,7 +82,7 @@ export class LegislatorComponent implements OnInit {
     });
   }
 
-  buildBarChartData(): void {
+  async buildBarChartData() {
     let data: number[] = [];
     let labels: string[]= [];
 
@@ -127,29 +127,27 @@ export class LegislatorComponent implements OnInit {
       borderWidth: 1
     } ];
 
-    /*
-    const DATA_COUNT = 7;
-    const NUMBER_CFG = {count: DATA_COUNT, min: -100, max: 100};
+    await this.waitForImage(document.querySelector('img'));
 
-    const data2 = {
-      labels: ["1","2","3"],
-      datasets: [
+    window.setTimeout(() => {
+      new Chart(
+        document.getElementById('barChart') as any,
         {
-          label: 'Dataset 1',
-          data: [-1,2,3],
-          backgroundColor: CHART_COLORS.red,
+          type: 'bar',
+          data: this.barChartData,
+          options: this.barChartOptions
         }
-      ]
-    };
-    */
-
-    new Chart(
-      document.getElementById('barChart') as any,
-      {
-        type: 'bar',
-        data: this.barChartData,
-        options: this.barChartOptions
-      }
-    );
+      );
+    }, 1);
   }
+
+  waitForImage(imgElem: any) {
+    return new Promise(res => {
+        if (imgElem.complete) {
+            return res(null);
+        }
+        imgElem.onload = () => res(null);
+        imgElem.onerror = () => res(null);
+    });
+}
 }
