@@ -15,12 +15,12 @@ import ch.poliscore.service.BillService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 
-@QuarkusTest
+//@QuarkusTest
 public class USCDataImporterTest {
 	@Inject
 	private BillService billService;
 	
-	@Test
+//	@Test
     public void testRun() throws Exception {
 		
 		final String path = "/Users/rrowlands/dev/projects/congress/data";

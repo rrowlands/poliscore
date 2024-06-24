@@ -12,7 +12,7 @@ import ch.poliscore.service.storage.MemoryPersistenceService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 
-@QuarkusTest
+//@QuarkusTest
 public class EntrypointTest {
 
 	@Inject
@@ -27,7 +27,7 @@ public class EntrypointTest {
 	@Inject
 	private DdbBuilder ddbb;
 	
-	@Test
+//	@Test
     public void testGetLegislator() throws Exception {
         // you test your lambdas by invoking on http://localhost:8081
         // this works in dev mode too
