@@ -1,6 +1,6 @@
 <div class="stripedbg">
-	<div class="tran-div container" style="display:flex; flex-direction: column; align-items:center;">
-        <div *ngFor="let leg of legs" class="row card mb-3" style="max-width: 540px;" [routerLink]="['/legislator', leg.id]">
+	<div class="container" style="display:flex; flex-direction: column; align-items:center;">
+        <div *ngFor="let leg of legs" class="row card mb-3" style="max-width: 540px;" (click)="routeTo(leg)" [id]="leg.id">
             <div class="row g-0">
                 <div class="col-md-4">
                 <img [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" class="img-fluid rounded-start" alt="legislator photo">

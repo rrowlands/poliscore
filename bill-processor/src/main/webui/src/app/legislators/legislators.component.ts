@@ -3,7 +3,7 @@ import { AppService } from '../app.service';
 import { Legislator, issueKeyToLabel } from '../model';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-legislators',
@@ -17,13 +17,19 @@ export class LegislatorsComponent implements OnInit {
 
   legs?: Legislator[];
 
-  constructor(private service: AppService) {}
+  constructor(private service: AppService, private router: Router, private route: ActivatedRoute) {}
 
   ngOnInit(): void
   {
     this.service.getLegislators().then(legs => {
       this.legs = legs;
     });
+  }
+
+  routeTo(leg: Legislator)
+  {
+    document.getElementById(leg.id)?.classList.add("tran-div");
+    this.router.navigate(['/legislator', leg.id]);
   }
 
   descriptionForLegislator(leg: Legislator): string

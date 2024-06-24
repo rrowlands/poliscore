@@ -48,25 +48,23 @@ export const slideInAnimation =
         ], { optional: true }),
       ])
     ]),
+    /*
     transition('legislatorsPage => legislatorPage', [
       style({ position: 'relative' }),
-      query(':enter, :leave', [
+      query(':enter .tran-div, :leave .tran-div', [
         style({
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%'
+          position: 'relative'
         })
       ]),
-      query(':enter', [
+      query(':enter .tran-div', [
         style({ left: '100%' })
       ], { optional: true }),
-      query(':leave', animateChild(), { optional: true }),
+      query(':leave .tran-div', animateChild(), { optional: true }),
       group([
-        query(':leave', [
-          animate('500ms ease-out', style({ transform: 'scale(2.2, 3)' }))
+        query(':leave .tran-div', [
+          animate('500ms ease-out', style({ transform: 'scale(2.2, 3)', top: 0, left: 0 }))
         ], { optional: true }),
-        query(':enter', [
+        query(':enter .tran-div', [
           animate('500ms ease-out', style({ transform: 'scale(0.5)' }))
         ], { optional: true }),
       ]),
@@ -75,7 +73,7 @@ export const slideInAnimation =
       style({ position: 'relative' }),
       query(':enter .tran-div, :leave .tran-div', [
         style({
-          position: 'absolute',
+          position: 'absolute'
         })
       ]),
       query(':enter .tran-div', [
@@ -86,9 +84,10 @@ export const slideInAnimation =
         query(':leave .tran-div', [
           animate('500ms ease-out', style({ transform: 'scale(0.4, 0.3)' }))
         ], { optional: true }),
-        query(':enter > div', [
+        query(':enter .tran-div', [
           animate('500ms ease-out', style({ visibility: 'visible' }))
         ], { optional: true }),
       ]),
     ])
+      */
   ]);
