@@ -1,7 +1,7 @@
 <project>
       <modelVersion>4.0.0</modelVersion>
      
-      <groupId>ch.poliscore</groupId>
+      <groupId>us.poliscore</groupId>
       <artifactId>poliscore</artifactId>
       <version>0.0.1-SNAPSHOT</version>
       <packaging>pom</packaging>
