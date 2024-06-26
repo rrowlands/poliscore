@@ -13,6 +13,7 @@ import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.GlobalSecondaryIndexProps;
 import software.amazon.awscdk.services.dynamodb.Table;
 import software.amazon.awscdk.services.dynamodb.TableProps;
+import software.amazon.awscdk.services.lambda.Architecture;
 import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.FunctionProps;
@@ -61,6 +62,7 @@ class PoliscoreStack extends Stack {
                 .runtime(Runtime.PROVIDED_AL2023)
                 .environment(lambdaEnvMap)
                 .timeout(Duration.minutes(15))
+                .architecture(Architecture.ARM_64) // Required if you're building on MacOSX M ARM chipset)
                 .memorySize(128)
                 .environment(Map.of("DISABLE_SIGNAL_HANDLERS", "true"))
                 .build());
