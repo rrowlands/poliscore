@@ -30,7 +30,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>ch.poliscore.CdkApp</mainClass>
+                    <mainClass>us.poliscore.CdkApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>

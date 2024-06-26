@@ -1,10 +1,13 @@
 **/target/**
+**/node_modules/**
+**/.quinoa/**
 
 # MacOSX
 **/.DS_Store
 
 # Eclipse stuff
 **/.metadata
+**/.classpath
 **/bin/**
 **/tmp/**
 *.tmp

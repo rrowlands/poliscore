@@ -1,13 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project>
-      <modelVersion>4.0.0</modelVersion>
-     
-      <groupId>us.poliscore</groupId>
-      <artifactId>poliscore</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-      <packaging>pom</packaging>
-
-      <modules>
-        <module>bill-processor</module>
-        <module>cdk</module>
-      </modules>
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>us.poliscore</groupId>
+  <artifactId>poliscore</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+            
+  <modules>
+    <module>cdk</module>
+    <module>core</module>
+    <module>webapp</module>
+    <module>databuilder</module>
+  </modules>
 </project>

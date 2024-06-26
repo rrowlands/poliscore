@@ -2,7 +2,6 @@ package us.poliscore;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import software.amazon.awscdk.Duration;
@@ -12,7 +11,6 @@ import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.GlobalSecondaryIndexProps;
-import software.amazon.awscdk.services.dynamodb.ProjectionType;
 import software.amazon.awscdk.services.dynamodb.Table;
 import software.amazon.awscdk.services.dynamodb.TableProps;
 import software.amazon.awscdk.services.lambda.Code;
@@ -58,12 +56,13 @@ class PoliscoreStack extends Stack {
 
         Function fPoliscore = new Function(this, "bill-processor",
         		FunctionProps.builder()
-                .code(Code.fromAsset("../bill-processor/target/function.zip"))
-                .handler("io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest")
-                .runtime(Runtime.JAVA_21)
+                .code(Code.fromAsset("../webapp/target/function.zip"))
+                .handler("not.used.in.provided.runtimei")
+                .runtime(Runtime.PROVIDED_AL2023)
                 .environment(lambdaEnvMap)
                 .timeout(Duration.minutes(15))
-                .memorySize(512)
+                .memorySize(128)
+                .environment(Map.of("DISABLE_SIGNAL_HANDLERS", "true"))
                 .build());
         
         FunctionUrl.Builder.create(this, "poliscore-bill-processor-url")
