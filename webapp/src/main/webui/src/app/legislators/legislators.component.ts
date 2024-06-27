@@ -4,11 +4,12 @@ import { Legislator, issueKeyToLabel } from '../model';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import {MatCardModule} from '@angular/material/card'; 
 
 @Component({
   selector: 'app-legislators',
   standalone: true,
-  imports: [HttpClientModule, KeyValuePipe, CommonModule, RouterModule],
+  imports: [HttpClientModule, KeyValuePipe, CommonModule, RouterModule, MatCardModule],
   providers: [AppService, HttpClient],
   templateUrl: './legislators.component.html',
   styleUrl: './legislators.component.scss'

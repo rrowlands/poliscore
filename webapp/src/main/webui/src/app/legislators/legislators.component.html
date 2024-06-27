@@ -1,6 +1,27 @@
 <div class="stripedbg">
 	<div class="container" style="display:flex; flex-direction: column; align-items:center;">
-        <div *ngFor="let leg of legs" class="row card mb-3" style="max-width: 540px;" (click)="routeTo(leg)" [id]="leg.id">
+        
+        
+        <mat-card *ngFor="let leg of legs" (click)="routeTo(leg)" class="example-card" appearance="outlined">
+            <div class="left">
+                <img [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" >
+            </div>
+            <div class="right">
+                <mat-card-header>
+                    <mat-card-title-group>
+                        <mat-card-title>{{leg.name.official_full}}</mat-card-title>
+                        <h1 class="col-2 g-0"><p class="text-end" style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForLegislator(leg))}">{{gradeForLegislator(leg)}}</p></h1>
+                        <mat-card-subtitle>{{subtitleForLegislator(leg)}}</mat-card-subtitle>
+                    </mat-card-title-group>
+                </mat-card-header>
+                <mat-card-content>
+                    <p>{{descriptionForLegislator(leg)}}</p>
+                </mat-card-content>
+            </div>
+      </mat-card>
+
+        
+        <!-- <div *ngFor="let leg of legs" class="row card mb-3" style="max-width: 540px;" (click)="routeTo(leg)" [id]="leg.id">
             <div class="row g-0">
                 <div class="col-md-4">
                 <img [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" class="img-fluid rounded-start" alt="legislator photo">
@@ -13,10 +34,10 @@
                     </h5>
                     <h6 class="card-subtitle mb-2 text-muted" style="font-size:0.8rem;">{{subtitleForLegislator(leg)}}</h6>
                     <p style="margin-top:17px;" class="card-text">{{descriptionForLegislator(leg)}}</p>
-                    <!-- <p class="card-text"><small class="text-body-secondary">Last updated ? days ago</small></p> -->
                 </div>
                 </div>
             </div>
-        </div>
+        </div> -->
+       
 	</div>
 </div>

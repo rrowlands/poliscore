@@ -7,6 +7,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement} from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ActivatedRoute } from '@angular/router';
+import {MatCardModule} from '@angular/material/card'; 
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels);
 
@@ -23,7 +24,7 @@ export const CHART_COLORS = {
 @Component({
   selector: 'app-legislator',
   standalone: true,
-  imports: [HttpClientModule, KeyValuePipe, CommonModule, BaseChartDirective],
+  imports: [HttpClientModule, KeyValuePipe, CommonModule, BaseChartDirective, MatCardModule],
   providers: [AppService, HttpClient],
   templateUrl: './legislator.component.html',
   styleUrl: './legislator.component.scss'

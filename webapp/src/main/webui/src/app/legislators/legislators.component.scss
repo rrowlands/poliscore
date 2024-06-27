@@ -1,3 +1,30 @@
 .tran-div {
     z-index: 1000;
 }
+
+mat-card {
+    width: 540px;
+    margin: 10px;
+    display: grid;
+    color: black;
+}
+
+mat-card-content {
+    margin-top: 30px;
+}
+
+.left {
+    grid-column: 1 / 2;
+    grid-row: 1;
+}
+
+.right {
+    grid-column: 2 / 2;
+    grid-row: 1;
+}
+
+img {
+    height: auto;
+    margin-bottom: -5px;
+    width: 150px;
+}

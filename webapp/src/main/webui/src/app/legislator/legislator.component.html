@@ -4,23 +4,18 @@
         <canvas id="barChart"></canvas>
     </div>
 -->
+
+<!---->
     <div class="tran-div h-100 d-flex align-items-center justify-content-center" style="padding:40px;">
         <div class="card mb-3" style="max-width:1200px; border: 1px solid black;">
             <div class="row g-0">
                 <h5 class="card-title" style="text-align:center;">{{leg?.name?.official_full}}</h5>
             <div class="col-md-4">
                 <img style="width: 80%; margin: 30px; max-width:400px;" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg?.id + '.jpg'" class="img-fluid rounded-start" alt="legislator photo">
-                <!-- <img style="width: 80%; margin: 30px;" src="https://s3.amazonaws.com/poliscore.ch/assets/legislators/bernie-mittens.jpg" class="img-fluid rounded-start" alt="..."> -->
             </div>
             <div class="col-md-8">
                 <div style="min-width: 500px;" class="card-body">
                     <canvas id="barChart"></canvas>
-                    <!--
-                <h5 class="card-title">{{leg?.name?.official_full}}</h5>
-                <div class="card-text">
-                    <canvas id="barChart"></canvas>
-                </div>
-                -->
                 </div>
             </div>
             </div>
