@@ -3,9 +3,15 @@
 /* Custom CSS Specific to Poliscore */
 
 .vertical-layout {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+}
+
+.horizontal-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
 }
 
 /* Custom CSS Specific to Poliscore */
@@ -319,6 +325,7 @@
 				opacity: 1;
 			}
 
+
 		@media screen and (max-width: 1280px) {
 
 			#header {
@@ -334,16 +341,16 @@
 				min-height: 0;
 			}
 
-				#header .content {
-					margin: -2em 4em 0 0;
-				}
+			#header .content {
+				margin: -2em 4em 0 0;
+			}
 
-					#header .content .actions {
-						-moz-justify-content: center;
-						-webkit-justify-content: center;
-						-ms-justify-content: center;
-						justify-content: center;
-					}
+			#header .content .actions {
+				-moz-justify-content: center;
+				-webkit-justify-content: center;
+				-ms-justify-content: center;
+				justify-content: center;
+			}
 
 		}
 
@@ -351,22 +358,24 @@
 
 			#header {
 				padding: 6em 3em 4em 3em ;
+				/*
 				-moz-flex-direction: column-reverse;
 				-webkit-flex-direction: column-reverse;
 				-ms-flex-direction: column-reverse;
 				flex-direction: column-reverse;
+				*/
 			}
 
-				#header .content {
-					display: block;
-					width: 100%;
-					text-align: center;
-					margin: 0 0 2em 0;
-				}
+			#header .content {
+				display: block;
+				width: 100%;
+				text-align: center;
+				margin: 0 0 2em 0;
+			}
 
-				#header .image {
-					overflow: hidden;
-				}
+			#header .image {
+				overflow: hidden;
+			}
 
 		}
 
@@ -376,14 +385,14 @@
 				background-image: url("images/overlay.png"), url("images/pattern-size3.svg");
 			}
 
-				#header h1 {
-					font-size: 2em;
-				}
+			#header h1 {
+				font-size: 2em;
+			}
 
-				#header p {
-					font-size: 1em;
-					line-height: inherit;
-				}
+			#header p {
+				font-size: 1em;
+				line-height: inherit;
+			}
 
 		}
 

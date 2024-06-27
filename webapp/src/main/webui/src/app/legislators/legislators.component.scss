@@ -3,14 +3,14 @@
 }
 
 mat-card {
-    width: 540px;
+    max-width: 540px;
     margin: 10px;
     display: grid;
     color: black;
 }
 
 mat-card-content {
-    margin-top: 30px;
+    margin-top: 20px;
 }
 
 .left {
