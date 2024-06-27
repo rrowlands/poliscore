@@ -1,3 +1,10 @@
+
+mat-card {
+    width: 80%;
+    margin: 10px;
+    color: black;
+}
+
 .card-text {
     max-height: 250px;
     overflow: clip;
@@ -6,4 +13,32 @@
 .card-tex small {
     max-height: 100px;
     overflow: clip;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 0.3fr 0.7fr;
+}
+
+.col-left {
+    grid-column: 1 / 2;
+    grid-row: 1;
+}
+
+.col-right {
+    grid-column: 2 / 2;
+    grid-row: 1;
+    padding-top: 40px;
+}
+
+h1 {
+    margin-bottom: 0;
+    padding-top: 5px;
+}
+
+p {
+    text-indent: 40px;
+    padding: 20px;
+    padding-bottom:10px;
+    padding-top: 30px;
 }

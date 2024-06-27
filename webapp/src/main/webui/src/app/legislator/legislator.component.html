@@ -6,21 +6,27 @@
 -->
 
 <!---->
-    <div class="tran-div h-100 d-flex align-items-center justify-content-center" style="padding:40px;">
-        <div class="card mb-3" style="max-width:1200px; border: 1px solid black;">
-            <div class="row g-0">
-                <h5 class="card-title" style="text-align:center;">{{leg?.name?.official_full}}</h5>
-            <div class="col-md-4">
-                <img style="width: 80%; margin: 30px; max-width:400px;" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg?.id + '.jpg'" class="img-fluid rounded-start" alt="legislator photo">
-            </div>
-            <div class="col-md-8">
-                <div style="min-width: 500px;" class="card-body">
-                    <canvas id="barChart"></canvas>
+    <div class="vertical-layout">
+        <mat-card class="tran-div">
+            <mat-card-content>
+                <div>
+                    <div style="max-width:1200px; border: 1px solid black;">
+                        <div class="row">
+                            <div class="col-left vertical-layout">
+                                <h1 class="card-title" style="text-align:center;">{{leg?.name?.official_full}}</h1>
+                                <img style="width: 80%; margin: 30px; max-width:400px;" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg?.id + '.jpg'" class="img-fluid rounded-start" alt="legislator photo">
+                            </div>
+                            <div class="col-right">
+                                <div style="min-width: 500px;" class="card-body">
+                                    <canvas id="barChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <p>{{leg?.interpretation?.issueStats?.explanation}}</p>
+                    </div>
                 </div>
-            </div>
-            </div>
-            <p class="card-text" style="padding:10px; padding-left: 20px; padding-right: 20px;"><small class="text-body-secondary">{{leg?.interpretation?.issueStats?.explanation}}</small></p>
-        </div>
+            </mat-card-content>
+        </mat-card>
     </div>
 </div>
 
