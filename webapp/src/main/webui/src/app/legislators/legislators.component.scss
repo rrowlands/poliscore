@@ -16,6 +16,8 @@ mat-card-content {
 .left {
     grid-column: 1 / 2;
     grid-row: 1;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
 .right {
