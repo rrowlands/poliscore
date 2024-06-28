@@ -42,3 +42,52 @@ p {
     padding-bottom:10px;
     padding-top: 30px;
 }
+
+
+
+
+
+
+
+
+
+// Dumb hack because I can't divide by a unit (like 100vw) //
+
+@media screen and (max-width: 500px) {
+    .row {
+        display: block;
+    }
+    #barChart {
+        margin-left: -80px;
+    }
+}
+@media screen and (max-width: 450px) {
+    #barChart {
+        margin-left: -120px;
+    }
+}
+@media screen and (max-width: 400px) {
+    #barChart {
+        margin-left: -165px;
+    }
+}
+@media screen and (max-width: 350px) {
+    #barChart {
+        margin-left: -200px;
+    }
+}
+@media screen and (max-width: 300px) {
+    #barChart {
+        margin-left: -250px;
+    }
+}
+@media screen and (max-width: 250px) {
+    #barChart {
+        margin-left: -285px;
+    }
+}
+@media screen and (max-width: 200px) {
+    #barChart {
+        margin-left: -325px;
+    }
+}
