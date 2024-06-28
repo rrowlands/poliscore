@@ -1,4 +1,6 @@
 <div class="stripedbg">
+    <div *ngIf="leg == null" class="loader"></div>
+
     <!--
     <div style="width:800px; height:800px">
         <canvas id="barChart"></canvas>
@@ -14,7 +16,7 @@
                         <div class="row">
                             <div class="col-left vertical-layout">
                                 <h1 class="card-title" style="text-align:center;">{{leg?.name?.official_full}}</h1>
-                                <img style="width: 80%; margin: 30px; max-width:400px;" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg?.id + '.jpg'" class="img-fluid rounded-start" alt="loading...">
+                                <img style="width: 80%; margin: 30px; max-width:400px;" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg?.id + '.jpg'" class="img-fluid rounded-start" alt="">
                             </div>
                             <div class="col-right">
                                 <div style="min-width: 450px;" class="card-body">

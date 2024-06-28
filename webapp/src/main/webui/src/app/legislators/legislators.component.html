@@ -1,6 +1,7 @@
 <div class="stripedbg">
+    <div *ngIf="legs == null" class="loader"></div>
+
 	<div class="vertical-layout">
-        
         
         <mat-card *ngFor="let leg of legs" (click)="routeTo(leg)" class="example-card" appearance="outlined">
             <div class="left">
@@ -24,7 +25,7 @@
         <!-- <div *ngFor="let leg of legs" class="row card mb-3" style="max-width: 540px;" (click)="routeTo(leg)" [id]="leg.id">
             <div class="row g-0">
                 <div class="col-md-4">
-                <img [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" class="img-fluid rounded-start" alt="legislator photo">
+                <img [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" class="img-fluid rounded-start" alt="">
                 </div>
                 <div class="col-md-8">
                 <div class="card-body">
