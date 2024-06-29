@@ -1,0 +1,29 @@
+<div class="stripedbg">
+    <div class="stripedbg-inner">
+        <div *ngIf="bill == null" class="loader"></div>
+
+        <!--
+        <div style="width:800px; height:800px">
+            <canvas id="barChart"></canvas>
+        </div>
+    -->
+
+    <!---->
+        <div class="vertical-layout">
+            <mat-card class="tran-div">
+                <mat-card-content class="vertical-layout">
+                    <h1 class="card-title" style="text-align:center;">{{bill?.name}}</h1>
+                    <div style="min-width: 450px;" class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+
+                    <p>{{bill?.interpretation?.issueStats?.explanation}}</p>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+</div>
+
+
+<!-- <p class="card-text"><small class="text-body-secondary">{{leg?.interpretation?.issueStats?.explanation}}</small></p> -->
+<!-- <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small></p> -->

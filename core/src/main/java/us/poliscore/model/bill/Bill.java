@@ -24,29 +24,31 @@ public class Bill implements Persistable {
 	public static final String ID_CLASS_PREFIX = "BIL";
 	
 	@JsonIgnore
-	private transient BillText text;
+	protected transient BillText text;
 	
-	private LegislativeNamespace namespace = LegislativeNamespace.US_CONGRESS;
+	protected LegislativeNamespace namespace = LegislativeNamespace.US_CONGRESS;
 	
-	private int congress;
+	protected int congress;
 	
-	private BillType type;
+	protected BillType type;
 	
-	private int number;
+	protected int number;
 	
-	private String name;
+	protected String name;
 	
-//	private String statusUrl;
+//	protected String statusUrl;
 	
-//	private String textUrl;
+//	protected String textUrl;
 	
-	private BillSponsor sponsor;
+	protected BillSponsor sponsor;
 	
-	private List<BillSponsor> cosponsors;
+	protected List<BillSponsor> cosponsors;
 	
-	private LocalDate introducedDate;
+	protected LocalDate introducedDate;
 	
-//	private LegislativeChamber originatingChamber;
+//	protected LegislativeChamber originatingChamber;
+	
+	protected BillInterpretation interpretation;
 	
 	@DynamoDbIgnore
 	@JsonIgnore
@@ -55,6 +57,8 @@ public class Bill implements Persistable {
 		return text;
 	}
 	
+	@JsonIgnore
+	@DynamoDbIgnore
 	public String getPoliscoreId()
 	{
 		return generateId(congress, type, number);

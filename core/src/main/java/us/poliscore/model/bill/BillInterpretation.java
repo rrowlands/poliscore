@@ -3,8 +3,10 @@ package us.poliscore.model.bill;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
@@ -18,16 +20,17 @@ import us.poliscore.model.Persistable;
 @Data
 @DynamoDbBean
 @RegisterForReflection
+@NoArgsConstructor
+@AllArgsConstructor
 public class BillInterpretation implements Persistable
 {
 	public static final String ID_CLASS_PREFIX = "BIT";
 	
 	@JsonIgnore
+	@Getter(onMethod_ = {@DynamoDbIgnore})
 	protected transient Bill bill;
 	
-	@JsonIgnore
-	@Getter(onMethod_ = {@DynamoDbIgnore})
-	protected transient IssueStats issueStats = null;
+	protected transient IssueStats issueStats;
 	
 	@NonNull
 	protected String id;
@@ -35,39 +38,13 @@ public class BillInterpretation implements Persistable
 	@NonNull
 	protected String billId;
 	
-	/**
-	 * The actual interpretation text of the bill or bill slice, as produced by AI.
-	 */
-	@NonNull
-	protected String text;
-	
 	@NonNull
 	protected AIInterpretationMetadata metadata;
-	
-	public BillInterpretation()
-	{
-		
-	}
-	
-	public BillInterpretation(AIInterpretationMetadata metadata, Bill bill, String text)
-	{
-		this.metadata = metadata;
-		this.bill = bill;
-		this.billId = bill.getId();
-		this.text = text;
-		this.issueStats = IssueStats.parse(text);
-	}
 	
 	@DynamoDbPartitionKey
 	public String getId()
 	{
 		return this.id;
-	}
-	
-	public void setText(String text)
-	{
-		this.text = text;
-		this.issueStats = IssueStats.parse(text);
 	}
 	
 	public void setBill(Bill bill)

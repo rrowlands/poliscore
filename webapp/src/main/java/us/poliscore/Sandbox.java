@@ -1,3 +1,4 @@
+package us.poliscore;
 
 
 import java.io.IOException;
@@ -10,16 +11,12 @@ import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.val;
-import us.poliscore.PoliscoreUtil;
-import us.poliscore.model.Legislator;
+import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalFilePersistenceService;
 import us.poliscore.service.storage.MemoryPersistenceService;
 
-/**
- * This bulk importer is designed to import a full dataset built with the github.com/unitedstates/congress toolkit 
- */
 @QuarkusMain(name="Sandbox")
 public class Sandbox implements QuarkusApplication
 {
@@ -40,13 +37,9 @@ public class Sandbox implements QuarkusApplication
 	
 	protected void process() throws IOException
 	{
-		val leg = dynamoDb.retrieve(PoliscoreUtil.BERNIE_SANDERS_ID, Legislator.class).orElseThrow();
+		val obj = dynamoDb.retrieve("BIL/us/congress/118/s/4289", Bill.class).orElseThrow();
 		
-		val interacts = leg.getInteractions();
-		
-		System.out.println(interacts.size());
-		
-		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(leg));
+		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(obj));
 	}
 	
 	@Override

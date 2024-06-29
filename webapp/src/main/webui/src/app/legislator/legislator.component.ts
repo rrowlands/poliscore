@@ -6,7 +6,7 @@ import { CommonModule, DatePipe, KeyValuePipe } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement} from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card'; 
 import { MatTableModule } from '@angular/material/table';
 
@@ -25,7 +25,7 @@ export const CHART_COLORS = {
 @Component({
   selector: 'app-legislator',
   standalone: true,
-  imports: [HttpClientModule, KeyValuePipe, CommonModule, BaseChartDirective, MatCardModule, MatTableModule, DatePipe],
+  imports: [HttpClientModule, KeyValuePipe, CommonModule, BaseChartDirective, MatCardModule, MatTableModule, DatePipe, RouterModule],
   providers: [AppService, HttpClient],
   templateUrl: './legislator.component.html',
   styleUrl: './legislator.component.scss'
@@ -73,7 +73,7 @@ export class LegislatorComponent implements OnInit {
     }
   };
 
-  constructor(private service: AppService, private route: ActivatedRoute) { }
+  constructor(private service: AppService, private route: ActivatedRoute, private router: Router) { }
 
   ngOnInit(): void {
     this.legId = this.route.snapshot.paramMap.get('id') as string;
@@ -87,12 +87,22 @@ export class LegislatorComponent implements OnInit {
           billName: i.billName,
           billGrade: gradeForStats(i.issueStats),
           date: new Date(parseInt(i.date.split("-")[0]), parseInt(i.date.split("-")[1]) - 1, parseInt(i.date.split("-")[2])),
-          association: this.describeAssociation(i)
+          association: this.describeAssociation(i),
+          billId: i.billId
         }))
         .sort((a, b) => b.date.getTime() - a.date.getTime());
 
       this.buildBarChartData();
     });
+  }
+
+  httpEncode(str: string): string {
+    return encodeURIComponent(str);
+  }
+
+  routeToBill(id: string)
+  {
+    this.router.navigate(['/bill', id]);
   }
 
   describeAssociation(association: BillInteraction): string {

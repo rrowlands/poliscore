@@ -28,7 +28,7 @@ public class LegislatorInterpretationService
 	// Only process the x most recent bills
 	public static final int LIMIT_BILLS = 3;
 	
-	public static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) summarization of this history, highlighting the accomplishments pointing out major focuses and priorities of the legislator. In your summary, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
+	public static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) critique of this history, evaluating the performance, highlighting any specific accomplishments or alarming behaviour and pointing out major focuses and priorities of the legislator. In your critique, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
 	
 	@Inject
 	private S3PersistenceService s3;
@@ -72,7 +72,7 @@ public class LegislatorInterpretationService
 		int interpretedBills = 0;
 		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed()).collect(Collectors.toList()))
 		{
-			if (interpretedBills > LIMIT_BILLS) break;
+			if (interpretedBills >= LIMIT_BILLS) break;
 			
 			try
 			{

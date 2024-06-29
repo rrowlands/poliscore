@@ -124,15 +124,17 @@ public class DatabaseBuilder implements QuarkusApplication
 			int persisted = 0;
 			for (val interact : legislator.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed()).collect(Collectors.toList()))
 			{
-				if (persisted > LegislatorInterpretationService.LIMIT_BILLS) break;
+				if (persisted >= LegislatorInterpretationService.LIMIT_BILLS) break;
 				
 				try
 				{
 					val billInterp = billInterpreter.getById(interact.getBillId()).get();
 					interact.setIssueStats(billInterp.getIssueStats());
 					
-					dynamoDb.store(billService.getById(interact.getBillId()).get());
-					dynamoDb.store(billInterp);
+					val bill = billService.getById(interact.getBillId()).get();
+					bill.setInterpretation(billInterp);
+					
+					dynamoDb.store(bill);
 					
 					persisted++;
 				}

@@ -1,4 +1,28 @@
 
+export interface Bill {
+  name: string;
+  number: number;
+  type: string;
+  congress: number;
+  sponsor: BillSponsor;
+  cosponsors: BillSponsor[];
+  introducedDate: string;
+  id: string;
+  interpretation: BillInterpretation;
+}
+
+export interface BillInterpretation {
+  issueStats: IssueStats;
+  id: string;
+  billId: string;
+  metadata: any;
+}
+
+export interface BillSponsor {
+  name: string;
+  bioguide_id: string;
+}
+
 export interface BillInteraction {
   "@type": string;
   billName: any;

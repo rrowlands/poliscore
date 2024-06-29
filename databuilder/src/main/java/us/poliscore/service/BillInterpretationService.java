@@ -120,7 +120,7 @@ public class BillInterpretationService {
 		
 		aggregateStats.setExplanation(ai.chat(summaryPrompt, aggregateStats.getExplanation()));
 		
-		bi.setText(aggregateStats.toString());
+		bi.setIssueStats(aggregateStats);
 		bi.setId(BillInterpretation.generateId(bill.getId(), null));
 		
 		archive(bi);
@@ -154,7 +154,7 @@ public class BillInterpretationService {
 				bi.setMetadata(OpenAIService.metadata(slice));
 			}
 			
-			bi.setText(interpText);
+			bi.setIssueStats(IssueStats.parse(interpText));
 			bi.setId(id);
 			
 			archive(bi);
