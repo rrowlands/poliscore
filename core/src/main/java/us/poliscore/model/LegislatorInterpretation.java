@@ -56,7 +56,7 @@ public class LegislatorInterpretation implements Persistable
 	
 	public void setId(String id) { this.legislatorId = id; }
 	
-	public String generateId(String legislatorId) { return legislatorId.replace(Bill.ID_CLASS_PREFIX, ID_CLASS_PREFIX); }
+	public String generateId(String legislatorId) { return legislatorId.replace(Legislator.ID_CLASS_PREFIX, ID_CLASS_PREFIX); }
 	
 	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_CLASS_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
 	

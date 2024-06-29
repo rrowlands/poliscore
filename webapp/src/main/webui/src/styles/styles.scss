@@ -2,6 +2,27 @@
 
 /* Custom CSS Specific to Poliscore */
 
+.stripedbg {
+	background-color: #81548f;
+	color: #d1e5f9;
+	padding: 4.5em 0 2.5em 0 ;
+	overflow: scroll;
+	-moz-align-items: center;
+	-webkit-align-items: center;
+	-ms-align-items: center;
+	align-items: center;
+	-moz-justify-content: center;
+	-webkit-justify-content: center;
+	-ms-justify-content: center;
+	justify-content: center;
+	background-image: url("images/overlay.png"), url("images/pattern-size1.svg");
+	background-position: top left, center center;
+	background-attachment: fixed, fixed;
+	background-size: auto, cover;
+	height: 100%;
+	min-height: 35em;
+}
+
 .vertical-layout {
     display: flex !important;
     flex-direction: column !important;
@@ -44,27 +65,6 @@
 
 
 /* Header */
-
-	.stripedbg {
-		background-color: #81548f;
-		color: #d1e5f9;
-		padding: 4.5em 0 2.5em 0 ;
-		overflow: scroll;
-		-moz-align-items: center;
-		-webkit-align-items: center;
-		-ms-align-items: center;
-		align-items: center;
-		-moz-justify-content: center;
-		-webkit-justify-content: center;
-		-ms-justify-content: center;
-		justify-content: center;
-		background-image: url("images/overlay.png"), url("images/pattern-size1.svg");
-		background-position: top left, center center;
-		background-attachment: fixed, fixed;
-		background-size: auto, cover;
-		height: 100%;
-		min-height: 35em;
-	}
 
 	#header {
 		background-color: #81548f;

@@ -11,22 +11,36 @@
     <div class="vertical-layout">
         <mat-card class="tran-div">
             <mat-card-content>
-                <div>
-                    <div style="max-width:1200px; border: 1px solid black;">
-                        <div class="row">
-                            <div class="col-left vertical-layout">
-                                <h1 class="card-title" style="text-align:center;">{{leg?.name?.official_full}}</h1>
-                                <img style="width: 80%; margin: 30px; max-width:400px;" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg?.id + '.jpg'" class="img-fluid rounded-start" alt="">
-                            </div>
-                            <div class="col-right">
-                                <div style="min-width: 450px;" class="card-body">
-                                    <canvas id="barChart"></canvas>
-                                </div>
-                            </div>
+                <div class="row">
+                    <div class="col-left vertical-layout">
+                        <h1 class="card-title" style="text-align:center;">{{leg?.name?.official_full}}</h1>
+                        <img style="width: 80%; margin: 30px; max-width:400px;" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg?.id + '.jpg'" class="img-fluid rounded-start" alt="">
+                    </div>
+                    <div class="col-right">
+                        <div style="min-width: 450px;" class="card-body">
+                            <canvas id="barChart"></canvas>
                         </div>
-                        <p>{{leg?.interpretation?.issueStats?.explanation}}</p>
                     </div>
                 </div>
+
+                <h2>Interpretation</h2>
+                <p>{{leg?.interpretation?.issueStats?.explanation}}</p>
+
+                <h2>Bill History</h2>
+                <table mat-table [dataSource]="billData" class="mat-elevation-z8">
+
+                    <!--- Note that these columns can be defined in any order.
+                            The actual rendered columns are set as a property on the row definition" -->
+                    
+                    <!-- Position Column -->
+                    <ng-container matColumnDef="billId">
+                        <th mat-header-cell *matHeaderCellDef> No. </th>
+                        <td mat-cell *matCellDef="let element"> {{element.position}} </td>
+                    </ng-container>
+                    
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
             </mat-card-content>
         </mat-card>
     </div>

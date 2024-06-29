@@ -11,11 +11,21 @@ set -e
 
 export BUCKET_NAME=poliscore-website
 
+docker ps
+
 mvn clean install
-cd webapp && quarkus build --native --no-tests -Dquarkus.native.container-build=true && cd ..
-cd cdk && cdk deploy --require-approval never && cd ..
 
-cd webapp/src/main/webui && ng build && cd ../../../../
+cd webapp
+quarkus build --native --no-tests -Dquarkus.native.container-build=true
+cd ..
+
+cd cdk
+cdk deploy --require-approval never
+cd ..
+
+cd webapp/src/main/webui
+ng build
+cd ../../../../
+
 aws s3 rm s3://$BUCKET_NAME --recursive
-
 aws s3 cp webapp/src/main/webui/dist/poliscore/browser s3://$BUCKET_NAME --recursive

@@ -1,7 +1,6 @@
 package us.poliscore.model;
 
 import java.util.HashSet;
-import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -12,9 +11,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverter;
 
 @Data
 @DynamoDbBean
@@ -36,8 +36,8 @@ public class Legislator implements Persistable {
 	protected LegislatorInterpretation interpretation;
 	
 	@NonNull
-	@Getter(onMethod_ = {@DynamoDbIgnore})
-	protected Set<LegislatorBillInteration> interactions = new HashSet<LegislatorBillInteration>();
+	@Getter(onMethod = @__({ @DynamoDbConvertedBy(LegislatorBillInteractionSetConverter.class)}))
+	protected LegislatorBillInteractionSet interactions = new LegislatorBillInteractionSet();
 	
 	@DynamoDbPartitionKey
 	public String getId()
@@ -50,7 +50,7 @@ public class Legislator implements Persistable {
 	
 	public void setId(String id) { this.bioguideId = id; }
 	
-	public void addBillInteraction(LegislatorBillInteration incoming)
+	public void addBillInteraction(LegislatorBillInteraction incoming)
 	{
 		interactions.removeIf(existing -> incoming.supercedes(existing));
 		interactions.add(incoming);
@@ -78,5 +78,8 @@ public class Legislator implements Persistable {
 		protected String official_full;
 		
 	}
+	
+	@DynamoDbBean
+	public static class LegislatorBillInteractionSet extends HashSet<LegislatorBillInteraction> {}
 	
 }

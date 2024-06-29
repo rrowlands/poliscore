@@ -10,7 +10,7 @@ import lombok.SneakyThrows;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Legislator;
-import us.poliscore.model.LegislatorBillInteration.LegislatorBillVote;
+import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;

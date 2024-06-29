@@ -1,9 +1,5 @@
 package us.poliscore.model;
 
-import us.poliscore.model.dynamodb.WorkaroundEnumAttributeConverter.VoteStatusAttributeConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-
 public enum VoteStatus {
 	AYE,
 	NAY,

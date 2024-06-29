@@ -7,7 +7,8 @@ import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement} from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ActivatedRoute } from '@angular/router';
-import {MatCardModule} from '@angular/material/card'; 
+import { MatCardModule } from '@angular/material/card'; 
+import { MatTableModule } from '@angular/material/table';
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels);
 
@@ -24,12 +25,15 @@ export const CHART_COLORS = {
 @Component({
   selector: 'app-legislator',
   standalone: true,
-  imports: [HttpClientModule, KeyValuePipe, CommonModule, BaseChartDirective, MatCardModule],
+  imports: [HttpClientModule, KeyValuePipe, CommonModule, BaseChartDirective, MatCardModule, MatTableModule],
   providers: [AppService, HttpClient],
   templateUrl: './legislator.component.html',
   styleUrl: './legislator.component.scss'
 })
 export class LegislatorComponent implements OnInit {
+
+  displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
+  public billData?: any;
 
   public leg?: Legislator;
 
@@ -78,6 +82,9 @@ export class LegislatorComponent implements OnInit {
 
     this.service.getLegislator(this.legId).then(leg => {
       this.leg = leg;
+
+      this.billData = leg?.interactions?.filter(i => i.issueStats != null).sort((a,b) => new Date(b.date[0], b.date[1], b.date[2]).getTime() - new Date(a.date[0], a.date[1], a.date[2]).getTime());
+      console.log(this.billData);
 
       this.buildBarChartData();
     });

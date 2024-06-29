@@ -1,12 +1,10 @@
 package us.poliscore.model;
 
 import lombok.Data;
-import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import us.poliscore.model.DynamoDbJacksonAttributeConverter.DynamoDbJacksonStringifiedConverterProvider;
 
 @Data
-@DynamoDbBean(converterProviders = {DynamoDbJacksonStringifiedConverterProvider.class, DefaultAttributeConverterProvider.class})
+@DynamoDbBean
 public class AIInterpretationMetadata extends InterpretationMetadata {
 	
 	protected String provider;

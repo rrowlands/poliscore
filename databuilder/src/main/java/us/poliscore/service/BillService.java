@@ -14,8 +14,8 @@ import software.amazon.awssdk.utils.StringUtils;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Legislator;
-import us.poliscore.model.LegislatorBillInteration.LegislatorBillCosponsor;
-import us.poliscore.model.LegislatorBillInteration.LegislatorBillSponsor;
+import us.poliscore.model.LegislatorBillInteraction.LegislatorBillCosponsor;
+import us.poliscore.model.LegislatorBillInteraction.LegislatorBillSponsor;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
@@ -60,18 +60,20 @@ public class BillService {
 			LegislatorBillSponsor interaction = new LegislatorBillSponsor();
 			interaction.setBillId(bill.getId());
 			interaction.setDate(view.getIntroduced_at());
+			interaction.setBillName(bill.getName() == null ? bill.getType() + "" + bill.getNumber() : bill.getName());
 			leg.addBillInteraction(interaction);
 			
 			lService.persist(leg);
     	}
     	
-    	view.getCosponsors().forEach(cs -> {
+    	view.getCosponsors().stream().filter(cs -> view.getSponsor() == null || !view.getSponsor().getBioguide_id().equals(cs.getBioguide_id())).forEach(cs -> {
     		if (!StringUtils.isBlank(cs.getBioguide_id())) {
-	    		Legislator leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, view.getSponsor().getBioguide_id())).orElseThrow();
+	    		Legislator leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, cs.getBioguide_id())).orElseThrow();
 				
 				LegislatorBillCosponsor interaction = new LegislatorBillCosponsor();
 				interaction.setBillId(bill.getId());
 				interaction.setDate(view.getIntroduced_at());
+				interaction.setBillName(bill.getName() == null ? bill.getType() + "" + bill.getNumber() : bill.getName());
 				leg.addBillInteraction(interaction);
 				
 				lService.persist(leg);

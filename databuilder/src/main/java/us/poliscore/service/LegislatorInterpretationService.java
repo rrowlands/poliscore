@@ -15,8 +15,8 @@ import lombok.val;
 import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Legislator;
-import us.poliscore.model.LegislatorBillInteration;
-import us.poliscore.model.LegislatorBillInteration.LegislatorBillVote;
+import us.poliscore.model.LegislatorBillInteraction;
+import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
 import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.service.storage.MemoryPersistenceService;
@@ -50,7 +50,7 @@ public class LegislatorInterpretationService
 	
 	public LegislatorInterpretation getOrCreate(String legislatorId)
 	{
-		val cached = s3.retrieve(legislatorId, LegislatorInterpretation.class);
+		val cached = s3.retrieve(legislatorId.replaceFirst(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
 		
 		if (cached.isPresent())
 		{
@@ -70,7 +70,7 @@ public class LegislatorInterpretationService
 	{
 		// Make sure all their bills are interpreted
 		int interpretedBills = 0;
-		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteration::getDate).reversed()).collect(Collectors.toList()))
+		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed()).collect(Collectors.toList()))
 		{
 			if (interpretedBills > LIMIT_BILLS) break;
 			

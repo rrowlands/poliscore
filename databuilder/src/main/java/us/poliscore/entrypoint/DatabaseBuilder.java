@@ -17,7 +17,7 @@ import jakarta.inject.Inject;
 import lombok.val;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Legislator;
-import us.poliscore.model.LegislatorBillInteration;
+import us.poliscore.model.LegislatorBillInteraction;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
@@ -31,8 +31,8 @@ import us.poliscore.service.storage.MemoryPersistenceService;
 /**
  * This bulk importer is designed to import a full dataset built with the github.com/unitedstates/congress toolkit 
  */
-@QuarkusMain(name="USCDataImporter")
-public class USCDataImporter implements QuarkusApplication
+@QuarkusMain(name="DatabaseBuilder")
+public class DatabaseBuilder implements QuarkusApplication
 {
 	@Inject
 	private MemoryPersistenceService memService;
@@ -61,7 +61,7 @@ public class USCDataImporter implements QuarkusApplication
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
 	public static void main(String[] args) {
-		Quarkus.run(USCDataImporter.class, args);
+		Quarkus.run(DatabaseBuilder.class, args);
 	}
 	
 	protected void process() throws IOException
@@ -122,13 +122,14 @@ public class USCDataImporter implements QuarkusApplication
 			legislator.setInterpretation(interp);
 			
 			int persisted = 0;
-			for (val interact : legislator.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteration::getDate).reversed()).collect(Collectors.toList()))
+			for (val interact : legislator.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed()).collect(Collectors.toList()))
 			{
 				if (persisted > LegislatorInterpretationService.LIMIT_BILLS) break;
 				
 				try
 				{
 					val billInterp = billInterpreter.getById(interact.getBillId()).get();
+					interact.setIssueStats(billInterp.getIssueStats());
 					
 					dynamoDb.store(billService.getById(interact.getBillId()).get());
 					dynamoDb.store(billInterp);
@@ -145,7 +146,7 @@ public class USCDataImporter implements QuarkusApplication
 			dynamoDb.store(legislator);
 		}
 		
-		Log.info("USC import complete. Imported " + totalBills + " bills and " + totalVotes + " votes.");
+		Log.info("Poliscore database build complete. Imported " + totalBills + " bills and " + totalVotes + " votes.");
 	}
 	
 	@Override

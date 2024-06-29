@@ -5,9 +5,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import lombok.Data;
-import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import us.poliscore.model.DynamoDbJacksonAttributeConverter.DynamoDbJacksonStringifiedConverterProvider;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -16,7 +13,6 @@ import us.poliscore.model.DynamoDbJacksonAttributeConverter.DynamoDbJacksonStrin
     @JsonSubTypes.Type(value = AISliceInterpretationMetadata.class, name = "AISliceInterpretationMetadata"),
     @JsonSubTypes.Type(value = AIInterpretationMetadata.class, name = "AIInterpretationMetadata") }
 )
-@DynamoDbBean(converterProviders = {DynamoDbJacksonStringifiedConverterProvider.class, DefaultAttributeConverterProvider.class})
 abstract public class InterpretationMetadata {
 	
 }

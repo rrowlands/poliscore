@@ -7,18 +7,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import us.poliscore.model.LegislatorBillInteration.LegislatorBillCosponsor;
-import us.poliscore.model.LegislatorBillInteration.LegislatorBillSponsor;
-import us.poliscore.model.LegislatorBillInteration.LegislatorBillVote;
-import us.poliscore.model.bill.Bill;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
+import us.poliscore.model.LegislatorBillInteraction.LegislatorBillCosponsor;
+import us.poliscore.model.LegislatorBillInteraction.LegislatorBillSponsor;
+import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
+import us.poliscore.model.bill.Bill;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
@@ -29,15 +29,21 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 )
 @Data
 @RequiredArgsConstructor
+@AllArgsConstructor
 @NoArgsConstructor
-@DynamoDbBean
 @RegisterForReflection
-public abstract class LegislatorBillInteration {
+public abstract class LegislatorBillInteraction {
 	
 	public static final String ID_CLASS_PREFIX = "LBI";
 	
 	@NonNull
 	protected String billId;
+	
+	@NonNull
+	protected String billName;
+	
+//	@NonNull
+//	protected String billDescription;
 	
 	@EqualsAndHashCode.Exclude
 	protected IssueStats issueStats;
@@ -54,7 +60,7 @@ public abstract class LegislatorBillInteration {
 	@DynamoDbIgnore
 	abstract public String describe();
 	
-	public boolean supercedes(LegislatorBillInteration similar)
+	public boolean supercedes(LegislatorBillInteraction similar)
 	{
 		return this.equals(similar) && date.isAfter(similar.getDate());
 	}
@@ -64,7 +70,9 @@ public abstract class LegislatorBillInteration {
 	@Data
 	@EqualsAndHashCode(callSuper=true)
 	@RegisterForReflection
-	public static class LegislatorBillVote extends LegislatorBillInteration {
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class LegislatorBillVote extends LegislatorBillInteraction {
 		
 		@NonNull
 		protected VoteStatus voteStatus;
@@ -80,7 +88,8 @@ public abstract class LegislatorBillInteration {
 	@Data
 	@EqualsAndHashCode(callSuper=true)
 	@RegisterForReflection
-	public static class LegislatorBillSponsor extends LegislatorBillInteration {
+	@NoArgsConstructor
+	public static class LegislatorBillSponsor extends LegislatorBillInteraction {
 		
 		@DynamoDbIgnore
 		@JsonIgnore
@@ -93,7 +102,8 @@ public abstract class LegislatorBillInteration {
 	@Data
 	@EqualsAndHashCode(callSuper=true)
 	@RegisterForReflection
-	public static class LegislatorBillCosponsor extends LegislatorBillInteration {
+	@NoArgsConstructor
+	public static class LegislatorBillCosponsor extends LegislatorBillInteraction {
 		
 		@DynamoDbIgnore
 		@JsonIgnore

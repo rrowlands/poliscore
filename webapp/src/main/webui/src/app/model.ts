@@ -5,6 +5,11 @@ export class Legislator {
     bioguideId?: string;
     thomasId?: string;
     interpretation?: LegislatorInterpretation
+    interactions?: [{
+      billId: string;
+      issueStats: IssueStats;
+      date: [number, number, number]
+    }];
 }
 
 export class LegislatorInterpretation {
