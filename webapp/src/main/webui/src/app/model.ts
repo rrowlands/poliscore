@@ -6,9 +6,10 @@ export class Legislator {
     thomasId?: string;
     interpretation?: LegislatorInterpretation
     interactions?: [{
+      billName: any;
       billId: string;
       issueStats: IssueStats;
-      date: [number, number, number]
+      date: string;
     }];
 }
 
@@ -37,7 +38,7 @@ export function issueKeyToLabel(key: string): string
     "Housing": "Housing",
     "Energy": "Energy",
     "Technology": "Technology",
-    "Immigration": "Immigaration",
+    "Immigration": "Immigration",
     "NationalDefense": "National Defense",
     "CrimeAndLawEnforcement": "Crime and Law Enforcement",
     "WildlifeAndForestManagement": "Wildlife And Forest Management",
@@ -47,4 +48,19 @@ export function issueKeyToLabel(key: string): string
   };
 
   return map[key];
+}
+
+export function getBenefitToSocietyIssue(issueStats: IssueStats): [string, number] {
+  return Object.entries(issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0] as [string, number];
+}
+
+export function gradeForStats(issueStats: IssueStats): string {
+  let credit = getBenefitToSocietyIssue(issueStats)[1];
+
+  if (credit >= 50) return "A";
+  else if (credit >= 30 && credit < 50) return "B";
+  else if (credit >= 10 && credit < 30) return "C";
+  else if (credit > 0 && credit < 10) return "D";
+  else if (credit <= 0) return "F";
+  else return "?";
 }

@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import { Legislator, issueKeyToLabel } from '../model';
+import { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats } from '../model';
 import { HttpHeaders, HttpClient, HttpParams, HttpHandler, HttpClientModule } from '@angular/common/http';
-import { CommonModule, KeyValuePipe } from '@angular/common';
+import { CommonModule, DatePipe, KeyValuePipe } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement} from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -25,14 +25,14 @@ export const CHART_COLORS = {
 @Component({
   selector: 'app-legislator',
   standalone: true,
-  imports: [HttpClientModule, KeyValuePipe, CommonModule, BaseChartDirective, MatCardModule, MatTableModule],
+  imports: [HttpClientModule, KeyValuePipe, CommonModule, BaseChartDirective, MatCardModule, MatTableModule, DatePipe],
   providers: [AppService, HttpClient],
   templateUrl: './legislator.component.html',
   styleUrl: './legislator.component.scss'
 })
 export class LegislatorComponent implements OnInit {
 
-  displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
+  displayedColumns: string[] = ['billName', 'billGrade', "date"];
   public billData?: any;
 
   public leg?: Legislator;
@@ -40,10 +40,8 @@ export class LegislatorComponent implements OnInit {
   private legId?: string;
 
   public barChartData: ChartConfiguration<'bar'>['data'] = {
-    labels: [ '2006', '2007', '2008', '2009', '2010', '2011', '2012' ],
-    datasets: [
-      { data: [ 65, 59, 80, 81, 56, 55, 40 ], label: 'Series A' }
-    ]
+    labels: [],
+    datasets: []
   };
 
   public barChartOptions: ChartConfiguration<'bar'>['options'] = {
@@ -59,8 +57,8 @@ export class LegislatorComponent implements OnInit {
       datalabels: {
         anchor: 'start', // Anchor the labels to the start of the datapoint
         align: 'center', // Align the text after the anchor point
-        formatter: function(value, context) { // Show the label instead of the value
-            return context?.chart?.data?.labels![context.dataIndex];
+        formatter: function (value, context) { // Show the label instead of the value
+          return context?.chart?.data?.labels![context.dataIndex];
         },
         // font: { weight: "bold" }
       }
@@ -71,11 +69,11 @@ export class LegislatorComponent implements OnInit {
         max: 100
       },
       // y: {ticks: {mirror: true, crossAlign: "center", align: "center", z: 1}}
-      y: {ticks: {display: false}}
+      y: { ticks: { display: false } }
     }
   };
 
-  constructor(private service: AppService, private route: ActivatedRoute) {}
+  constructor(private service: AppService, private route: ActivatedRoute) { }
 
   ngOnInit(): void {
     this.legId = this.route.snapshot.paramMap.get('id') as string;
@@ -83,8 +81,18 @@ export class LegislatorComponent implements OnInit {
     this.service.getLegislator(this.legId).then(leg => {
       this.leg = leg;
 
-      this.billData = leg?.interactions?.filter(i => i.issueStats != null).sort((a,b) => new Date(b.date[0], b.date[1], b.date[2]).getTime() - new Date(a.date[0], a.date[1], a.date[2]).getTime());
-      console.log(this.billData);
+      console.log(leg?.interactions);
+
+      this.billData = leg?.interactions
+        ?.filter(i => i.issueStats != null)
+        .map(i => ({
+          billName: i.billName,
+          billGrade: gradeForStats(i.issueStats),
+          date: new Date(parseInt(i.date.split("-")[0]), parseInt(i.date.split("-")[1]) - 1, parseInt(i.date.split("-")[2]))
+        }))
+        .sort((a, b) => b.date.getTime() - a.date.getTime());
+        
+      console.log(JSON.stringify(this.billData));
 
       this.buildBarChartData();
     });
@@ -92,22 +100,22 @@ export class LegislatorComponent implements OnInit {
 
   async buildBarChartData() {
     let data: number[] = [];
-    let labels: string[]= [];
+    let labels: string[] = [];
 
-    data.push(Object.entries(this.leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number);
-    labels.push(Object.entries(this.leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][0]);
+    data.push(getBenefitToSocietyIssue(this.leg?.interpretation?.issueStats!)[1]);
+    labels.push(getBenefitToSocietyIssue(this.leg?.interpretation?.issueStats!)[0]);
 
     let i = 0;
     for (const [key, value] of Object.entries(this.leg?.interpretation?.issueStats?.stats)
       .filter(kv => kv[0] != "OverallBenefitToSociety")
-      .sort((a,b) => (b[1] as number) - (a[1] as number))) {
+      .sort((a, b) => (b[1] as number) - (a[1] as number))) {
       data.push(value as number);
       labels.push(key);
     }
     labels = labels.map(l => issueKeyToLabel(l));
 
     this.barChartData.labels = labels;
-    this.barChartData.datasets = [ {
+    this.barChartData.datasets = [{
       data: data,
       label: "",
       backgroundColor: [
@@ -133,7 +141,7 @@ export class LegislatorComponent implements OnInit {
         'rgb(255, 159, 64)'
       ],
       borderWidth: 1
-    } ];
+    }];
 
     await this.waitForImage(document.querySelector('img'));
 
@@ -151,11 +159,11 @@ export class LegislatorComponent implements OnInit {
 
   waitForImage(imgElem: any) {
     return new Promise(res => {
-        if (imgElem.complete) {
-            return res(null);
-        }
-        imgElem.onload = () => res(null);
-        imgElem.onerror = () => res(null);
+      if (imgElem.complete) {
+        return res(null);
+      }
+      imgElem.onload = () => res(null);
+      imgElem.onerror = () => res(null);
     });
-}
+  }
 }

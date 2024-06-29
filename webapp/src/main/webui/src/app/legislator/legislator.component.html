@@ -32,10 +32,20 @@
                     <!--- Note that these columns can be defined in any order.
                             The actual rendered columns are set as a property on the row definition" -->
                     
-                    <!-- Position Column -->
-                    <ng-container matColumnDef="billId">
-                        <th mat-header-cell *matHeaderCellDef> No. </th>
-                        <td mat-cell *matCellDef="let element"> {{element.position}} </td>
+                    <ng-container matColumnDef="billName">
+                        <th mat-header-cell *matHeaderCellDef>Bill Name</th>
+                        <td mat-cell *matCellDef="let element"> {{element.billName}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="billGrade">
+                        <th mat-header-cell *matHeaderCellDef>Bill Grade</th>
+                        <td mat-cell *matCellDef="let element"> {{element.billGrade}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="date">
+                        <th mat-header-cell *matHeaderCellDef>Date</th>
+                        <td mat-cell *matCellDef="let element"> {{element.date | date}} </td>
+
                     </ng-container>
                     
                     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
