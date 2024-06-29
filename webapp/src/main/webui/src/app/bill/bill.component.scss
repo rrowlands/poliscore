@@ -1,0 +1,33 @@
+
+mat-card {
+    width: 80%;
+    margin: 10px;
+    color: black;
+
+    max-width:1000px;
+    border: 1px solid black;
+}
+
+.card-text {
+    max-height: 250px;
+    overflow: clip;
+}
+
+.card-tex small {
+    max-height: 100px;
+    overflow: clip;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 0.3fr 0.7fr;
+}
+
+.chart-container {
+    max-height: 800px;
+    width: 50vw;
+}
+
+p {
+    margin-top: 30px;
+}
