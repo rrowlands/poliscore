@@ -1,16 +1,20 @@
 
+export interface BillInteraction {
+  "@type": string;
+  billName: any;
+  billId: string;
+  issueStats: IssueStats;
+  date: string;
+  voteStatus?: string;
+}
+
 export class Legislator {
     name!: {first: string, last: string, official_full: string};
     id!: string;
     bioguideId?: string;
     thomasId?: string;
     interpretation?: LegislatorInterpretation
-    interactions?: [{
-      billName: any;
-      billId: string;
-      issueStats: IssueStats;
-      date: string;
-    }];
+    interactions?: [BillInteraction];
 }
 
 export class LegislatorInterpretation {

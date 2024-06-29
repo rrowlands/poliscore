@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats } from '../model';
+import { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction } from '../model';
 import { HttpHeaders, HttpClient, HttpParams, HttpHandler, HttpClientModule } from '@angular/common/http';
 import { CommonModule, DatePipe, KeyValuePipe } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
@@ -32,7 +32,7 @@ export const CHART_COLORS = {
 })
 export class LegislatorComponent implements OnInit {
 
-  displayedColumns: string[] = ['billName', 'billGrade', "date"];
+  displayedColumns: string[] = ['billName', 'billGrade', "association", "date"];
   public billData?: any;
 
   public leg?: Legislator;
@@ -81,21 +81,26 @@ export class LegislatorComponent implements OnInit {
     this.service.getLegislator(this.legId).then(leg => {
       this.leg = leg;
 
-      console.log(leg?.interactions);
-
       this.billData = leg?.interactions
         ?.filter(i => i.issueStats != null)
         .map(i => ({
           billName: i.billName,
           billGrade: gradeForStats(i.issueStats),
-          date: new Date(parseInt(i.date.split("-")[0]), parseInt(i.date.split("-")[1]) - 1, parseInt(i.date.split("-")[2]))
+          date: new Date(parseInt(i.date.split("-")[0]), parseInt(i.date.split("-")[1]) - 1, parseInt(i.date.split("-")[2])),
+          association: this.describeAssociation(i)
         }))
         .sort((a, b) => b.date.getTime() - a.date.getTime());
-        
-      console.log(JSON.stringify(this.billData));
 
       this.buildBarChartData();
     });
+  }
+
+  describeAssociation(association: BillInteraction): string {
+    if (association["@type"] == "LegislatorBillVote") {
+      return "Voted " + association.voteStatus;
+    } else {
+      return association["@type"].replace("LegislatorBill", "");
+    }
   }
 
   async buildBarChartData() {

@@ -42,6 +42,11 @@
                         <td mat-cell *matCellDef="let element"> {{element.billGrade}} </td>
                     </ng-container>
 
+                    <ng-container matColumnDef="association">
+                        <th mat-header-cell *matHeaderCellDef>Association</th>
+                        <td mat-cell *matCellDef="let element"> {{element.association}} </td>
+                    </ng-container>
+
                     <ng-container matColumnDef="date">
                         <th mat-header-cell *matHeaderCellDef>Date</th>
                         <td mat-cell *matCellDef="let element"> {{element.date | date}} </td>

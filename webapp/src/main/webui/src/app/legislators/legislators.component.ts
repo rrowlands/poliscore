@@ -37,7 +37,7 @@ export class LegislatorsComponent implements OnInit {
   {
     var issueStats = Object.entries(leg?.interpretation?.issueStats?.stats)
       .filter(kv => kv[0] != "OverallBenefitToSociety")
-      .sort((a,b) => (b[1] as number) - (a[1] as number))
+      .sort((a,b) => Math.abs(b[1] as number) - Math.abs(a[1] as number))
       .map(kv => issueKeyToLabel(kv[0]));
 
     issueStats = issueStats.slice(0, Math.min(3, issueStats.length));
