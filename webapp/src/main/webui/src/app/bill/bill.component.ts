@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { Bill, getBenefitToSocietyIssue, issueKeyToLabel } from '../model';
+import { Bill, colorForGrade, getBenefitToSocietyIssue, gradeForStats, issueKeyToLabel } from '../model';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule, HttpHandler } from '@angular/common/http';
@@ -65,6 +65,10 @@ export class BillComponent implements OnInit {
       this.buildBarChartData();
     });
   }
+
+  gradeForBill(): string { return gradeForStats(this.bill?.interpretation?.issueStats!); }
+
+  colorForGrade(grade: string): string { return colorForGrade(this.gradeForBill()); }
 
   async buildBarChartData() {
     let data: number[] = [];

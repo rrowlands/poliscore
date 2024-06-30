@@ -8,6 +8,17 @@ mat-card {
     border: 1px solid black;
 }
 
+.grade {
+    position: absolute;
+    top: 15px;
+    left: 25px;
+}
+
+.grade > p {
+    text-indent: 0;
+    padding: 0;
+}
+
 .card-text {
     max-height: 250px;
     overflow: clip;
@@ -50,6 +61,12 @@ p {
     padding-bottom: 20px;
 }
 
+@media screen and (max-width: 1010px) and (min-width:700px) {
+    .grade {
+        right: 25px;
+        left: unset;
+    }
+}
 
 
 

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import { Legislator, issueKeyToLabel } from '../model';
+import { Legislator, gradeForStats, issueKeyToLabel, colorForGrade } from '../model';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -47,6 +47,7 @@ export class LegislatorsComponent implements OnInit {
 
   gradeForLegislator(leg: Legislator): string
   {
+    /*
     let credit = Object.entries(leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number;
 
     if (credit >= 50) return "A";
@@ -55,6 +56,13 @@ export class LegislatorsComponent implements OnInit {
     else if (credit > 0 && credit < 10) return "D";
     else if (credit <= 0) return "F";
     else return "Not enough data";
+    */
+
+    return gradeForStats(leg.interpretation?.issueStats!);
+  }
+
+  colorForGrade(grade: string): string {
+    return colorForGrade(grade);
   }
 
   subtitleForLegislator(leg: Legislator): string
@@ -70,19 +78,6 @@ export class LegislatorsComponent implements OnInit {
     else if (credit > -50 && credit < -30) return "Public enemy";
     else if (credit <= -50) return "Menace to society";
     else return "Not enough data";
-  }
-
-  colorForGrade(grade: string): string
-  {
-    const map: {[key: string]: string} = {
-      A: "#1a9641",
-      B: "#a6d96a",
-      C: "rgb(179, 179, 0)",
-      D: "#fdae61",
-      F: "#d7191c"
-    };
-
-    return map[grade];
   }
 
 }

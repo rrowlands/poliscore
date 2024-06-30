@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction } from '../model';
+import { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade } from '../model';
 import { HttpHeaders, HttpClient, HttpParams, HttpHandler, HttpClientModule } from '@angular/common/http';
 import { CommonModule, DatePipe, KeyValuePipe } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
@@ -111,6 +111,10 @@ export class LegislatorComponent implements OnInit {
       this.buildBarChartData();
     });
   }
+
+  gradeForLegislator(): string { return gradeForStats(this.leg?.interpretation?.issueStats!); }
+
+  colorForGrade(grade: string): string { return colorForGrade(this.gradeForLegislator()); }
 
   getDisplayedColumns(): string[] {
     if (window.innerWidth < 480) {

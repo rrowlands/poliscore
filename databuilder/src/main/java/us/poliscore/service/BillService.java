@@ -44,7 +44,7 @@ public class BillService {
     	
     	val bill = new Bill();
 //    	bill.setText(text);
-    	bill.setName(view.getShort_title());
+    	bill.setName(view.getBillName());
     	bill.setCongress(Integer.parseInt(view.getCongress()));
     	bill.setType(BillType.valueOf(view.getBill_type().toUpperCase()));
     	bill.setNumber(Integer.parseInt(view.getNumber()));
@@ -60,7 +60,7 @@ public class BillService {
 			LegislatorBillSponsor interaction = new LegislatorBillSponsor();
 			interaction.setBillId(bill.getId());
 			interaction.setDate(view.getIntroduced_at());
-			interaction.setBillName(bill.getName() == null ? bill.getType() + "" + bill.getNumber() : bill.getName());
+			interaction.setBillName(bill.getName());
 			leg.addBillInteraction(interaction);
 			
 			lService.persist(leg);
@@ -73,7 +73,7 @@ public class BillService {
 				LegislatorBillCosponsor interaction = new LegislatorBillCosponsor();
 				interaction.setBillId(bill.getId());
 				interaction.setDate(view.getIntroduced_at());
-				interaction.setBillName(bill.getName() == null ? bill.getType() + "" + bill.getNumber() : bill.getName());
+				interaction.setBillName(bill.getName());
 				leg.addBillInteraction(interaction);
 				
 				lService.persist(leg);
