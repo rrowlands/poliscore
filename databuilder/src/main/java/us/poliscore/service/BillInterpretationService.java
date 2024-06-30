@@ -1,5 +1,6 @@
 package us.poliscore.service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -8,7 +9,7 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.val;
-import us.poliscore.model.AIInterpretationMetadata;
+import us.poliscore.MissingBillTextException;
 import us.poliscore.model.AISliceInterpretationMetadata;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.TrackedIssue;
@@ -24,7 +25,7 @@ import us.poliscore.service.storage.S3PersistenceService;
 public class BillInterpretationService {
 	
 	final String prompt = """
-			Score the following bill (or bill section) on the estimated impact upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful). Include a concise (single paragraph) summary of the bill at the end which references concrete, notable and specific text of the summarized bill where possible. Please format your response as a list in the example format:
+			Score the following bill (or bill section) on the estimated impact to society upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful). Include a concise (single paragraph) report of the bill at the end which references concrete, notable and specific text of the summarized bill where possible. Please format your response as a list in the example format:
 
             {issuesList}
 			
@@ -37,7 +38,7 @@ public class BillInterpretationService {
     	systemMsg = prompt.replaceFirst("\\{issuesList\\}", issues);
 	}
 	
-	final String summaryPrompt = "Generate a concise (single paragraph) summary of the following text. In your summary, please attempt to reference concrete, notable and specific text of the summarized bill where possible.";
+	final String summaryPrompt = "Evaluate the impact to society of the following summarized bill text in a concise (single paragraph) report. In your report, please attempt to reference concrete, notable and specific text of the summarized bill where possible.";
 	
 	@Inject
 	protected OpenAIService ai;
@@ -74,17 +75,18 @@ public class BillInterpretationService {
 		}
 	}
 	
-	protected BillInterpretation interpret(Bill bill)
+	protected BillInterpretation interpret(Bill bill) throws MissingBillTextException
 	{
 		Log.info("Interpreting bill " + bill.getId() + " " + bill.getName());
 		
-		val billText = billService.getBillText(bill).orElseThrow();
+		val billText = billService.getBillText(bill).orElseThrow(() -> new MissingBillTextException());
 		
 		bill.setText(billText);
 		
 		if (billText.getXml().length() >= BillSlicer.MAX_SECTION_LENGTH)
     	{
     		List<BillSlice> slices = new XMLBillSlicer().slice(bill);
+    		List<AISliceInterpretationMetadata> sliceMetadata = new ArrayList<AISliceInterpretationMetadata>();
     		
     		if (slices.size() > 1)
     		{
@@ -97,11 +99,12 @@ public class BillInterpretationService {
 	    			BillInterpretation sliceInterp = getOrCreateInterpretation(bill, slice);
 	    			
 	    			billStats = billStats.sum(sliceInterp.getIssueStats());
+	    			sliceMetadata.add((AISliceInterpretationMetadata) sliceInterp.getMetadata());
 	    		}
 	    		
 	    		billStats = billStats.divide(slices.size()); // Dividing by the total slices here gives us an average
 	    		
- 	    		var bi = getOrCreateAggregateInterpretation(bill, billStats);
+ 	    		var bi = getOrCreateAggregateInterpretation(bill, billStats, sliceMetadata);
 	    		
 	    		return bi;
     		}
@@ -112,11 +115,13 @@ public class BillInterpretationService {
     	return bi;
 	}
 	
-	protected BillInterpretation getOrCreateAggregateInterpretation(Bill bill, IssueStats aggregateStats)
+	protected BillInterpretation getOrCreateAggregateInterpretation(Bill bill, IssueStats aggregateStats, List<AISliceInterpretationMetadata> sliceMetadata)
 	{
 		BillInterpretation bi = new BillInterpretation();
 		bi.setBill(bill);
+		
 		bi.setMetadata(OpenAIService.metadata());
+		bi.getMetadata().setSlices(sliceMetadata);
 		
 		aggregateStats.setExplanation(ai.chat(summaryPrompt, aggregateStats.getExplanation()));
 		

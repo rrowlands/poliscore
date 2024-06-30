@@ -10,6 +10,22 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card'; 
 import { MatTableModule } from '@angular/material/table';
 
+/*
+const floatingLabelsPlugin = {
+  id: 'floating-labels',
+  afterDatasetsDraw: function (chart: Chart) {
+    console.log(chart);
+
+    const ctx = chart.ctx;
+    ctx.fillStyle = 'rgb(255, 255, 255)';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText("Test", chart.chartArea.width / 2, chart.chartArea.height / 2);
+  }
+};
+*/
+
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels);
 
 export const CHART_COLORS = {
@@ -55,7 +71,7 @@ export class LegislatorComponent implements OnInit {
         text: 'Chart.js Floating Bar Chart'
       },
       datalabels: {
-        anchor: 'start', // Anchor the labels to the start of the datapoint
+        anchor: 'center', // Anchor the labels to the start of the datapoint
         align: 'center', // Align the text after the anchor point
         formatter: function (value, context) { // Show the label instead of the value
           return context?.chart?.data?.labels![context.dataIndex];
@@ -96,8 +112,12 @@ export class LegislatorComponent implements OnInit {
     });
   }
 
-  httpEncode(str: string): string {
-    return encodeURIComponent(str);
+  getDisplayedColumns(): string[] {
+    if (window.innerWidth < 480) {
+      return ['billName', 'billGrade'];
+    } else {
+      return this.displayedColumns;
+    }
   }
 
   routeToBill(id: string)
@@ -167,6 +187,7 @@ export class LegislatorComponent implements OnInit {
           type: 'bar',
           data: this.barChartData,
           options: this.barChartOptions
+          // plugins: [ChartDataLabels, floatingLabelsPlugin],
         }
       );
     }, 10);

@@ -15,6 +15,7 @@ import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.val;
+import us.poliscore.MissingBillTextException;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.LegislatorBillInteraction;
@@ -138,7 +139,11 @@ public class DatabaseBuilder implements QuarkusApplication
 					
 					persisted++;
 				}
-				catch (NoSuchElementException ex)
+				catch (NoSuchElementException e)
+				{
+					Log.error("Could not find interpretation for bill " + interact.getBillId());
+				}
+				catch (MissingBillTextException ex)
 				{
 					// TODO
 					Log.error("Could not find text for bill " + interact.getBillId());

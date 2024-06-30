@@ -5,14 +5,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.val;
-import us.poliscore.model.AIInterpretationMetadata;
+import us.poliscore.MissingBillTextException;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.LegislatorBillInteraction;
@@ -26,7 +25,7 @@ import us.poliscore.service.storage.S3PersistenceService;
 public class LegislatorInterpretationService
 {
 	// Only process the x most recent bills
-	public static final int LIMIT_BILLS = 3;
+	public static final int LIMIT_BILLS = 4;
 	
 	public static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) critique of this history, evaluating the performance, highlighting any specific accomplishments or alarming behaviour and pointing out major focuses and priorities of the legislator. In your critique, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
 	
@@ -82,7 +81,7 @@ public class LegislatorInterpretationService
 				
 				interpretedBills++;
 			}
-			catch (NoSuchElementException ex)
+			catch (MissingBillTextException ex)
 			{
 				// TODO
 				Log.error("Could not find text for bill " + interact.getBillId());

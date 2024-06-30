@@ -1,9 +1,11 @@
 package us.poliscore.model;
 
 import lombok.Data;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import us.poliscore.model.bill.BillSlice;
 
 @Data
+@DynamoDbBean
 public class AISliceInterpretationMetadata extends AIInterpretationMetadata {
 	
 	protected int sectionStart;

@@ -1,5 +1,4 @@
 <div class="stripedbg">
-    <div class="stripedbg-inner">
         <div *ngIf="bill == null" class="loader"></div>
 
         <!--
@@ -10,6 +9,12 @@
 
     <!---->
         <div class="vertical-layout">
+            <div class="breadcrumb">
+                <a href="#" routerLink="/">Home</a>
+                /
+                <a href="#" routerLink="/legislators">Legislators</a>
+            </div>
+
             <mat-card class="tran-div">
                 <mat-card-content class="vertical-layout">
                     <h1 class="card-title" style="text-align:center;">{{bill?.name}}</h1>
@@ -21,7 +26,6 @@
                 </mat-card-content>
             </mat-card>
         </div>
-    </div>
 </div>
 
 

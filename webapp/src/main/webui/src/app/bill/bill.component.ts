@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Bill, getBenefitToSocietyIssue, issueKeyToLabel } from '../model';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
@@ -10,7 +10,7 @@ import { Chart, ChartConfiguration } from 'chart.js';
 @Component({
   selector: 'app-bill',
   standalone: true,
-  imports: [MatCardModule, CommonModule, HttpClientModule, CommonModule],
+  imports: [MatCardModule, CommonModule, HttpClientModule, CommonModule, RouterModule],
   providers: [AppService, HttpClient],
   templateUrl: './bill.component.html',
   styleUrl: './bill.component.scss'
