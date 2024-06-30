@@ -26,6 +26,7 @@ mat-card {
 .chart-container {
     max-height: 700px;
     width: 50vw;
+    padding-top: 25px;
 }
 
 p.interp-text {
@@ -34,8 +35,8 @@ p.interp-text {
 
 .grade {
     position: absolute;
-    top: 15px;
-    left: 25px;
+    top: 5px;
+    left: 7px;
 }
 
 .grade > p {
@@ -45,22 +46,10 @@ p.interp-text {
 
 .date {
     position: absolute;
-    top: 15px;
-    right: 25px;
+    top: 5px;
+    right: 6px;
 }
 
-@media screen and (max-width: 800px) {
-    .grade {
-        top: 46px;
-        left: 18px;
-    }
-
-    .chart-container {
-        padding-top: 25px;
-    }
-
-    .date {
-        top: 45px;
-        right: 18px;
-    }
+.card-title {
+    padding-top: 20px;
 }

@@ -19,7 +19,7 @@
                 <mat-card-content class="vertical-layout">
                     <h1 class="card-title" style="text-align:center;"><a [href]="'https://www.congress.gov/bill/' + bill?.congress + '-congress/' + getCongressGovBillType() + '/' + bill?.number">{{bill?.name}}</a></h1>
                     <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForBill())}">{{gradeForBill()}}</p></h1>
-                    <h1 class="date"><p >{{ bill?.introducedDate }}</p></h1>
+                    <h3 class="date"><p >{{ bill?.introducedDate }}</p></h3>
                     <div style="min-width: 450px;" class="chart-container">
                         <canvas id="barChart"></canvas>
                     </div>
