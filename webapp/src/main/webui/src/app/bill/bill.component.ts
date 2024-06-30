@@ -66,6 +66,20 @@ export class BillComponent implements OnInit {
     });
   }
 
+  getCongressGovBillType() {
+    if (this.bill?.type == "SJRES") {
+      return "senate-joint-resolution";
+    } else if (this.bill?.type == "HR") {
+      return "house-bill";
+    } else if (this.bill?.type == "HJRES") {
+        return "house-joint-resolution";
+    } else if (this.bill?.type == "S") {
+        return "senate-bill";
+    } else {
+      return "";
+    }
+  }
+
   gradeForBill(): string { return gradeForStats(this.bill?.interpretation?.issueStats!); }
 
   colorForGrade(grade: string): string { return colorForGrade(this.gradeForBill()); }
