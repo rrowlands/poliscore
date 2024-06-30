@@ -17,9 +17,9 @@
 
             <mat-card class="tran-div">
                 <mat-card-content class="vertical-layout">
+                    <h1 class="card-title" style="text-align:center;">{{bill?.name}}</h1>
                     <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForBill())}">{{gradeForBill()}}</p></h1>
                     <h1 class="date"><p >{{ bill?.introducedDate }}</p></h1>
-                    <h1 class="card-title" style="text-align:center;">{{bill?.name}}</h1>
                     <div style="min-width: 450px;" class="chart-container">
                         <canvas id="barChart"></canvas>
                     </div>

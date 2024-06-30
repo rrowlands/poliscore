@@ -24,8 +24,8 @@ mat-card {
 }
 
 .chart-container {
-    max-height: 800px;
-    width: 70vw;
+    max-height: 700px;
+    width: 50vw;
 }
 
 p.interp-text {
@@ -47,4 +47,20 @@ p.interp-text {
     position: absolute;
     top: 15px;
     right: 25px;
+}
+
+@media screen and (max-width: 800px) {
+    .grade {
+        top: 46px;
+        left: 18px;
+    }
+
+    .chart-container {
+        padding-top: 25px;
+    }
+
+    .date {
+        top: 45px;
+        right: 18px;
+    }
 }
