@@ -85,32 +85,29 @@ public class DatabaseBuilder implements QuarkusApplication
 			{
 				Log.info("Processing bill types " + bt + " congress");
 				
-				File fBillType = new File(fCongress, "bills/" + bt);
-			
-				int count = 0;
-				for (File data : PoliscoreUtil.allFilesWhere(fBillType, f -> f.getName().equals("data.json")))
+				for (File data : PoliscoreUtil.allFilesWhere(new File(fCongress, "bills/" + bt), f -> f.getName().equals("data.json")))
 				{
 					try (var fos = new FileInputStream(data))
 					{
 						billService.importUscData(fos);
-						count++;
 						totalBills++;
 					}
 				}
-				Log.info("Imported " + count + " bills");
-				
-				count = 0;
-				for (File data : PoliscoreUtil.allFilesWhere(fBillType, f -> f.getName().equals("data.json")))
-				{
-					try (var fos = new FileInputStream(data))
-					{
-						rollCallService.importUscData(fos);
-						count++;
-						totalVotes++;
-					}
-				}
-				Log.info("Imported " + count + " votes");
+				Log.info("Imported " + totalBills + " bills");
 			}
+			
+			int skipped = 0;
+			for (File data : PoliscoreUtil.allFilesWhere(new File(fCongress, "votes"), f -> f.getName().equals("data.json")))
+			{
+				try (var fos = new FileInputStream(data))
+				{
+					if (rollCallService.importUscData(fos))
+						totalVotes++;
+					else
+						skipped++;
+				}
+			}
+			Log.info("Imported " + totalVotes + " votes. Skipped " + skipped);
 		}
 		
 		// Interpret legislators

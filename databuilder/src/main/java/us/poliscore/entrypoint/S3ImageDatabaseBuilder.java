@@ -4,8 +4,10 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.KeyStore;
 import java.time.LocalDate;
+import java.util.Optional;
 
 import javax.net.ssl.SSLContext;
 
@@ -70,14 +72,16 @@ public class S3ImageDatabaseBuilder implements QuarkusApplication {
 					continue;
 				}
 				
-				byte[] bytes = getImage(leg);
+				Optional<byte[]> bytes = getImage(leg);
 				
-				if (!isJPEG(bytes)) {
+				if (bytes.isEmpty()) { continue; }
+				
+				if (!isJPEG(bytes.get())) {
 					Log.warn("congress.gov sent invalid bytes for " + leg.getName().getOfficial_full() + " " + leg.getBioguideId() + ". skipping...");
 					skipped++;
 					continue;
 				} else {
-					upload(bytes, leg.getId() + ".jpg");
+					upload(bytes.get(), leg.getId() + ".jpg");
 					success++;
 				}
 				
@@ -118,7 +122,7 @@ public class S3ImageDatabaseBuilder implements QuarkusApplication {
 	}
 	
 	@SneakyThrows
-	private byte[] getImage(Legislator leg) throws IOException, InterruptedException
+	private Optional<byte[]> getImage(Legislator leg) throws IOException, InterruptedException
 	{
 		val url = "https://www.congress.gov/img/member/" + leg.getBioguideId().toLowerCase() + "_200.jpg";
 		
@@ -140,7 +144,18 @@ public class S3ImageDatabaseBuilder implements QuarkusApplication {
 		get.addHeader("Sec-Fetch-Dest", "image");
 		
 		HttpResponse resp = httpClient.execute(get);
-		return IOUtils.toByteArray(resp.getEntity().getContent());
+		@Cleanup InputStream is = resp.getEntity().getContent();
+		
+		if (resp.getStatusLine().getStatusCode() >= 300) {
+			val body = IOUtils.toString(is, "UTF-8");
+			Log.warn("Received response code " + resp.getStatusLine().getStatusCode() + " and body " + body.substring(0, Math.min(body.length(), 300)));
+			
+			return Optional.empty();
+		}
+		else
+		{
+			return Optional.of(IOUtils.toByteArray(is));
+		}
 	}
 	
 	@SneakyThrows

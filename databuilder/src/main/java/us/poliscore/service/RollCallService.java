@@ -24,16 +24,19 @@ public class RollCallService {
 	protected LegislatorService lService;
 	
 	@SneakyThrows
-	public void importUscData(InputStream is)
+	public boolean importUscData(InputStream is)
 	{
 		USCRollCallData rollCall = PoliscoreUtil.getObjectMapper().readValue(is, USCRollCallData.class);
 		
-		if (!"passage".equals(rollCall.getCategory()) || rollCall.getBill() == null) return;
+		// There are a lot of roll call categories that we don't care about. Quorum is one of them.
+		if (!"passage".equals(rollCall.getCategory())) return false;
 		
 		rollCall.getVotes().getAye().forEach(v -> process(rollCall, v, VoteStatus.AYE));
 		rollCall.getVotes().getNo().forEach(v -> process(rollCall, v, VoteStatus.NAY));
 		rollCall.getVotes().getNotVoting().forEach(v -> process(rollCall, v, VoteStatus.NOT_VOTING));
 		rollCall.getVotes().getPresent().forEach(v -> process(rollCall, v, VoteStatus.PRESENT));
+		
+		return true;
 	}
 	
 	protected void process(USCRollCallData rollCall, USCRollCallVote vote, VoteStatus vs)
@@ -47,7 +50,7 @@ public class RollCallService {
 			
 			LegislatorBillVote interaction = new LegislatorBillVote(vs);
 			interaction.setBillId(billId);
-			interaction.setDate(rollCall.getDate());
+			interaction.setDate(rollCall.getDate().toLocalDate());
 			
 			leg.addBillInteraction(interaction);
 			

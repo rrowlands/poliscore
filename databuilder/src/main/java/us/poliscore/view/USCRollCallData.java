@@ -1,11 +1,18 @@
 package us.poliscore.view;
 
-import java.time.LocalDate;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import lombok.Data;
 
@@ -19,7 +26,8 @@ public class USCRollCallData {
 	
 	protected String chamber;
 	
-	protected LocalDate date;
+	@JsonDeserialize(using = USCRollCallJsonDateDeserializer.class)
+	protected LocalDateTime date;
 	
 	protected String question;
 	
@@ -84,6 +92,28 @@ public class USCRollCallData {
 			
 			this.id = id;
 		}
+		
+	}
+	
+	public static class USCRollCallJsonDateDeserializer extends JsonDeserializer<LocalDateTime> {
+		
+		@Override
+	    public LocalDateTime deserialize(JsonParser jsonParser,
+	            DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+
+			// 2024-06-10T08:01:30-04:00
+//	        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'-'");
+//	        String date = jsonParser.getText();
+//	        try {
+//	            return format.parse(date);
+//	        } catch (ParseException e) {
+//	            throw new RuntimeException(e);
+//	        }
+
+//			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'-'");
+			
+			return LocalDateTime.parse(jsonParser.getText(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+	    }
 		
 	}
 	
