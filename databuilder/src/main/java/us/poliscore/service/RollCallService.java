@@ -14,6 +14,7 @@ import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
+import us.poliscore.service.storage.MemoryPersistenceService;
 import us.poliscore.view.USCRollCallData;
 import us.poliscore.view.USCRollCallData.USCRollCallVote;
 
@@ -22,6 +23,9 @@ public class RollCallService {
 	
 	@Inject
 	protected LegislatorService lService;
+	
+	@Inject
+	protected MemoryPersistenceService memService;
 	
 	@SneakyThrows
 	public boolean importUscData(InputStream is)
@@ -47,10 +51,12 @@ public class RollCallService {
 			
 			var billView = rollCall.getBill();
 			var billId = Bill.generateId(billView.getCongress(), BillType.valueOf(billView.getType().toUpperCase()), billView.getNumber());
+			Bill bill = memService.retrieve(billId, Bill.class).orElseThrow();
 			
 			LegislatorBillVote interaction = new LegislatorBillVote(vs);
 			interaction.setBillId(billId);
 			interaction.setDate(rollCall.getDate().toLocalDate());
+			interaction.setBillName(bill.getName());
 			
 			leg.addBillInteraction(interaction);
 			
@@ -58,7 +64,7 @@ public class RollCallService {
 		}
 		catch (NoSuchElementException ex)
 		{
-			Log.warn("Could not find legislator with id [" + vote.getId() + "] referenced in file ?");
+			Log.warn("Could not find legislator or bill referenced in vote " + vote.getId());
 		}
 	}
 	
