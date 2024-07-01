@@ -1,5 +1,7 @@
 package us.poliscore.view;
 
+import java.time.LocalDate;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.Data;
@@ -13,6 +15,18 @@ public class USCLegislatorView {
 	protected USCLegislatorId id;
 	
 	protected USCLegislatorName name;
+	
+	protected USCLegislatorBio bio;
+	
+	@Data
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class USCLegislatorBio {
+		
+		protected String gender;
+		
+		protected LocalDate birthday;
+		
+	}
 	
 	@Data
 	@JsonIgnoreProperties(ignoreUnknown = true)

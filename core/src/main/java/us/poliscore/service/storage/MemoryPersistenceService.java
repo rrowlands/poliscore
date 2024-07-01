@@ -1,16 +1,19 @@
 package us.poliscore.service.storage;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.SneakyThrows;
+import lombok.val;
 import us.poliscore.model.Persistable;
 
 @ApplicationScoped
 public class MemoryPersistenceService implements PersistenceServiceIF {
 	
-	protected Map<String, Object> memoryStore = new HashMap<String,Object>();
+	protected Map<String, Persistable> memoryStore = new HashMap<String,Persistable>();
 	
 	public void store(Persistable obj)
 	{
@@ -38,5 +41,13 @@ public class MemoryPersistenceService implements PersistenceServiceIF {
 	public <T> boolean contains(String id, Class<T> clazz)
 	{
 		return memoryStore.containsKey(id);
+	}
+	
+	@SneakyThrows
+	public <T extends Persistable> List<T> query(Class<T> clazz)
+	{
+		val idClassPrefix =(String) clazz.getField("ID_CLASS_PREFIX").get(null);
+		
+		return memoryStore.values().stream().filter(o -> o.getIdClassPrefix().equals(idClassPrefix)).map(o -> (T) o).toList();
 	}
 }

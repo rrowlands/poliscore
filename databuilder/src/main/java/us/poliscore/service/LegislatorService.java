@@ -45,6 +45,7 @@ public class LegislatorService {
 			leg.setBioguideId(view.getId().getBioguide());
 			leg.setThomasId(view.getId().getThomas());
 			leg.setWikidataId(view.getId().getWikidata());
+			leg.setBirthday(view.getBio().getBirthday());
 			
 			pServ.store(leg);
 			count++;

@@ -1,5 +1,6 @@
 package us.poliscore.model;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,6 +35,8 @@ public class Legislator implements Persistable {
 	protected String wikidataId;
 	
 	protected LegislatorInterpretation interpretation;
+	
+	protected LocalDate birthday;
 	
 	@NonNull
 	@Getter(onMethod = @__({ @DynamoDbConvertedBy(LegislatorBillInteractionSetConverter.class)}))
