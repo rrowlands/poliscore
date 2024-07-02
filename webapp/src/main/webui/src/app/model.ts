@@ -85,21 +85,21 @@ export function getBenefitToSocietyIssue(issueStats: IssueStats): [string, numbe
 export function gradeForStats(issueStats: IssueStats): string {
   let credit = getBenefitToSocietyIssue(issueStats)[1];
 
+  /*
   if (credit >= 30) return "A";
   else if (credit > 10 && credit < 30) return "B";
   else if (credit >= -10 && credit <= 10) return "C";
   else if (credit > -30 && credit < -10) return "D";
   else if (credit <= -30) return "F";
   else return "?";
+  */
 
-  /*
   if (credit >= 50) return "A";
   else if (credit >= 30 && credit < 50) return "B";
   else if (credit >= 10 && credit < 30) return "C";
-  else if (credit > 0 && credit < 10) return "D";
-  else if (credit <= 0) return "F";
+  else if (credit >= 0 && credit < 10) return "D";
+  else if (credit < 0) return "F";
   else return "?";
-  */
 }
 
 export function colorForGrade(grade: string): string

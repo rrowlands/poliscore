@@ -138,7 +138,7 @@ public class LegislatorInterpretationService
 		val periodEnd = LocalDate.now();
 		List<String> aiUserMsg = new ArrayList<String>();
 		
-		for (val interact : leg.getInteractions())
+		for (val interact : getInteractionsForInterpretation(leg))
 		{
 			if (interact.getIssueStats() != null)
 			{
