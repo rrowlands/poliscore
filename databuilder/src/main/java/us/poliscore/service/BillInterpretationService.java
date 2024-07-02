@@ -25,7 +25,7 @@ import us.poliscore.service.storage.S3PersistenceService;
 public class BillInterpretationService {
 	
 	final String prompt = """
-			Score the following bill (or bill section) on the estimated impact to society upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful). Include a concise (single paragraph) report of the bill at the end which references concrete, notable and specific text of the summarized bill where possible. Please format your response as a list in the example format:
+			Score the following bill (or bill section) on the estimated impact to society upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Include a concise (single paragraph) report of the bill at the end which references concrete, notable and specific text of the summarized bill where possible. Please format your response as a list in the example format:
 
             {issuesList}
 			
@@ -34,7 +34,7 @@ public class BillInterpretationService {
 	
 	final String systemMsg;
 	{
-		String issues = String.join("\n", Arrays.stream(TrackedIssue.values()).map(issue -> issue.getName() + ": <score>").toList());
+		String issues = String.join("\n", Arrays.stream(TrackedIssue.values()).map(issue -> issue.getName() + ": <score or N/A>").toList());
     	systemMsg = prompt.replaceFirst("\\{issuesList\\}", issues);
 	}
 	
@@ -102,7 +102,7 @@ public class BillInterpretationService {
 	    			sliceMetadata.add((AISliceInterpretationMetadata) sliceInterp.getMetadata());
 	    		}
 	    		
-	    		billStats = billStats.divide(slices.size()); // Dividing by the total slices here gives us an average
+	    		billStats = billStats.divideByTotalSummed();
 	    		
  	    		var bi = getOrCreateAggregateInterpretation(bill, billStats, sliceMetadata);
 	    		

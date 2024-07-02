@@ -41,8 +41,7 @@ public class RollCallService {
 		rollCall.getVotes().getAye().forEach(v -> process(rollCall, v, VoteStatus.AYE));
 		rollCall.getVotes().getNo().forEach(v -> process(rollCall, v, VoteStatus.NAY));
 		
-		// If we want to process these, we'll need to make sure the legislator interpretation service doesn't try to use them.
-		// At the moment they're just pointless noise so we're ignoring them.
+		// At the moment these are just pointless noise so we're ignoring them.
 //		rollCall.getVotes().getNotVoting().forEach(v -> process(rollCall, v, VoteStatus.NOT_VOTING));
 //		rollCall.getVotes().getPresent().forEach(v -> process(rollCall, v, VoteStatus.PRESENT));
 		

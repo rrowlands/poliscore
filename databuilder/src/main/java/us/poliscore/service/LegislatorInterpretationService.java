@@ -18,6 +18,7 @@ import us.poliscore.model.LegislatorBillInteraction;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillCosponsor;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillSponsor;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
+import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.service.storage.MemoryPersistenceService;
@@ -51,20 +52,20 @@ public class LegislatorInterpretationService
 	
 	public LegislatorInterpretation getOrCreate(String legislatorId)
 	{
-		val cached = s3.retrieve(legislatorId.replaceFirst(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
-		
-		if (cached.isPresent())
-		{
-			return cached.get();
-		}
-		else
-		{
+//		val cached = s3.retrieve(legislatorId.replaceFirst(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
+//		
+//		if (cached.isPresent())
+//		{
+//			return cached.get();
+//		}
+//		else
+//		{
 			val leg = legService.getById(legislatorId).orElseThrow();
 			
 			val interp = interpret(leg);
 			
 			return interp;
-		}
+//		}
 	}
 	
 	private int sortPriority(LegislatorBillInteraction interact) {
@@ -73,44 +74,66 @@ public class LegislatorInterpretationService
 		else return 1;
 	}
 	
-	protected void interpretMostRecentInteractions(Legislator leg)
+	protected List<LegislatorBillInteraction> getInteractionsForInterpretation(Legislator leg)
 	{
-		int interpretedBills = 0;
-		val interacts = leg.getInteractions().stream()
+		return leg.getInteractions().stream()
 				// Remove duplicate bill interactions, favoring sponsor and co-sponsor over vote
 				.collect(Collectors.groupingBy(LegislatorBillInteraction::getBillId,Collectors.toList())).values().stream()
 					.map(l -> l.size() > 1 ? l.stream().sorted((aa,bb) -> sortPriority(bb) - sortPriority(aa)).findFirst().get() : l.get(0))
+				.filter(i -> isRelevant(i))
 				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
 				.collect(Collectors.toList());
-		
-		for (val interact : interacts)
+	}
+	
+	protected void interpretMostRecentInteractions(Legislator leg)
+	{
+		int interpretedBills = 0;
+		for (val i : getInteractionsForInterpretation(leg))
 		{
 			if (interpretedBills >= LIMIT_BILLS) break;
 			
 			try
 			{
-				val interp = billInterpreter.getOrCreate(interact.getBillId());
+				val interp = billInterpreter.getOrCreate(i.getBillId());
 				
-				interact.setIssueStats(interp.getIssueStats());
+				i.setIssueStats(interp.getIssueStats());
 				
 				interpretedBills++;
 			}
 			catch (MissingBillTextException ex)
 			{
 				// TODO
-				Log.error("Could not find text for bill " + interact.getBillId());
+				Log.error("Could not find text for bill " + i.getBillId());
+			}
+		}
+	}
+	
+	protected boolean isRelevant(LegislatorBillInteraction interact)
+	{
+		return !(interact instanceof LegislatorBillVote
+		&& (((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.NOT_VOTING) || ((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.PRESENT)));
+	}
+	
+	protected void populateInteractionStats(Legislator leg)
+	{
+		for (val i : getInteractionsForInterpretation(leg))
+		{
+			val interp = s3.retrieve(BillInterpretation.generateId(i.getBillId(), null), BillInterpretation.class);
+			
+			if (interp.isPresent()) {
+				i.setIssueStats(interp.get().getIssueStats());
 			}
 		}
 	}
 	
 	protected LegislatorInterpretation interpret(Legislator leg)
 	{
-		// Make sure all their bills are interpreted
 		interpretMostRecentInteractions(leg);
+		
+		populateInteractionStats(leg);
 		
 		IssueStats stats = new IssueStats();
 		
-		double weightSum = 0;
 		LocalDate periodStart = null;
 		val periodEnd = LocalDate.now();
 		List<String> aiUserMsg = new ArrayList<String>();
@@ -124,8 +147,7 @@ public class LegislatorInterpretationService
 					continue;
 				
 				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
-				stats = stats.sum(weightedStats);
-				weightSum += interact.getJudgementWeight();
+				stats = stats.sum(weightedStats, interact.getJudgementWeight());
 				
 				aiUserMsg.add(interact.describe() + ": " + interact.getIssueStats().getExplanation());
 				
@@ -133,8 +155,7 @@ public class LegislatorInterpretationService
 			}
 		}
 		
-		if (weightSum != 0)
-			stats = stats.divide(weightSum);
+		stats = stats.divideByTotalSummed();
 		
 		val prompt = PROMPT_TEMPLATE
 				.replace("{{full_name}}", leg.getName().getOfficial_full())
