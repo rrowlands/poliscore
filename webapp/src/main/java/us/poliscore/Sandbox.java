@@ -31,19 +31,21 @@ public class Sandbox implements QuarkusApplication
 	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
-	public static void main(String[] args) {
-		Quarkus.run(Sandbox.class, args);
-	}
-	
 	protected void process() throws IOException
 	{
 //		val obj = dynamoDb.retrieve("BIL/us/congress/118/s/4289", Bill.class).orElseThrow();
 //		
 //		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(obj));
 		
+		
+		
 		val legs = dynamoDb.query(Legislator.class);
 		
 		System.out.println(legs.size());
+	}
+	
+	public static void main(String[] args) {
+		Quarkus.run(Sandbox.class, args);
 	}
 	
 	@Override

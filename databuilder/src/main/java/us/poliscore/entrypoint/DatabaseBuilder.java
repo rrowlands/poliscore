@@ -111,8 +111,10 @@ public class DatabaseBuilder implements QuarkusApplication
 		}
 		
 		// Interpret legislators
-		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
+//		for (Legislator leg : memService.query(Legislator.class).stream().limit(10).toList())
+		Legislator leg = memService.retrieve(PoliscoreUtil.MIKE_JOHNSON_ID, Legislator.class).get();
 		{
+			String legId = leg.getId();
 			val interp = legInterp.getOrCreate(legId);
 			interp.getIssueStats().setExplanation(interp.getIssueStats().getExplanation());
 			

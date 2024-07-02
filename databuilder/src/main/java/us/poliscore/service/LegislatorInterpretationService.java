@@ -15,6 +15,8 @@ import us.poliscore.MissingBillTextException;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.LegislatorBillInteraction;
+import us.poliscore.model.LegislatorBillInteraction.LegislatorBillCosponsor;
+import us.poliscore.model.LegislatorBillInteraction.LegislatorBillSponsor;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
 import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.VoteStatus;
@@ -65,11 +67,23 @@ public class LegislatorInterpretationService
 		}
 	}
 	
-	protected LegislatorInterpretation interpret(Legislator leg)
+	private int sortPriority(LegislatorBillInteraction interact) {
+		if (interact instanceof LegislatorBillSponsor) return 3;
+		else if (interact instanceof LegislatorBillCosponsor) return 2;
+		else return 1;
+	}
+	
+	protected void interpretMostRecentInteractions(Legislator leg)
 	{
-		// Make sure all their bills are interpreted
 		int interpretedBills = 0;
-		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed()).collect(Collectors.toList()))
+		val interacts = leg.getInteractions().stream()
+				// Remove duplicate bill interactions, favoring sponsor and co-sponsor over vote
+				.collect(Collectors.groupingBy(LegislatorBillInteraction::getBillId,Collectors.toList())).values().stream()
+					.map(l -> l.size() > 1 ? l.stream().sorted((aa,bb) -> sortPriority(bb) - sortPriority(aa)).findFirst().get() : l.get(0))
+				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
+				.collect(Collectors.toList());
+		
+		for (val interact : interacts)
 		{
 			if (interpretedBills >= LIMIT_BILLS) break;
 			
@@ -87,6 +101,12 @@ public class LegislatorInterpretationService
 				Log.error("Could not find text for bill " + interact.getBillId());
 			}
 		}
+	}
+	
+	protected LegislatorInterpretation interpret(Legislator leg)
+	{
+		// Make sure all their bills are interpreted
+		interpretMostRecentInteractions(leg);
 		
 		IssueStats stats = new IssueStats();
 		

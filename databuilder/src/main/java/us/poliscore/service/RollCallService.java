@@ -35,37 +35,54 @@ public class RollCallService {
 		// There are a lot of roll call categories that we don't care about. Quorum is one of them.
 		if (!"passage".equals(rollCall.getCategory())) return false;
 		
+		// There are some bill types we don't care about. Don't bother printing noisy warnings or anything
+		if (BillType.getIgnoredBillTypes().contains(BillType.valueOf(rollCall.getBill().getType().toUpperCase()))) return false;
+		
 		rollCall.getVotes().getAye().forEach(v -> process(rollCall, v, VoteStatus.AYE));
 		rollCall.getVotes().getNo().forEach(v -> process(rollCall, v, VoteStatus.NAY));
-		rollCall.getVotes().getNotVoting().forEach(v -> process(rollCall, v, VoteStatus.NOT_VOTING));
-		rollCall.getVotes().getPresent().forEach(v -> process(rollCall, v, VoteStatus.PRESENT));
+		
+		// If we want to process these, we'll need to make sure the legislator interpretation service doesn't try to use them.
+		// At the moment they're just pointless noise so we're ignoring them.
+//		rollCall.getVotes().getNotVoting().forEach(v -> process(rollCall, v, VoteStatus.NOT_VOTING));
+//		rollCall.getVotes().getPresent().forEach(v -> process(rollCall, v, VoteStatus.PRESENT));
 		
 		return true;
 	}
 	
 	protected void process(USCRollCallData rollCall, USCRollCallVote vote, VoteStatus vs)
 	{
+		Legislator leg;
 		try
 		{
-			Legislator leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, vote.getId())).orElseThrow();
-			
-			var billView = rollCall.getBill();
-			var billId = Bill.generateId(billView.getCongress(), BillType.valueOf(billView.getType().toUpperCase()), billView.getNumber());
-			Bill bill = memService.retrieve(billId, Bill.class).orElseThrow();
-			
-			LegislatorBillVote interaction = new LegislatorBillVote(vs);
-			interaction.setBillId(billId);
-			interaction.setDate(rollCall.getDate().toLocalDate());
-			interaction.setBillName(bill.getName());
-			
-			leg.addBillInteraction(interaction);
-			
-			lService.persist(leg);
+			leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, vote.getId())).orElseThrow();
 		}
 		catch (NoSuchElementException ex)
 		{
-			Log.warn("Could not find legislator or bill referenced in vote " + vote.getId());
+			Log.warn("Could not find legislator with bioguide id " + vote.getId());
+			return;
 		}
+		
+		Bill bill;
+		var billView = rollCall.getBill();
+		var billId = Bill.generateId(billView.getCongress(), BillType.valueOf(billView.getType().toUpperCase()), billView.getNumber());
+		try
+		{
+			bill = memService.retrieve(billId, Bill.class).orElseThrow();
+		}
+		catch (NoSuchElementException ex)
+		{
+			Log.warn("Could not find bill with id " + billId);
+			return;
+		}
+		
+		LegislatorBillVote interaction = new LegislatorBillVote(vs);
+		interaction.setBillId(bill.getId());
+		interaction.setDate(rollCall.getDate().toLocalDate());
+		interaction.setBillName(bill.getName());
+		
+		leg.addBillInteraction(interaction);
+		
+		lService.persist(leg);
 	}
 	
 }

@@ -25,4 +25,9 @@ public enum VoteStatus {
 		
 		return "skip";
 	}
+	
+	public boolean isRelevant()
+	{
+		return this.equals(AYE) || this.equals(NAY);
+	}
 }
