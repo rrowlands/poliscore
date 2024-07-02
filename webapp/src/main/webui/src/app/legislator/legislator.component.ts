@@ -131,7 +131,7 @@ export class LegislatorComponent implements OnInit {
 
   describeAssociation(association: BillInteraction): string {
     if (association["@type"] == "LegislatorBillVote") {
-      return "Voted " + association.voteStatus;
+      return "Voted " + (association.voteStatus?.toUpperCase() === "AYE" ? "For" : "Against");
     } else {
       return association["@type"].replace("LegislatorBill", "");
     }
