@@ -52,20 +52,20 @@ public class LegislatorInterpretationService
 	
 	public LegislatorInterpretation getOrCreate(String legislatorId)
 	{
-//		val cached = s3.retrieve(legislatorId.replaceFirst(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
-//		
-//		if (cached.isPresent())
-//		{
-//			return cached.get();
-//		}
-//		else
-//		{
+		val cached = s3.retrieve(legislatorId.replaceFirst(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
+		
+		if (cached.isPresent())
+		{
+			return cached.get();
+		}
+		else
+		{
 			val leg = legService.getById(legislatorId).orElseThrow();
 			
 			val interp = interpret(leg);
 			
 			return interp;
-//		}
+		}
 	}
 	
 	private int sortPriority(LegislatorBillInteraction interact) {

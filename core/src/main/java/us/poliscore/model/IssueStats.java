@@ -13,9 +13,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.Data;
+import lombok.Getter;
 import lombok.val;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.utils.Pair;
 
 @Data
@@ -31,6 +33,8 @@ public class IssueStats {
 	
 	protected String explanation = "";
 	
+	@Getter(onMethod=@__({@JsonIgnore, @DynamoDbIgnore}))
+	@JsonIgnore
 	protected Map<TrackedIssue, Double> totalSummed;
 	
 	public static IssueStats parse(String text)
@@ -220,7 +224,7 @@ public class IssueStats {
 	{
 		StringBuilder sb = new StringBuilder();
 		
-	    sb.append(String.join("\n", Arrays.stream(TrackedIssue.values()).map(issue ->"-" + issue.getName() + ": " + formatStatValue(getStat(issue))).toList()));
+	    sb.append(String.join("\n", stats.keySet().stream().map(issue ->"-" + issue.getName() + ": " + formatStatValue(getStat(issue))).toList()));
 		
 		sb.append("\n\n");
 		
