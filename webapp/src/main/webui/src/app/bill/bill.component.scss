@@ -23,12 +23,6 @@ mat-card {
     grid-template-columns: 0.3fr 0.7fr;
 }
 
-.chart-container {
-    max-height: 700px;
-    width: 50vw;
-    padding-top: 25px;
-}
-
 p.interp-text {
     margin-top: 30px;
 }
@@ -52,4 +46,17 @@ p.interp-text {
 
 .card-title {
     padding-top: 20px;
+}
+
+.chart-container {
+    position: relative;
+    width: calc(85vw - 100px);
+    height: 400px;
+}
+
+@media screen and (max-width: 424px) {
+    .chart-container {
+        width: calc(80vw - 30px);
+        height: 300px;
+    }
 }

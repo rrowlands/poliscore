@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { Bill, colorForGrade, getBenefitToSocietyIssue, gradeForStats, issueKeyToLabel } from '../model';
+import { Bill, colorForGrade, getBenefitToSocietyIssue, gradeForStats, issueKeyToLabel, issueKeyToLabelSmall } from '../model';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule, HttpHandler } from '@angular/common/http';
@@ -28,6 +28,8 @@ export class BillComponent implements OnInit {
 
   public barChartOptions: ChartConfiguration<'bar'>['options'] = {
     indexAxis: "y",
+    responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top',
@@ -37,7 +39,9 @@ export class BillComponent implements OnInit {
         text: 'Chart.js Floating Bar Chart'
       },
       datalabels: {
-        anchor: 'start', // Anchor the labels to the start of the datapoint
+        anchor: (ctx) => {
+          return ctx.dataset.data[ctx.dataIndex] as number >= 0 ? "start" : "end";
+        },
         align: 'center', // Align the text after the anchor point
         formatter: function (value, context) { // Show the label instead of the value
           return context?.chart?.data?.labels![context.dataIndex];
@@ -98,7 +102,12 @@ export class BillComponent implements OnInit {
       data.push(value as number);
       labels.push(key);
     }
-    labels = labels.map(l => issueKeyToLabel(l));
+    
+    if (window.innerWidth < 480) {
+      labels = labels.map(l => issueKeyToLabelSmall(l));
+    } else {
+      labels = labels.map(l => issueKeyToLabel(l));
+    }
 
     this.barChartData.labels = labels;
     this.barChartData.datasets = [{

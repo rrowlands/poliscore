@@ -77,7 +77,7 @@ export class LegislatorComponent implements OnInit {
       datalabels: {
         anchor: (ctx) => {
           return ctx.dataset.data[ctx.dataIndex] as number >= 0 ? "start" : "end";
-        }, // Anchor the labels to the start of the datapoint
+        },
         align: 'center', // Align the text after the anchor point
         formatter: function (value, context) { // Show the label instead of the value
           return context?.chart?.data?.labels![context.dataIndex];
