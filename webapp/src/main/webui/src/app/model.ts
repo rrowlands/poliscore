@@ -78,6 +78,32 @@ export function issueKeyToLabel(key: string): string
   return map[key];
 }
 
+export function issueKeyToLabelSmall(key: string): string
+{
+  const map: {[key: string]: string} = {
+    "AgricultureAndFood": "Agriculture",
+    "Education": "Education",
+    "Transportation": "Transportation",
+    "EconomicsAndCommerce": "Economics",
+    "ForeignRelations": "Foreign Relations",
+    "SocialEquity": "Social Equity",
+    "Government": "Government",
+    "Healthcare": "Healthcare",
+    "Housing": "Housing",
+    "Energy": "Energy",
+    "Technology": "Technology",
+    "Immigration": "Immigration",
+    "NationalDefense": "National Defense",
+    "CrimeAndLawEnforcement": "Law Enforcement",
+    "WildlifeAndForestManagement": "Forest Management",
+    "PublicLandsAndNaturalResources": "Natural Resources",
+    "EnvironmentalManagementAndClimateChange": "Environment",
+    "OverallBenefitToSociety": "Benefit To Society"
+  };
+
+  return map[key];
+}
+
 export function getBenefitToSocietyIssue(issueStats: IssueStats): [string, number] {
   return Object.entries(issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0] as [string, number];
 }

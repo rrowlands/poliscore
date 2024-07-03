@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { AppService } from '../app.service';
-import { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade } from '../model';
+import { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade, issueKeyToLabelSmall } from '../model';
 import { HttpHeaders, HttpClient, HttpParams, HttpHandler, HttpClientModule } from '@angular/common/http';
 import { CommonModule, DatePipe, KeyValuePipe } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
@@ -48,6 +48,8 @@ export const CHART_COLORS = {
 })
 export class LegislatorComponent implements OnInit {
 
+  @ViewChild("barChart") barChart!: HTMLCanvasElement;
+
   displayedColumns: string[] = ['billName', 'billGrade', "association", "date"];
   public billData?: any;
 
@@ -62,6 +64,8 @@ export class LegislatorComponent implements OnInit {
 
   public barChartOptions: ChartConfiguration<'bar'>['options'] = {
     indexAxis: "y",
+    responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top',
@@ -151,7 +155,14 @@ export class LegislatorComponent implements OnInit {
       data.push(value as number);
       labels.push(key);
     }
-    labels = labels.map(l => issueKeyToLabel(l));
+
+    if (window.innerWidth < 480) {
+      labels = labels.map(l => issueKeyToLabelSmall(l));
+    } else {
+      labels = labels.map(l => issueKeyToLabel(l));
+    }
+
+    // this.barChart.style.maxWidth = 
 
     this.barChartData.labels = labels;
     this.barChartData.datasets = [{

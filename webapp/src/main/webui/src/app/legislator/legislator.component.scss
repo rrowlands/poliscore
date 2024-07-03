@@ -57,6 +57,18 @@ p {
     padding-top: 30px;
 }
 
+.leg-img {
+    width: 80%;
+    margin: 30px;
+    max-width:400px;
+}
+
+.chart-container {
+    position: relative;
+    width: calc(60vw - 100px);
+    height: 400px;
+}
+
 #barChart {
     padding-bottom: 20px;
 }
@@ -70,13 +82,43 @@ p {
 
 
 
-
+@media screen and (max-width: 424px) {
+    .row {
+        display: block;
+    }
+    .chart-container {
+        width: calc(80vw - 30px);
+        height: 300px;
+    }
+}
+// @media screen and (min-width: 425px) and (max-width:499px) {
+//     .chart-container {
+//         width: 380px;
+//     }
+// }
+// @media screen and (min-width: 500px) and (max-width:599px) {
+//     .chart-container {
+//         width: 480px;
+//     }
+// }
+// @media screen and (min-width: 600px) and (max-width:700px) {
+//     .chart-container {
+//         width: 580px;
+//     }
+// }
+// @media screen and (min-width: 701px) {
+//     .chart-container {
+//         max-width: 100%;
+//         min-width: 450px;
+//         width: 100%;
+//     }
+// }
 
 
 
 
 // Dumb hack because I can't divide by a unit (like 100vw) //
-
+/*
 @media screen and (max-width: 700px) {
     .row {
         display: block;
@@ -151,3 +193,4 @@ p {
         margin-left: -325px;
     }
 }
+*/
