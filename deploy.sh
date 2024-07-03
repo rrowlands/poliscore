@@ -11,17 +11,20 @@ set -e
 
 export BUCKET_NAME=poliscore-website
 
-docker ps
 
-mvn clean install
+if [ "$1" != "view" ]; then
+  docker ps
 
-cd webapp
-quarkus build --native --no-tests -Dquarkus.native.container-build=true
-cd ..
+  mvn clean install
 
-cd cdk
-cdk deploy --require-approval never
-cd ..
+  cd webapp
+  quarkus build --native --no-tests -Dquarkus.native.container-build=true
+  cd ..
+
+  cd cdk
+  cdk deploy --require-approval never
+  cd ..
+fi
 
 cd webapp/src/main/webui
 ng build

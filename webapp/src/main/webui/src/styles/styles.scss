@@ -25,6 +25,17 @@
 	padding: 0;
 }
 
+.purplebg {
+	background-color: #81548f;
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	z-index: -10;
+}
+
 /*
 .stripedbg-inner {
 	padding: 4.5em 0 2.5em 0 ;
@@ -49,7 +60,7 @@
 }
 
 html {
-	overflow: hidden;
+	overflow: visible;
 }
 
 /* HTML: <div class="loader"></div> */

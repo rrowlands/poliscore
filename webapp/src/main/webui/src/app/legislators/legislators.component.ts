@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import { Legislator, gradeForStats, issueKeyToLabel, colorForGrade } from '../model';
+import { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall } from '../model';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -35,10 +35,16 @@ export class LegislatorsComponent implements OnInit {
 
   descriptionForLegislator(leg: Legislator): string
   {
-    var issueStats = Object.entries(leg?.interpretation?.issueStats?.stats)
+    var issueStats: any = Object.entries(leg?.interpretation?.issueStats?.stats)
       .filter(kv => kv[0] != "OverallBenefitToSociety")
       .sort((a,b) => Math.abs(b[1] as number) - Math.abs(a[1] as number))
-      .map(kv => issueKeyToLabel(kv[0]));
+      // .map(kv => issueKeyToLabel(kv[0]));
+
+    if (window.innerWidth < 480) {
+      issueStats = issueStats.map((kv: any) => issueKeyToLabelSmall(kv[0]));
+    } else {
+      issueStats = issueStats.map((kv: any) => issueKeyToLabel(kv[0]));
+    }
 
     issueStats = issueStats.slice(0, Math.min(3, issueStats.length));
 
