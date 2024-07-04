@@ -1,5 +1,7 @@
 package us.poliscore.model;
 
+import java.time.LocalDate;
+
 import lombok.Data;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import us.poliscore.model.bill.BillSlice;
@@ -23,6 +25,7 @@ public class AISliceInterpretationMetadata extends AIInterpretationMetadata {
 		meta.setSectionStart(slice.getSectionStart());
 		meta.setSectionEnd(slice.getSectionEnd());
 		meta.setSliceIndex(slice.getSliceIndex());
+		meta.setDate(LocalDate.now());
 		return meta;
 	}
 	

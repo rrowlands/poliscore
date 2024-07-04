@@ -20,6 +20,7 @@ import lombok.SneakyThrows;
 import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.AISliceInterpretationMetadata;
 import us.poliscore.model.bill.BillSlice;
+import us.poliscore.parsing.BillSlicer;
 
 @ApplicationScoped
 public class OpenAIService {
@@ -50,6 +51,10 @@ public class OpenAIService {
 	@SneakyThrows
 	public String chat(String systemMsg, String userMsg)
     {
+		if (userMsg.length() > BillSlicer.MAX_SECTION_LENGTH) {
+			throw new IndexOutOfBoundsException();
+		}
+		
 		if (lastCall != null && ChronoUnit.SECONDS.between(lastCall, lastCall) < WAIT_BETWEEN_CALLS)
 		{
 			Thread.sleep(WAIT_BETWEEN_CALLS * 1000);

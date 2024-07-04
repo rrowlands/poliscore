@@ -11,6 +11,7 @@ import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.GlobalSecondaryIndexProps;
+import software.amazon.awscdk.services.dynamodb.LocalSecondaryIndexProps;
 import software.amazon.awscdk.services.dynamodb.Table;
 import software.amazon.awscdk.services.dynamodb.TableProps;
 import software.amazon.awscdk.services.lambda.Architecture;
@@ -38,14 +39,26 @@ class PoliscoreStack extends Stack {
                 .build());
         
         table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
-                .indexName("ObjectClass")
+                .indexName("ObjectsByDate")
                 .partitionKey(Attribute.builder()
                         .name("idClassPrefix")
                         .type(AttributeType.STRING)
                         .build())
                 .sortKey(Attribute.builder()
-                        .name("id")
+                        .name("date")
                         .type(AttributeType.STRING)
+                        .build())
+                .build());
+        
+        table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
+                .indexName("ObjectsByRating")
+                .partitionKey(Attribute.builder()
+                        .name("idClassPrefix")
+                        .type(AttributeType.STRING)
+                        .build())
+                .sortKey(Attribute.builder()
+                        .name("rating")
+                        .type(AttributeType.NUMBER)
                         .build())
                 .build());
         
@@ -62,7 +75,7 @@ class PoliscoreStack extends Stack {
                 .runtime(Runtime.PROVIDED_AL2023)
                 .environment(lambdaEnvMap)
                 .timeout(Duration.minutes(15))
-                .architecture(Architecture.ARM_64) // Required if you're building on MacOSX M ARM chipset)
+                .architecture(Architecture.ARM_64) // Required if you're building on MacOSX M* ARM chipset)
                 .memorySize(128)
                 .environment(Map.of("DISABLE_SIGNAL_HANDLERS", "true"))
                 .build());

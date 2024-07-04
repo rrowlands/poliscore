@@ -18,17 +18,22 @@ public class Lambda {
 
     @Funq
     public Legislator getLegislator(Map<String, String> queryParams) {
-    	return ddb.retrieve(queryParams.get("id"), Legislator.class).orElseThrow();
+    	return ddb.get(queryParams.get("id"), Legislator.class).orElseThrow();
     }
     
     @Funq
     public List<Legislator> getLegislators(Map<String, String> queryParams) {
-    	return ddb.query(Legislator.class);
+    	return ddb.query(Legislator.class, 25, queryParams.get("exclusiveStartKey"));
     }
     
     @Funq
     public Bill getBill(Map<String, String> queryParams)
     {
-    	return ddb.retrieve(queryParams.get("id"), Bill.class).orElseThrow();
+    	return ddb.get(queryParams.get("id"), Bill.class).orElseThrow();
+    }
+    
+    @Funq
+    public List<Bill> getBills(Map<String, String> queryParams) {
+    	return ddb.query(Bill.class, 25, queryParams.get("exclusiveStartKey"));
     }
 }

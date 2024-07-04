@@ -9,19 +9,22 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.SneakyThrows;
 import lombok.val;
 import us.poliscore.model.Persistable;
+import us.poliscore.model.bill.Bill;
 
 @ApplicationScoped
 public class MemoryPersistenceService implements PersistenceServiceIF {
 	
 	protected Map<String, Persistable> memoryStore = new HashMap<String,Persistable>();
 	
-	public void store(Persistable obj)
+	public void put(Persistable obj)
 	{
+		if (obj instanceof Bill) { ((Bill)obj).setText(null); }
+		
 		memoryStore.put(obj.getId(), obj);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Persistable> Optional<T> retrieve(String id, Class<T> clazz)
+	public <T extends Persistable> Optional<T> get(String id, Class<T> clazz)
 	{
 		if (memoryStore.containsKey(id))
 		{
@@ -38,7 +41,8 @@ public class MemoryPersistenceService implements PersistenceServiceIF {
 		return memoryStore.keySet().stream().filter(k -> k.startsWith(idClassPrefix)).count();
 	}
 	
-	public <T> boolean contains(String id, Class<T> clazz)
+	@Override
+	public <T extends Persistable> boolean exists(String id, Class<T> clazz)
 	{
 		return memoryStore.containsKey(id);
 	}

@@ -27,26 +27,20 @@
                     <span><p>{{descriptionForLegislator(leg)}}</p></span>
                 </mat-card-content>
             </div>
-      </mat-card>
+        </mat-card>
 
-        
-        <!-- <div *ngFor="let leg of legs" class="row card mb-3" style="max-width: 540px;" (click)="routeTo(leg)" [id]="leg.id">
-            <div class="row g-0">
-                <div class="col-md-4">
-                <img [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" class="img-fluid rounded-start" alt="">
-                </div>
-                <div class="col-md-8">
-                <div class="card-body">
-                    <h5 class="card-title row" style="margin-bottom:-10px;">
-                        <span class="col-10 text-start">{{leg.name.official_full}}</span>
-                        <span class="col-2 g-0"><p class="text-end" style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForLegislator(leg))}">{{gradeForLegislator(leg)}}</p></span>
-                    </h5>
-                    <h6 class="card-subtitle mb-2 text-muted" style="font-size:0.8rem;">{{subtitleForLegislator(leg)}}</h6>
-                    <p style="margin-top:17px;" class="card-text">{{descriptionForLegislator(leg)}}</p>
-                </div>
-                </div>
-            </div>
-        </div> -->
+        <!-- <mat-paginator #paginator
+               class="demo-paginator"
+               (page)="handlePageEvent($event)"
+               [length]="length"
+               [pageSize]="pageSize"
+               [disabled]="disabled"
+               [showFirstLastButtons]="showFirstLastButtons"
+               [pageSizeOptions]="showPageSizeOptions ? pageSizeOptions : []"
+               [hidePageSize]="hidePageSize"
+               [pageIndex]="pageIndex"
+               aria-label="Select page">
+        </mat-paginator> -->
        
 	</div>
 </div>

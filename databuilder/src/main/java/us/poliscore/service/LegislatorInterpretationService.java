@@ -7,6 +7,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -18,11 +20,10 @@ import us.poliscore.model.LegislatorBillInteraction;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillCosponsor;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillSponsor;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
-import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.VoteStatus;
-import us.poliscore.service.storage.MemoryPersistenceService;
-import us.poliscore.service.storage.S3PersistenceService;
+import us.poliscore.model.bill.BillInterpretation;
+import us.poliscore.service.storage.CachedS3Service;
 
 @ApplicationScoped
 public class LegislatorInterpretationService
@@ -33,10 +34,7 @@ public class LegislatorInterpretationService
 	public static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) critique of this history, evaluating the performance, highlighting any specific accomplishments or alarming behaviour and pointing out major focuses and priorities of the legislator. In your critique, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
 	
 	@Inject
-	private S3PersistenceService s3;
-	
-	@Inject
-	private MemoryPersistenceService pService;
+	private CachedS3Service s3;
 	
 	@Inject
 	private BillService billService;
@@ -52,23 +50,36 @@ public class LegislatorInterpretationService
 	
 	public LegislatorInterpretation getOrCreate(String legislatorId)
 	{
-		val cached = s3.retrieve(legislatorId.replaceFirst(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
+		val cached = s3.get(legislatorId.replaceFirst(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
 		
-		if (cached.isPresent())
+		val leg = legService.getById(legislatorId).orElseThrow();
+		populateInteractionStats(leg);
+		
+		if (cached.isPresent()) // calculateInterpHashCode(leg) == cached.get().getHash()
 		{
 			return cached.get();
 		}
 		else
 		{
-			val leg = legService.getById(legislatorId).orElseThrow();
-			
 			val interp = interpret(leg);
 			
 			return interp;
 		}
 	}
 	
-	private int sortPriority(LegislatorBillInteraction interact) {
+	protected int calculateInterpHashCode(Legislator leg)
+	{
+		val builder = new HashCodeBuilder();
+		
+		for (val interact : getInteractionsForInterpretation(leg).stream().filter(i -> i.getIssueStats() != null && !(i instanceof LegislatorBillVote
+						&& (((LegislatorBillVote)i).getVoteStatus().equals(VoteStatus.NOT_VOTING) || ((LegislatorBillVote)i).getVoteStatus().equals(VoteStatus.PRESENT)))).toList()) {
+			builder.append(interact.getBillId());
+		}
+		
+		return builder.build();
+	}
+	
+	protected int sortPriority(LegislatorBillInteraction interact) {
 		if (interact instanceof LegislatorBillSponsor) return 3;
 		else if (interact instanceof LegislatorBillCosponsor) return 2;
 		else return 1;
@@ -118,7 +129,7 @@ public class LegislatorInterpretationService
 	{
 		for (val i : getInteractionsForInterpretation(leg))
 		{
-			val interp = s3.retrieve(BillInterpretation.generateId(i.getBillId(), null), BillInterpretation.class);
+			val interp = s3.get(BillInterpretation.generateId(i.getBillId(), null), BillInterpretation.class);
 			
 			if (interp.isPresent()) {
 				i.setIssueStats(interp.get().getIssueStats());
@@ -128,7 +139,7 @@ public class LegislatorInterpretationService
 	
 	protected LegislatorInterpretation interpret(Legislator leg)
 	{
-		interpretMostRecentInteractions(leg);
+//		interpretMostRecentInteractions(leg);
 		
 		populateInteractionStats(leg);
 		
@@ -167,6 +178,7 @@ public class LegislatorInterpretationService
 		stats.setExplanation(interpText);
 		
 		val interp = new LegislatorInterpretation(OpenAIService.metadata(), leg, stats);
+		interp.setHash(calculateInterpHashCode(leg));
 		archive(interp);
 		
 		leg.setInterpretation(interp);
@@ -202,7 +214,6 @@ public class LegislatorInterpretationService
 	
 	protected void archive(LegislatorInterpretation interp)
 	{
-		s3.store(interp);
-		pService.store(interp);
+		s3.put(interp);
 	}
 }

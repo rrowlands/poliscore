@@ -1,5 +1,7 @@
 package us.poliscore.model;
 
+import java.time.LocalDate;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -9,7 +11,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
-import us.poliscore.model.bill.Bill;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 
 @Data
 @DynamoDbBean
@@ -27,6 +29,8 @@ public class LegislatorInterpretation implements Persistable
 	protected String legislatorId;
 	
 	protected AIInterpretationMetadata metadata;
+	
+	protected int hash;
 	
 	public LegislatorInterpretation()
 	{
@@ -58,7 +62,15 @@ public class LegislatorInterpretation implements Persistable
 	
 	public String generateId(String legislatorId) { return legislatorId.replace(Legislator.ID_CLASS_PREFIX, ID_CLASS_PREFIX); }
 	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_CLASS_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
 	
 	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
+	
+	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return metadata.getDate(); }
+
+	@Override @JsonIgnore public void setDate(LocalDate date) { }
+	
+	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return issueStats.getRating(); }
+
+	@Override @JsonIgnore public void setRating(int rating) { }
 }

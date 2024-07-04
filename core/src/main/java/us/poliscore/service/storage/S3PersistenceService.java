@@ -1,5 +1,6 @@
 package us.poliscore.service.storage;
 
+import java.util.List;
 import java.util.Optional;
 
 import io.quarkus.logging.Log;
@@ -41,7 +42,7 @@ public class S3PersistenceService implements PersistenceServiceIF
 	}
 	
 	@SneakyThrows
-	public void store(Persistable obj)
+	public void put(Persistable obj)
 	{
 		val key = getKey(obj.getId());
 		
@@ -56,7 +57,7 @@ public class S3PersistenceService implements PersistenceServiceIF
 	}
 	
 	@SneakyThrows
-	public <T extends Persistable> Optional<T> retrieve(String id, Class<T> clazz)
+	public <T extends Persistable> Optional<T> get(String id, Class<T> clazz)
 	{
 		val key = getKey(id);
 		
@@ -80,7 +81,8 @@ public class S3PersistenceService implements PersistenceServiceIF
         }
 	}
 	
-	public <T> boolean exists(String id, Class<T> clazz)
+	@Override
+	public <T extends Persistable> boolean exists(String id, Class<T> clazz)
 	{
 		val key = getKey(id);
 		
@@ -97,6 +99,11 @@ public class S3PersistenceService implements PersistenceServiceIF
 		{
 			return false;
 		}
+	}
+	
+	@Override
+	public <T extends Persistable> List<T> query(Class<T> clazz) {
+		throw new UnsupportedOperationException();
 	}
 	
 }

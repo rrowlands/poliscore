@@ -5,11 +5,12 @@ import { CommonModule, KeyValuePipe } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {MatCardModule} from '@angular/material/card'; 
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-legislators',
   standalone: true,
-  imports: [HttpClientModule, KeyValuePipe, CommonModule, RouterModule, MatCardModule],
+  imports: [HttpClientModule, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule],
   providers: [AppService, HttpClient],
   templateUrl: './legislators.component.html',
   styleUrl: './legislators.component.scss'

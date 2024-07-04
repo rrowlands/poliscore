@@ -8,6 +8,7 @@ import java.util.Optional;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.NonNull;
 import lombok.val;
 import us.poliscore.MissingBillTextException;
 import us.poliscore.model.AISliceInterpretationMetadata;
@@ -18,8 +19,8 @@ import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillSlice;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
+import us.poliscore.service.storage.CachedS3Service;
 import us.poliscore.service.storage.MemoryPersistenceService;
-import us.poliscore.service.storage.S3PersistenceService;
 
 @ApplicationScoped
 public class BillInterpretationService {
@@ -44,24 +45,21 @@ public class BillInterpretationService {
 	protected OpenAIService ai;
 	
 	@Inject
-	protected MemoryPersistenceService pService;
-	
-	@Inject
-	protected S3PersistenceService s3;
+	protected CachedS3Service s3;
 	
 	@Inject
 	protected BillService billService;
 	
-	public Optional<BillInterpretation> getById(String billId)
+	public Optional<BillInterpretation> getByBillId(String billId)
 	{
-		return s3.retrieve(BillInterpretation.generateId(billId, null), BillInterpretation.class);
+		return s3.get(BillInterpretation.generateId(billId, null), BillInterpretation.class);
 	}
 	
 	public BillInterpretation getOrCreate(String billId)
 	{
 		val bill = billService.getById(billId).orElseThrow();
 		val interpId = BillInterpretation.generateId(bill.getId(), null);
-		val cached = s3.retrieve(interpId, BillInterpretation.class);
+		val cached = s3.get(interpId, BillInterpretation.class);
 		
 		if (cached.isPresent())
 		{
@@ -107,6 +105,8 @@ public class BillInterpretationService {
  	    		var bi = getOrCreateAggregateInterpretation(bill, billStats, sliceMetadata);
 	    		
 	    		return bi;
+    		} else {
+    			throw new UnsupportedOperationException("Slicer was unable to slice bill " + bill.getId());
     		}
     	}
 		
@@ -136,7 +136,7 @@ public class BillInterpretationService {
 	protected BillInterpretation getOrCreateInterpretation(Bill bill, BillSlice slice)
 	{
 		val id = BillInterpretation.generateId(bill.getId(), slice == null ? null : slice.getSliceIndex());
-		val cached = s3.retrieve(id, BillInterpretation.class);
+		val cached = s3.get(id, BillInterpretation.class);
 		
 		if (cached.isPresent())
 		{
@@ -170,7 +170,11 @@ public class BillInterpretationService {
 	
     protected void archive(BillInterpretation interp)
     {
-    	s3.store(interp);
-    	pService.store(interp);
+    	s3.put(interp);
     }
+
+	public boolean isInterpreted(@NonNull String billId) {
+		val id = BillInterpretation.generateId(billId, null);
+		return s3.exists(id, BillInterpretation.class);
+	}
 }

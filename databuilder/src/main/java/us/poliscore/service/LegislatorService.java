@@ -3,6 +3,8 @@ package us.poliscore.service;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,6 +16,7 @@ import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Legislator;
+import us.poliscore.model.Legislator.LegislatorLegislativeTermSortedSet;
 import us.poliscore.service.storage.MemoryPersistenceService;
 import us.poliscore.view.USCLegislatorView;
 
@@ -46,8 +49,9 @@ public class LegislatorService {
 			leg.setThomasId(view.getId().getThomas());
 			leg.setWikidataId(view.getId().getWikidata());
 			leg.setBirthday(view.getBio().getBirthday());
+			leg.setTerms(view.getTerms().stream().map(t -> t.convert()).collect(Collectors.toCollection(LegislatorLegislativeTermSortedSet::new)));
 			
-			pServ.store(leg);
+			pServ.put(leg);
 			count++;
 		}
 		
@@ -56,12 +60,12 @@ public class LegislatorService {
 	
 	public Optional<Legislator> getById(String id)
 	{
-		return pServ.retrieve(id, Legislator.class);
+		return pServ.get(id, Legislator.class);
 	}
 
 	public void persist(Legislator leg)
 	{
-		pServ.store(leg);
+		pServ.put(leg);
 	}
 	
 }

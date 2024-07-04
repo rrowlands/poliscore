@@ -40,7 +40,7 @@ public class DdbBuilder
 			
 			legService.importLegislators();
 			
-			ddb.store(memory.retrieve(PoliscoreUtil.BERNIE_SANDERS_ID, Legislator.class).orElseThrow());
+			ddb.put(memory.get(PoliscoreUtil.BERNIE_SANDERS_ID, Legislator.class).orElseThrow());
 			
 			bootstrapped = true;
 		}

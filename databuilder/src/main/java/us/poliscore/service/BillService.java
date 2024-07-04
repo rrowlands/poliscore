@@ -137,16 +137,21 @@ public class BillService {
 //			return Optional.empty();
 //		}
     	
-    	return s3.retrieve(BillText.generateId(bill.getId()), BillText.class);
+    	return s3.get(BillText.generateId(bill.getId()), BillText.class);
 	}
+    
+    public boolean hasBillText(Bill bill)
+    {
+    	return s3.exists(BillText.generateId(bill.getId()), BillText.class);
+    }
     
     public Optional<Bill> getById(String id)
 	{
-		return pServ.retrieve(id, Bill.class);
+		return pServ.get(id, Bill.class);
 	}
     
     protected void archiveBill(Bill bill)
     {
-    	pServ.store(bill);
+    	pServ.put(bill);
     }
 }

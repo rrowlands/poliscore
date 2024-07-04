@@ -33,7 +33,8 @@ public class RollCallService {
 		USCRollCallData rollCall = PoliscoreUtil.getObjectMapper().readValue(is, USCRollCallData.class);
 		
 		// There are a lot of roll call categories that we don't care about. Quorum is one of them.
-		if (!"passage".equals(rollCall.getCategory())) return false;
+//		if (!"passage".equals(rollCall.getCategory())) return false;
+		if (rollCall.getBill() == null) return false;
 		
 		// There are some bill types we don't care about. Don't bother printing noisy warnings or anything
 		if (BillType.getIgnoredBillTypes().contains(BillType.valueOf(rollCall.getBill().getType().toUpperCase()))) return false;
@@ -66,7 +67,7 @@ public class RollCallService {
 		var billId = Bill.generateId(billView.getCongress(), BillType.valueOf(billView.getType().toUpperCase()), billView.getNumber());
 		try
 		{
-			bill = memService.retrieve(billId, Bill.class).orElseThrow();
+			bill = memService.get(billId, Bill.class).orElseThrow();
 		}
 		catch (NoSuchElementException ex)
 		{

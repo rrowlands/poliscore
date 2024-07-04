@@ -97,12 +97,12 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 					String number = f.getName().replace("BILLS-" + congress + billType, "").replaceAll("\\D", "");
 					val billId = Bill.generateId(congress, BillType.valueOf(billType.toUpperCase()), Integer.parseInt(number));
 					
-					if (!processedBills.contains(billId) && !s3.exists(billId, BillText.class))
+					if (!processedBills.contains(billId) && !s3.exists(BillText.generateId(billId), BillText.class))
 					{
 						val date = parseDate(f);
 						
 						BillText bt = new BillText(billId, FileUtils.readFileToString(f, "UTF-8"), date);
-						s3.store(bt);
+						s3.put(bt);
 						
 						processedBills.add(billId);
 					}

@@ -1,11 +1,14 @@
 package us.poliscore.view;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.Data;
 import software.amazon.awssdk.utils.StringUtils;
+import us.poliscore.model.Legislator.CongressionalChamber;
+import us.poliscore.model.Legislator.LegislativeTerm;
 import us.poliscore.model.Legislator.LegislatorName;
 
 @Data
@@ -17,6 +20,8 @@ public class USCLegislatorView {
 	protected USCLegislatorName name;
 	
 	protected USCLegislatorBio bio;
+	
+	protected List<USCLegislativeTerm> terms;
 	
 	@Data
 	@JsonIgnoreProperties(ignoreUnknown = true)
@@ -77,6 +82,29 @@ public class USCLegislatorView {
 		protected String wikidata;
 		
 		protected String google_entity_id;
+		
+	}
+	
+	@Data
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class USCLegislativeTerm {
+		
+		protected String type;
+		
+		protected LocalDate start;
+		
+		protected LocalDate end;
+		
+		protected String state;
+		
+		protected Integer district;
+		
+		protected String party;
+		
+		public LegislativeTerm convert()
+		{
+			return new LegislativeTerm(start, end, state, district, party, "rep".equals(type) ? CongressionalChamber.HOUSE : CongressionalChamber.SENATE);
+		}
 		
 	}
 	

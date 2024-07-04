@@ -15,9 +15,9 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.Data;
 import lombok.Getter;
 import lombok.val;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.utils.Pair;
 
 @Data
@@ -47,7 +47,7 @@ public class IssueStats {
 			
 			while (scanner.hasNextLine())
 			{
-			  String line = scanner.nextLine();
+			  String line = scanner.nextLine().strip();
 			  
 			  Pair<TrackedIssue, Integer> stat = parseStat(line);
 			  
@@ -71,7 +71,7 @@ public class IssueStats {
 	{
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
-			Pattern pattern = Pattern.compile(issue.getName() + ": ([+-]?\\d+.?\\d*|N\\/A)", Pattern.CASE_INSENSITIVE);
+			Pattern pattern = Pattern.compile("^-? ?" + issue.getName() + ": ([+-]?\\d+.?\\d*|N\\/A)$", Pattern.CASE_INSENSITIVE);
 			Matcher matcher = pattern.matcher(line);
 		    
 		    if (matcher.find()) {
@@ -245,5 +245,10 @@ public class IssueStats {
 //		return sign + String.format("%.1f", val);
 		
 		return sign + String.valueOf(val);
+	}
+
+	@JsonIgnore
+	public int getRating() {
+		return getStat(TrackedIssue.OverallBenefitToSociety);
 	}
 }

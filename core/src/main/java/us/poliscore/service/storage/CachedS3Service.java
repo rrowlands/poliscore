@@ -6,22 +6,25 @@ import java.util.Optional;
 import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.val;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import us.poliscore.model.Persistable;
 
 @ApplicationScoped
 @DefaultBean
-public class CachedDynamoDbService implements ApplicationDataStoreIF
+public class CachedS3Service implements ApplicationDataStoreIF
 {
 	@Inject
 	private MemoryPersistenceService memory;
 	
 	@Inject
-	private DynamoDbPersistenceService dynamodb;
+	private S3PersistenceService s3;
 
 	@Override
 	public void put(Persistable obj) {
 		memory.put(obj);
-		dynamodb.put(obj);
+		s3.put(obj);
 	}
 
 	@Override
@@ -32,7 +35,7 @@ public class CachedDynamoDbService implements ApplicationDataStoreIF
 			return memory.get(id, clazz);
 		}
 		
-		Optional<T> result = dynamodb.get(id, clazz);
+		Optional<T> result = s3.get(id, clazz);
 		
 		if (result.isPresent())
 		{
@@ -41,15 +44,16 @@ public class CachedDynamoDbService implements ApplicationDataStoreIF
 		
 		return result;
 	}
-
+	
 	@Override
-	public <T extends Persistable> boolean exists(String id, Class<T> clazz) {
-		return memory.exists(id, clazz) || dynamodb.exists(id, clazz);
+	public <T extends Persistable> boolean exists(String id, Class<T> clazz)
+	{
+		return memory.exists(id, clazz) || s3.exists(id, clazz);
 	}
 
 	@Override
 	public <T extends Persistable> List<T> query(Class<T> clazz) {
-		return dynamodb.query(clazz);
+		throw new UnsupportedOperationException();
 	}
 	
 }

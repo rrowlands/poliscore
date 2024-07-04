@@ -19,6 +19,7 @@ import us.poliscore.MissingBillTextException;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.LegislatorBillInteraction;
+import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
@@ -110,8 +111,39 @@ public class DatabaseBuilder implements QuarkusApplication
 			Log.info("Imported " + totalVotes + " votes. Skipped " + skipped);
 		}
 		
-		// Interpret legislators
-		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
+//		interpretLegislators();
+		
+		val bills = memService.query(Bill.class).stream()
+				.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
+				.limit(400)
+				.filter(b -> 
+					!b.getId().equals("BIL/us/congress/118/hr/8580") && // TODO: Can't slice this bill for some reason
+					billService.hasBillText(b)) //  && !billInterpreter.isInterpreted(b.getId())
+				.limit(50)
+				.toList();
+		System.out.println("Set to interpret " + bills.stream().filter(b -> !billInterpreter.isInterpreted(b.getId())).count() + " bills.");
+		bills.forEach(b -> {
+			billInterpreter.getOrCreate(b.getId());
+		});
+		
+		memService.query(Legislator.class).stream()
+			.filter(l -> l.getBirthday() != null)
+			.sorted(Comparator.comparing(Legislator::getBirthday).reversed())
+			.limit(400)
+			.filter(l -> l.getInteractions().stream().anyMatch(i -> billInterpreter.isInterpreted(i.getBillId())))
+			.limit(10)
+			.forEach(l -> {
+			interpretLegislator(l.getId());
+		});
+		
+		Log.info("Poliscore database build complete. Imported " + totalBills + " bills and " + totalVotes + " votes.");
+	}
+
+	/**
+	 * Interprets and loads a set of legislators
+	 */
+	private void interpretLegislator(String legId) {
+//		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
 //		for (Legislator leg : memService.query(Legislator.class).stream().limit(10).toList())
 //		Legislator leg = memService.retrieve(PoliscoreUtil.MIKE_JOHNSON_ID, Legislator.class).get();
 		{
@@ -119,25 +151,26 @@ public class DatabaseBuilder implements QuarkusApplication
 			val interp = legInterp.getOrCreate(legId);
 			interp.getIssueStats().setExplanation(interp.getIssueStats().getExplanation());
 			
-			val legislator = memService.retrieve(legId, Legislator.class).orElseThrow();
+			val legislator = memService.get(legId, Legislator.class).orElseThrow();
 			legislator.setInterpretation(interp);
 			
-			int persisted = 0;
-			for (val interact : legislator.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed()).collect(Collectors.toList()))
+			int interpretedBills = 0;
+			for (val interact : legislator.getInteractions().stream()
+					.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
+					.limit(100)
+					.filter(i -> billInterpreter.isInterpreted(i.getBillId()))
+					.collect(Collectors.toList()))
 			{
-				if (persisted >= LegislatorInterpretationService.LIMIT_BILLS) break;
-				
 				try
 				{
-					val billInterp = billInterpreter.getById(interact.getBillId()).get();
+					val billInterp = billInterpreter.getByBillId(interact.getBillId()).get();
 					interact.setIssueStats(billInterp.getIssueStats());
 					
 					val bill = billService.getById(interact.getBillId()).get();
 					bill.setInterpretation(billInterp);
 					
-					dynamoDb.store(bill);
-					
-					persisted++;
+					dynamoDb.put(bill);
+					interpretedBills++;
 				}
 				catch (NoSuchElementException e)
 				{
@@ -150,10 +183,9 @@ public class DatabaseBuilder implements QuarkusApplication
 				}
 			}
 			
-			dynamoDb.store(legislator);
+			if (interpretedBills > 0)
+				dynamoDb.put(legislator);
 		}
-		
-		Log.info("Poliscore database build complete. Imported " + totalBills + " bills and " + totalVotes + " votes.");
 	}
 	
 	@Override
