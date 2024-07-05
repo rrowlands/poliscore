@@ -75,7 +75,7 @@ public class BillInterpretation implements Persistable
 	
 	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return metadata.getDate(); }
 
-	@Override @JsonIgnore public void setDate(LocalDate date) { metadata.setDate(date); }
+	@Override @JsonIgnore public void setDate(LocalDate date) { }
 	
 	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return issueStats.getRating(); }
 	@Override @JsonIgnore public void setRating(int rating) { }

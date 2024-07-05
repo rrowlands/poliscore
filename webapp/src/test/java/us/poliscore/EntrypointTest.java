@@ -5,15 +5,11 @@ import static org.hamcrest.CoreMatchers.containsString;
 
 import jakarta.inject.Inject;
 import us.poliscore.dynamodb.DdbBuilder;
-import us.poliscore.service.LegislatorService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.MemoryPersistenceService;
 
 //@QuarkusTest
 public class EntrypointTest {
-
-	@Inject
-	private LegislatorService legService;
 	
 	@Inject
 	private MemoryPersistenceService memory;

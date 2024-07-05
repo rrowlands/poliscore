@@ -11,7 +11,7 @@ import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.val;
-import us.poliscore.model.Legislator;
+import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalFilePersistenceService;
@@ -33,15 +33,15 @@ public class Sandbox implements QuarkusApplication
 	
 	protected void process() throws IOException
 	{
-//		val obj = dynamoDb.retrieve("BIL/us/congress/118/s/4289", Bill.class).orElseThrow();
+		val obj = dynamoDb.get("BIL/us/congress/118/hr/8580", Bill.class).orElseThrow();
+		
+		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(obj));
+		
+		
+		
+//		val legs = dynamoDb.query(Legislator.class);
 //		
-//		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(obj));
-		
-		
-		
-		val legs = dynamoDb.query(Legislator.class);
-		
-		System.out.println(legs.size());
+//		System.out.println(legs.size());
 	}
 	
 	public static void main(String[] args) {

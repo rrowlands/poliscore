@@ -10,7 +10,6 @@ import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Legislator;
-import us.poliscore.service.LegislatorService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.MemoryPersistenceService;
 
@@ -21,8 +20,8 @@ public class DdbBuilder
 	@Inject
     DynamoDbClient dbc;
 	
-	@Inject
-	private LegislatorService legService;
+//	@Inject
+//	private LegislatorService legService;
 	
 	@Inject
 	private MemoryPersistenceService memory;
@@ -34,16 +33,16 @@ public class DdbBuilder
 	
 	public void defaultTestData()
 	{
-		if (!bootstrapped)
-		{
-			createTable();
-			
-			legService.importLegislators();
-			
-			ddb.put(memory.get(PoliscoreUtil.BERNIE_SANDERS_ID, Legislator.class).orElseThrow());
-			
-			bootstrapped = true;
-		}
+//		if (!bootstrapped)
+//		{
+//			createTable();
+//			
+//			legService.importLegislators();
+//			
+//			ddb.put(memory.get(PoliscoreUtil.BERNIE_SANDERS_ID, Legislator.class).orElseThrow());
+//			
+//			bootstrapped = true;
+//		}
 	}
 	
 	public void createTable()
