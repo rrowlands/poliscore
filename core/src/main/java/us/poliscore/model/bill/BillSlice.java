@@ -15,7 +15,7 @@ public class BillSlice {
 	@JsonIgnore
 	private transient int sliceIndex;
 	
-	private int sectionStart;
+	private String start;
 	
-	private int sectionEnd;
+	private String end;
 }

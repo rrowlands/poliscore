@@ -83,7 +83,7 @@ public class BillInterpretationService {
 		
 		if (billText.getXml().length() >= BillSlicer.MAX_SECTION_LENGTH)
     	{
-    		List<BillSlice> slices = new XMLBillSlicer().slice(bill);
+    		List<BillSlice> slices = new XMLBillSlicer().slice(bill, bill.getText(), BillSlicer.MAX_SECTION_LENGTH);
     		List<AISliceInterpretationMetadata> sliceMetadata = new ArrayList<AISliceInterpretationMetadata>();
     		
     		if (slices.size() > 1)

@@ -1,7 +1,11 @@
 package us.poliscore.entrypoint;
 
+import static org.joox.JOOX.$;
+
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -15,7 +19,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.jsoup.Jsoup;
 
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
@@ -116,7 +119,7 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 	@SneakyThrows
 	protected LocalDate parseDate(File f)
 	{
-		val text = Jsoup.parse(f, "UTF-8").select("bill dublinCore dc|date").text();
+		val text = $(new InputStreamReader(new FileInputStream(f), "UTF-8")).find("bill dublinCore dc|date").text();
 		
 		if (StringUtils.isBlank(text)) return null;
 		

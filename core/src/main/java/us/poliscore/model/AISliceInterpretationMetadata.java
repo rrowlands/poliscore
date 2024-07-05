@@ -10,9 +10,9 @@ import us.poliscore.model.bill.BillSlice;
 @DynamoDbBean
 public class AISliceInterpretationMetadata extends AIInterpretationMetadata {
 	
-	protected int sectionStart;
+	protected String start;
 	
-	protected int sectionEnd;
+	protected String end;
 	
 	protected int sliceIndex;
 	
@@ -22,8 +22,8 @@ public class AISliceInterpretationMetadata extends AIInterpretationMetadata {
 		meta.setProvider(provider);
 		meta.setModel(model);
 		meta.setPromptVersion(version);
-		meta.setSectionStart(slice.getSectionStart());
-		meta.setSectionEnd(slice.getSectionEnd());
+		meta.setStart(slice.getStart());
+		meta.setEnd(slice.getEnd());
 		meta.setSliceIndex(slice.getSliceIndex());
 		meta.setDate(LocalDate.now());
 		return meta;

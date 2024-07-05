@@ -1,15 +1,17 @@
 package us.poliscore.parsing;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillSlice;
+import us.poliscore.model.bill.BillText;
 
 /**
  * Abandoned in favour of parsing the bill XML syntax. Challenges present in raw text parsing:
  * 
- * 1. Finding bill sections isn't sometihng that lends itself easily to simple regex, given that "section" could be:
+ * 1. Finding bill sections isn't something that lends itself easily to simple regex, given that "section" could be:
  *   - A listing in the bill table of contents
  *   - A reference to a different bill
  *   - A section header for the current billl
@@ -24,7 +26,7 @@ public class TextBillSlicer implements BillSlicer {
 	}
 	
 	@Override
-	public List<BillSlice> slice(Bill bill) {
+	public List<BillSlice> slice(Bill bill, BillText text, int maxSectionLength) {
 		final List<BillSlice> sections = new ArrayList<BillSlice>();
 		
 //		try (final Scanner scanner = new Scanner(bill.getText()))
@@ -75,6 +77,16 @@ public class TextBillSlicer implements BillSlicer {
 //		}
 		
 		return sections;
+	}
+
+	public static List<String> slice(String text) {
+		int aEnd = text.substring(0, (text.length() / 2) + 200).lastIndexOf("\\s");
+		int bStart = text.substring((text.length() / 2) - 200).indexOf("\\s") + 1;
+		
+		return Arrays.asList(
+			text.substring(0, aEnd),
+			text.substring(bStart)
+		);
 	}
 	
 }
