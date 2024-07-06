@@ -55,16 +55,16 @@ public class LegislatorInterpretationService
 		val leg = legService.getById(legislatorId).orElseThrow();
 		populateInteractionStats(leg);
 		
-//		if (cached.isPresent() && calculateInterpHashCode(leg) == cached.get().getHash())
-//		{
-//			return cached.get();
-//		}
-//		else
-//		{
+		if (cached.isPresent() && calculateInterpHashCode(leg) == cached.get().getHash())
+		{
+			return cached.get();
+		}
+		else
+		{
 			val interp = interpret(leg);
 			
 			return interp;
-//		}
+		}
 	}
 	
 	protected int calculateInterpHashCode(Legislator leg)

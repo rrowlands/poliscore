@@ -19,6 +19,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverter;
+import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorLegislativeTermSortedSetConverter;
 
 @Data
 @DynamoDbBean
@@ -43,6 +44,7 @@ public class Legislator implements Persistable {
 	protected LocalDate birthday;
 	
 	@NonNull
+	@Getter(onMethod = @__({ @DynamoDbConvertedBy(LegislatorLegislativeTermSortedSetConverter.class)}))
 	protected LegislatorLegislativeTermSortedSet terms;
 	
 	@NonNull

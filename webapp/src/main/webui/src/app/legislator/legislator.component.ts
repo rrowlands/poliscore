@@ -127,6 +127,10 @@ export class LegislatorComponent implements OnInit {
 
   colorForGrade(grade: string): string { return colorForGrade(this.gradeForLegislator()); }
 
+  subtitleForLegislator(): string {
+    return this.leg?.terms[this.leg?.terms.length - 1].chamber == "HOUSE" ? "House of Representatives" : "Senate";
+  }
+
   getDisplayedColumns(): string[] {
     if (window.innerWidth < 480) {
       return ['billName', 'billGrade'];

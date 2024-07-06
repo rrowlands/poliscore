@@ -37,8 +37,17 @@ export class Legislator {
     id!: string;
     bioguideId?: string;
     thomasId?: string;
-    interpretation?: LegislatorInterpretation
+    interpretation?: LegislatorInterpretation;
     interactions?: [BillInteraction];
+    terms!: [{
+      chamber: string,
+      startDate: string,
+      endEnd: string,
+      state: string,
+      district: number,
+      party: string,
+      url: string,
+    }];
 }
 
 export class LegislatorInterpretation {
