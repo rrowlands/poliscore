@@ -101,33 +101,33 @@ public class BillInterpretationService {
     		List<AISliceInterpretationMetadata> sliceMetadata = new ArrayList<AISliceInterpretationMetadata>();
     		List<BillInterpretation> sliceInterps = new ArrayList<BillInterpretation>();
     		
-    		if (slices.size() > 1)
-    		{
-	    		IssueStats billStats = new IssueStats();
-	    		
-	    		for (int i = 0; i < slices.size(); ++i)
-	    		{
-	    			BillSlice slice = slices.get(i);
-	    			
-	    			BillInterpretation sliceInterp = getOrCreateInterpretation(bill, slice, slices.size() > 10);
-	    			
-	    			billStats = billStats.sum(sliceInterp.getIssueStats());
-	    			sliceMetadata.add((AISliceInterpretationMetadata) sliceInterp.getMetadata());
-	    			
-	    			sliceInterps.add(sliceInterp);
-	    		}
-	    		
-	    		billStats = billStats.divideByTotalSummed();
-	    		
- 	    		var bi = getOrCreateAggregateInterpretation(bill, billStats, sliceInterps);
-	    		
-	    		return bi;
+    		if (slices.size() == 0) throw new UnsupportedOperationException("Slicer returned zero slices?");
+    		else if (slices.size() == 1) {
+    			bill.getText().setXml(slices.get(0).getText());
     		} else {
-    			throw new UnsupportedOperationException("Slicer was unable to slice bill " + bill.getId());
+    			IssueStats billStats = new IssueStats();
+        		
+        		for (int i = 0; i < slices.size(); ++i)
+        		{
+        			BillSlice slice = slices.get(i);
+        			
+        			BillInterpretation sliceInterp = getOrCreateInterpretation(bill, slice);
+        			
+        			billStats = billStats.sum(sliceInterp.getIssueStats());
+        			sliceMetadata.add((AISliceInterpretationMetadata) sliceInterp.getMetadata());
+        			
+        			sliceInterps.add(sliceInterp);
+        		}
+        		
+        		billStats = billStats.divideByTotalSummed();
+        		
+        		var bi = getOrCreateAggregateInterpretation(bill, billStats, sliceInterps);
+        		
+        		return bi;
     		}
     	}
 		
-		var bi = getOrCreateInterpretation(bill, null, true);
+		var bi = getOrCreateInterpretation(bill, null);
 		
     	return bi;
 	}
@@ -150,7 +150,7 @@ public class BillInterpretationService {
 		return bi;
 	}
 	
-	protected BillInterpretation getOrCreateInterpretation(Bill bill, BillSlice slice, boolean concise)
+	protected BillInterpretation getOrCreateInterpretation(Bill bill, BillSlice slice)
 	{
 		val id = BillInterpretation.generateId(bill.getId(), slice == null ? null : slice.getSliceIndex());
 		val cached = s3.get(id, BillInterpretation.class);

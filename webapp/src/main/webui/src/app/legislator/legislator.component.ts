@@ -57,6 +57,8 @@ export class LegislatorComponent implements OnInit {
 
   private legId?: string;
 
+  public loading: boolean = true;
+
   public barChartData: ChartConfiguration<'bar'>['data'] = {
     labels: [],
     datasets: []
@@ -102,6 +104,9 @@ export class LegislatorComponent implements OnInit {
 
     this.service.getLegislator(this.legId).then(leg => {
       this.leg = leg;
+      this.loading = false;
+
+      if (leg == null) { return; }
 
       this.billData = leg?.interactions
         ?.filter(i => i.issueStats != null)

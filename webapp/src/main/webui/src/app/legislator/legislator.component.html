@@ -1,7 +1,8 @@
 <div>
     <span class="purplebg"></span> <!-- There's a bug on Moible Chrome browsers where when the nav bar hides, it reveals the white bg. -->
 <div class="stripedbg">
-    <div *ngIf="leg == null" class="loader"></div>
+    <div *ngIf="loading" class="loader"></div>
+    <h1 *ngIf="!loading && leg == null" class="object-not-found"><a routerLink="/legislators">Legislator not found!</a></h1>
 
     <!--
     <div style="width:800px; height:800px">
@@ -18,7 +19,7 @@
         </div>
 
         <mat-card class="tran-div">
-            <mat-card-content>
+            <mat-card-content *ngIf="leg != null">
                 <div class="row">
                     <div class="col-left vertical-layout">
                         <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForLegislator())}">{{gradeForLegislator()}}</p></h1>

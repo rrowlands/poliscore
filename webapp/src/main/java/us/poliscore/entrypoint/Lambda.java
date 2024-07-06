@@ -18,7 +18,7 @@ public class Lambda {
 
     @Funq
     public Legislator getLegislator(Map<String, String> queryParams) {
-    	return ddb.get(queryParams.get("id"), Legislator.class).orElseThrow();
+    	return ddb.get(queryParams.get("id"), Legislator.class).orElse(null);
     }
     
     @Funq
@@ -29,7 +29,7 @@ public class Lambda {
     @Funq
     public Bill getBill(Map<String, String> queryParams)
     {
-    	return ddb.get(queryParams.get("id"), Bill.class).orElseThrow();
+    	return ddb.get(queryParams.get("id"), Bill.class).orElse(null);
     }
     
     @Funq

@@ -1,15 +1,9 @@
 <div>
     <span class="purplebg"></span> <!-- There's a bug on Moible Chrome browsers where when the nav bar hides, it reveals the white bg. -->
-<div class="stripedbg">
-        <div *ngIf="bill == null" class="loader"></div>
+    <div class="stripedbg">
+        <div *ngIf="loading" class="loader"></div>
+        <h1 *ngIf="!loading && bill == null" class="object-not-found"><a routerLink="/legislators">Bill not found!</a></h1>
 
-        <!--
-        <div style="width:800px; height:800px">
-            <canvas id="barChart"></canvas>
-        </div>
-    -->
-
-    <!---->
         <div class="vertical-layout">
             <div class="breadcrumb">
                 <a href="#" routerLink="/">Home</a>
@@ -17,11 +11,12 @@
                 <a href="#" routerLink="/legislators">Legislators</a>
             </div>
 
-            <mat-card class="tran-div">
+            <mat-card *ngIf="bill != null" class="tran-div">
                 <mat-card-content class="vertical-layout">
                     <h1 class="card-title" style="text-align:center;"><a [href]="'https://www.congress.gov/bill/' + bill?.congress + '-congress/' + getCongressGovBillType() + '/' + bill?.number">{{bill?.name}}</a></h1>
                     <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForBill())}">{{gradeForBill()}}</p></h1>
                     <h3 class="date"><p >{{ bill?.introducedDate }}</p></h3>
+                    <h3 class="card-subtitle">Sponsor: <a [routerLink]="'/legislator/LEG%2Fus%2Fcongress%2F' + bill?.sponsor?.bioguide_id">{{bill?.sponsor?.name}}</a></h3>
                     <div class="chart-container">
                         <canvas id="barChart"></canvas>
                     </div>
@@ -30,7 +25,7 @@
                 </mat-card-content>
             </mat-card>
         </div>
-</div>
+    </div>
 </div>
 
 

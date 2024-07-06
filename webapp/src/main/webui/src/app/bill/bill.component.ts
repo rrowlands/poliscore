@@ -21,6 +21,8 @@ export class BillComponent implements OnInit {
 
   public billId?: string;
 
+  public loading: boolean = true;
+
   public barChartData: ChartConfiguration<'bar'>['data'] = {
     labels: [],
     datasets: []
@@ -66,6 +68,7 @@ export class BillComponent implements OnInit {
 
     this.service.getBill(this.billId).then(bill => {
       this.bill = bill;
+      this.loading = false;
       this.buildBarChartData();
     });
   }
@@ -87,6 +90,10 @@ export class BillComponent implements OnInit {
   gradeForBill(): string { return gradeForStats(this.bill?.interpretation?.issueStats!); }
 
   colorForGrade(grade: string): string { return colorForGrade(this.gradeForBill()); }
+
+  public getCosponsors() {
+    return this.bill?.cosponsors.map(s => s.name).join(", ");
+  }
 
   async buildBarChartData() {
     let data: number[] = [];
