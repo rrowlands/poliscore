@@ -111,6 +111,8 @@ public class DatabaseBuilder implements QuarkusApplication
 			Log.info("Imported " + totalVotes + " votes. Skipped " + skipped);
 		}
 		
+//		billInterpreter.getOrCreate("BIL/us/congress/118/hr/3935");
+		
 		interpretLegislators();
 		
 //		val bills = memService.query(Bill.class).stream()

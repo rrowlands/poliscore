@@ -13,6 +13,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import us.poliscore.PoliscoreUtil;
+import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorBillInteraction;
 
@@ -79,5 +80,12 @@ public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
         public LegislatorBillInteractionSetConverter() {
             super(LegislatorBillInteractionSet.class);
         }
+    }
+    
+    public static class BillInterpretationMetadataConverter extends JacksonAttributeConverter<AIInterpretationMetadata> {
+    	
+    	public BillInterpretationMetadataConverter() {
+    		super(AIInterpretationMetadata.class);
+    	}
     }
 }

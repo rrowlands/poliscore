@@ -1,6 +1,8 @@
 package us.poliscore.model.bill;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -11,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
@@ -19,6 +22,7 @@ import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.AISliceInterpretationMetadata;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Persistable;
+import us.poliscore.model.dynamodb.JacksonAttributeConverter.BillInterpretationMetadataConverter;
 
 @Data
 @DynamoDbBean
@@ -33,7 +37,7 @@ public class BillInterpretation implements Persistable
 	@Getter(onMethod_ = {@DynamoDbIgnore})
 	protected transient Bill bill;
 	
-	protected transient IssueStats issueStats;
+	protected IssueStats issueStats;
 	
 	@NonNull
 	protected String id;
@@ -42,6 +46,10 @@ public class BillInterpretation implements Persistable
 	protected String billId;
 	
 	@NonNull
+	protected List<BillInterpretation> sliceInterpretations = new ArrayList<BillInterpretation>();
+	
+	@NonNull
+	@Getter(onMethod = @__({ @DynamoDbConvertedBy(BillInterpretationMetadataConverter.class)}))
 	protected AIInterpretationMetadata metadata;
 	
 	@DynamoDbPartitionKey

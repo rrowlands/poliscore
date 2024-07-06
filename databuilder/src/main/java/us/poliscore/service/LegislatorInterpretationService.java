@@ -29,7 +29,7 @@ import us.poliscore.service.storage.CachedS3Service;
 public class LegislatorInterpretationService
 {
 	// Ensure that the x most recent bills are interpreted
-	public static final int LIMIT_BILLS = 4;
+	public static final int LIMIT_BILLS = 15;
 	
 	public static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) critique of this history, evaluating the performance, highlighting any specific accomplishments or alarming behaviour and pointing out major focuses and priorities of the legislator. In your critique, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
 	

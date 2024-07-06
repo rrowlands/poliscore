@@ -9,4 +9,4 @@ export const appConfig: ApplicationConfig = {
   providers: [provideRouter(routes), provideAnimations(), provideAnimationsAsync()]
 };
 
-export const backendUrl: string = "https://h66r5lk6xcbyhbqemd53jl5m2e0uorod.lambda-url.us-east-1.on.aws";
+export const backendUrl: string = "https://2e5a2qaqb7sroosbbgexgxzg2i0sdhmq.lambda-url.us-east-1.on.aws";

@@ -28,8 +28,6 @@ public class AIInterpretationMetadata extends InterpretationMetadata {
 	@NonNull
 	protected LocalDate date;
 	
-	protected List<AISliceInterpretationMetadata> slices = new ArrayList<AISliceInterpretationMetadata>();
-	
 	public static AIInterpretationMetadata construct(String provider, String model, int promptVersion)
 	{
 		AIInterpretationMetadata meta = new AIInterpretationMetadata();
