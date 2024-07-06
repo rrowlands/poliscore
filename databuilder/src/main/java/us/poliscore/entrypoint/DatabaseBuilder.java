@@ -17,6 +17,7 @@ import jakarta.inject.Inject;
 import lombok.val;
 import us.poliscore.MissingBillTextException;
 import us.poliscore.PoliscoreUtil;
+import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.LegislatorBillInteraction;
 import us.poliscore.model.bill.Bill;
@@ -113,8 +114,6 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 //		billInterpreter.getOrCreate("BIL/us/congress/118/hr/3935");
 		
-		interpretLegislators();
-		
 //		val bills = memService.query(Bill.class).stream()
 //				.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
 //				.limit(400)
@@ -126,16 +125,8 @@ public class DatabaseBuilder implements QuarkusApplication
 //		bills.forEach(b -> {
 //			billInterpreter.getOrCreate(b.getId());
 //		});
-//		
-//		memService.query(Legislator.class).stream()
-//			.filter(l -> l.getBirthday() != null)
-//			.sorted(Comparator.comparing(Legislator::getBirthday).reversed())
-//			.limit(400)
-//			.filter(l -> l.getInteractions().stream().anyMatch(i -> billInterpreter.isInterpreted(i.getBillId())))
-//			.limit(10)
-//			.forEach(l -> {
-//			interpretLegislator(l.getId());
-//		});
+		
+		interpretLegislators();
 		
 		Log.info("Poliscore database build complete. Imported " + totalBills + " bills and " + totalVotes + " votes.");
 	}
@@ -145,11 +136,21 @@ public class DatabaseBuilder implements QuarkusApplication
 	 */
 	private void interpretLegislators() {
 //		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
-//			for (Legislator leg : memService.query(Legislator.class).stream().limit(10).toList())
-			String legId = memService.get(PoliscoreUtil.MIKE_JOHNSON_ID, Legislator.class).get().getId();
+//			for (String legId : memService.query(Legislator.class).stream().limit(10).map(l -> l.getId()).toList())
+			String legId = memService.get(PoliscoreUtil.BERNIE_SANDERS_ID, Legislator.class).get().getId();
 		{
 			interpretLegislator(legId);
 		}
+		
+//		memService.query(Legislator.class).stream()
+//			.filter(l -> l.getBirthday() != null)
+//			.sorted(Comparator.comparing(Legislator::getBirthday).reversed())
+//	//		.limit(400)
+//	//		.filter(l -> l.getInteractions().stream().anyMatch(i -> billInterpreter.isInterpreted(i.getBillId())))
+//			.limit(10)
+//			.forEach(l -> {
+//			interpretLegislator(l.getId());
+//		});
 	}
 	
 	private void interpretLegislator(String legId) {

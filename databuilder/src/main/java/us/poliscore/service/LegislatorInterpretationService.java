@@ -50,21 +50,21 @@ public class LegislatorInterpretationService
 	
 	public LegislatorInterpretation getOrCreate(String legislatorId)
 	{
-		val cached = s3.get(legislatorId.replaceFirst(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
-		
+//		val cached = s3.get(legislatorId.replaceFirst(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
+//		
 		val leg = legService.getById(legislatorId).orElseThrow();
 		populateInteractionStats(leg);
-		
-		if (cached.isPresent() && calculateInterpHashCode(leg) == cached.get().getHash())
-		{
-			return cached.get();
-		}
-		else
-		{
+//		
+//		if (cached.isPresent() && calculateInterpHashCode(leg) == cached.get().getHash())
+//		{
+//			return cached.get();
+//		}
+//		else
+//		{
 			val interp = interpret(leg);
 			
 			return interp;
-		}
+//		}
 	}
 	
 	protected int calculateInterpHashCode(Legislator leg)
@@ -158,7 +158,7 @@ public class LegislatorInterpretationService
 					continue;
 				
 				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
-				stats = stats.sum(weightedStats, interact.getJudgementWeight());
+				stats = stats.sum(weightedStats, Math.abs(interact.getJudgementWeight()));
 				
 				aiUserMsg.add(interact.describe() + ": " + interact.getIssueStats().getExplanation());
 				
