@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Bill, colorForGrade, getBenefitToSocietyIssue, gradeForStats, issueKeyToLabel, issueKeyToLabelSmall } from '../model';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
@@ -61,7 +61,7 @@ export class BillComponent implements OnInit {
     }
   };
 
-  constructor(private service: AppService, private route: ActivatedRoute) { }
+  constructor(private service: AppService, private route: ActivatedRoute, private router: Router) { }
 
   ngOnInit(): void {
     this.billId = this.route.snapshot.paramMap.get('id') as string;
@@ -71,6 +71,10 @@ export class BillComponent implements OnInit {
       this.loading = false;
       this.buildBarChartData();
     });
+  }
+
+  onClickSponsor() {
+    this.router.navigate(['/legislator', "LEG/us/congress/" + this.bill?.sponsor?.bioguide_id]);
   }
 
   getCongressGovBillType() {

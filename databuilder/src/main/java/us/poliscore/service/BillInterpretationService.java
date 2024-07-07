@@ -103,7 +103,7 @@ public class BillInterpretationService {
     		
     		if (slices.size() == 0) throw new UnsupportedOperationException("Slicer returned zero slices?");
     		else if (slices.size() == 1) {
-    			bill.getText().setXml(slices.get(0).getText());
+    			bill.getText().setXml(slices.get(0).getText()); // TODO : Hackity hack. This achieves our goal of treating it as the bill text but it's not actually xml
     		} else {
     			IssueStats billStats = new IssueStats();
         		

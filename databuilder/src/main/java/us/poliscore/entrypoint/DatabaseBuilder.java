@@ -135,22 +135,22 @@ public class DatabaseBuilder implements QuarkusApplication
 	 * Interprets and loads a set of legislators
 	 */
 	private void interpretLegislators() {
-//		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
-//			for (String legId : memService.query(Legislator.class).stream().limit(10).map(l -> l.getId()).toList())
-			String legId = memService.get(PoliscoreUtil.BERNIE_SANDERS_ID, Legislator.class).get().getId();
-		{
-			interpretLegislator(legId);
-		}
+////		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
+////			for (String legId : memService.query(Legislator.class).stream().limit(10).map(l -> l.getId()).toList())
+//			String legId = memService.get(PoliscoreUtil.BERNIE_SANDERS_ID, Legislator.class).get().getId();
+//		{
+//			interpretLegislator(legId);
+//		}
 		
-//		memService.query(Legislator.class).stream()
-//			.filter(l -> l.getBirthday() != null)
-//			.sorted(Comparator.comparing(Legislator::getBirthday).reversed())
-//	//		.limit(400)
-//	//		.filter(l -> l.getInteractions().stream().anyMatch(i -> billInterpreter.isInterpreted(i.getBillId())))
-//			.limit(10)
-//			.forEach(l -> {
-//			interpretLegislator(l.getId());
-//		});
+		memService.query(Legislator.class).stream()
+			.filter(l -> l.getBirthday() != null)
+			.sorted(Comparator.comparing(Legislator::getBirthday).reversed())
+	//		.limit(400)
+	//		.filter(l -> l.getInteractions().stream().anyMatch(i -> billInterpreter.isInterpreted(i.getBillId())))
+			.limit(10)
+			.forEach(l -> {
+			interpretLegislator(l.getId());
+		});
 	}
 	
 	private void interpretLegislator(String legId) {
