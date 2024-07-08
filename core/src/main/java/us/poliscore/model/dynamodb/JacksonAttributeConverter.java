@@ -1,13 +1,21 @@
 package us.poliscore.model.dynamodb;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.UncheckedIOException;
 import java.util.HashSet;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.Cleanup;
+import lombok.SneakyThrows;
+import lombok.val;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
@@ -20,8 +28,8 @@ import us.poliscore.model.LegislatorBillInteraction;
 
 public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
 
-    private final Class<T> clazz;
-    private static final ObjectMapper mapper = PoliscoreUtil.getObjectMapper();
+    protected final Class<T> clazz;
+    protected static final ObjectMapper mapper = PoliscoreUtil.getObjectMapper();
 
     static {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
@@ -62,6 +70,45 @@ public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
         return AttributeValueType.S;
     }
     
+    public static class CompressedJacksonAttributeConverter <T> extends JacksonAttributeConverter<T> {
+
+		public CompressedJacksonAttributeConverter(Class<T> clazz) {
+			super(clazz);
+		}
+		
+		@Override
+		@SneakyThrows
+	    public AttributeValue transformFrom(T input) {
+			@Cleanup val baos = new ByteArrayOutputStream();
+			@Cleanup val zos = new GZIPOutputStream(baos);
+			zos.write(mapper.writeValueAsString(input).getBytes());
+			zos.close();
+			
+            return AttributeValue
+                    .builder()
+                    .b(SdkBytes.fromByteArray(baos.toByteArray()))
+                    .build();
+	    }
+
+	    @Override
+	    @SneakyThrows
+	    public T transformTo(AttributeValue input) {
+	    	try {
+		    	if (input.b() == null && input.s() != null) {
+		    		return mapper.readValue(input.s(), this.clazz);
+		    	}
+		    	
+		    	@Cleanup val bais = new GZIPInputStream(new ByteArrayInputStream(input.b().asByteArray()));
+		    	
+	        	return mapper.readValue(bais.readAllBytes(), this.clazz);
+	    	}
+	    	catch (Exception e) {
+	    		return this.clazz.newInstance();
+	    	}
+	    }
+    	
+    }
+    
     public static class JacksonHashSetConverter extends JacksonAttributeConverter<HashSet> {
 
         public JacksonHashSetConverter() {
@@ -94,6 +141,20 @@ public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
     	
     	public LegislatorLegislativeTermSortedSetConverter() {
     		super(LegislatorLegislativeTermSortedSet.class);
+    	}
+    }
+    
+//    public static class CompressedLegislatorLegislativeTermSortedSetConverter extends CompressedJacksonAttributeConverter<LegislatorLegislativeTermSortedSet> {
+//    	
+//    	public CompressedLegislatorLegislativeTermSortedSetConverter() {
+//    		super(LegislatorLegislativeTermSortedSet.class);
+//    	}
+//    }
+    
+    public static class CompressedLegislatorBillInteractionSetConverter extends CompressedJacksonAttributeConverter<LegislatorBillInteractionSet> {
+    	
+    	public CompressedLegislatorBillInteractionSetConverter() {
+    		super(LegislatorBillInteractionSet.class);
     	}
     }
 }

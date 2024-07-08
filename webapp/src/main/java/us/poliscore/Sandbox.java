@@ -11,6 +11,7 @@ import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.val;
+import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
@@ -40,8 +41,10 @@ public class Sandbox implements QuarkusApplication
 		
 		
 		val legs = dynamoDb.query(Legislator.class, 25, null);
-		
 		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(legs));
+		
+//		val leg = dynamoDb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "O000172"), Legislator.class);
+//		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(leg));
 	}
 	
 	public static void main(String[] args) {

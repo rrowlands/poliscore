@@ -52,4 +52,9 @@ public class CachedDynamoDbService implements ApplicationDataStoreIF
 		return dynamodb.query(clazz);
 	}
 	
+	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz, int pageSize, String exclusiveStartKey)
+	{
+		return dynamodb.query(clazz, pageSize, exclusiveStartKey);
+	}
+	
 }

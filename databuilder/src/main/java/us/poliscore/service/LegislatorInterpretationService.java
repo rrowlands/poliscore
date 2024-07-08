@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -23,13 +24,14 @@ import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
 import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.BillInterpretation;
+import us.poliscore.parsing.BillSlicer;
 import us.poliscore.service.storage.CachedS3Service;
 
 @ApplicationScoped
 public class LegislatorInterpretationService
 {
 	// Ensure that the x most recent bills are interpreted
-	public static final int LIMIT_BILLS = 15;
+	public static final int LIMIT_BILLS = 999999;
 	
 	public static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) critique of this history, evaluating the performance, highlighting any specific accomplishments or alarming behaviour and pointing out major focuses and priorities of the legislator. In your critique, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
 	
@@ -55,7 +57,7 @@ public class LegislatorInterpretationService
 		val leg = legService.getById(legislatorId).orElseThrow();
 		populateInteractionStats(leg);
 		
-		if (cached.isPresent() && calculateInterpHashCode(leg) == cached.get().getHash())
+		if (cached.isPresent()) //  && calculateInterpHashCode(leg) == cached.get().getHash()
 		{
 			return cached.get();
 		}
@@ -147,7 +149,7 @@ public class LegislatorInterpretationService
 		
 		LocalDate periodStart = null;
 		val periodEnd = LocalDate.now();
-		List<String> aiUserMsg = new ArrayList<String>();
+		List<String> billMsgs = new ArrayList<String>();
 		
 		for (val interact : getInteractionsForInterpretation(leg))
 		{
@@ -160,9 +162,11 @@ public class LegislatorInterpretationService
 				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
 				stats = stats.sum(weightedStats, Math.abs(interact.getJudgementWeight()));
 				
-				aiUserMsg.add(interact.describe() + ": " + interact.getIssueStats().getExplanation());
-				
-				periodStart = (periodStart == null) ? interact.getDate() : (periodStart.isAfter(interact.getDate()) ? interact.getDate() : periodStart);
+				val billMsg = interact.describe() + ": " + interact.getIssueStats().getExplanation();
+				if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+					billMsgs.add(billMsg);
+					periodStart = (periodStart == null) ? interact.getDate() : (periodStart.isAfter(interact.getDate()) ? interact.getDate() : periodStart);
+				}
 			}
 		}
 		
@@ -173,8 +177,8 @@ public class LegislatorInterpretationService
 				.replace("{{time_period}}", describeTimePeriod(periodStart, periodEnd));
 		
 		System.out.println(prompt);
-		System.out.println(String.join("\n", aiUserMsg));
-		val interpText = ai.chat(prompt, String.join("\n", aiUserMsg));
+		System.out.println(String.join("\n", billMsgs));
+		val interpText = ai.chat(prompt, String.join("\n", billMsgs));
 		stats.setExplanation(interpText);
 		
 		val interp = new LegislatorInterpretation(OpenAIService.metadata(), leg, stats);

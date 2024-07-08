@@ -6,6 +6,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
@@ -36,7 +38,7 @@ public class OpenAIService {
 	@Inject
     protected SecretService secret;
 	
-	protected LocalDateTime lastCall = null;
+	protected LocalDateTime nextCallTime = null;
 	
 	public static AIInterpretationMetadata metadata()
 	{
@@ -54,10 +56,13 @@ public class OpenAIService {
 		if (userMsg.length() > BillSlicer.MAX_SECTION_LENGTH) {
 			throw new IndexOutOfBoundsException();
 		}
+		if (StringUtils.isEmpty(systemMsg) || StringUtils.isEmpty(userMsg)) {
+			throw new IllegalArgumentException();
+		}
 		
-		if (lastCall != null && ChronoUnit.SECONDS.between(lastCall, lastCall) < WAIT_BETWEEN_CALLS)
+		if (nextCallTime != null && ChronoUnit.SECONDS.between(LocalDateTime.now(), nextCallTime) > 0)
 		{
-			Thread.sleep(WAIT_BETWEEN_CALLS * 1000);
+			Thread.sleep(ChronoUnit.SECONDS.between(LocalDateTime.now(), nextCallTime) * 1000);
 		}
 		
 		OpenAiService service = new OpenAiService(secret.getOpenAISecret(), Duration.ofSeconds(600));
@@ -87,7 +92,7 @@ public class OpenAIService {
     		out += ". FINISH_REASON: " + choice.getFinishReason();
     	}
     	
-    	lastCall = LocalDateTime.now();
+    	nextCallTime = LocalDateTime.now().plusSeconds(Math.round(((double)userMsg.length() / (double)BillSlicer.MAX_SECTION_LENGTH) * (double)WAIT_BETWEEN_CALLS)).plusSeconds(2);
     	
     	return out;
     }

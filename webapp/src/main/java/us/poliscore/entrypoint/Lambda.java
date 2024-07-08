@@ -1,29 +1,55 @@
 package us.poliscore.entrypoint;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import io.quarkus.funqy.Funq;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.val;
 import us.poliscore.model.Legislator;
+import us.poliscore.model.LegislatorBillInteraction;
+import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.bill.Bill;
-import us.poliscore.service.storage.DynamoDbPersistenceService;
+import us.poliscore.service.storage.CachedDynamoDbService;
 
 @ApplicationScoped
 public class Lambda {
 
     @Inject
-    DynamoDbPersistenceService ddb;
+    CachedDynamoDbService ddb;
+    
+    private List<Legislator> cachedLegislators = null;
+    
+    private List<Bill> cachedBills = null;
 
     @Funq
     public Legislator getLegislator(Map<String, String> queryParams) {
-    	return ddb.get(queryParams.get("id"), Legislator.class).orElse(null);
+    	val op = ddb.get(queryParams.get("id"), Legislator.class);
+    	
+    	if (op.isPresent()) {
+    		val leg = op.get();
+    		leg.setInteractions(leg.getInteractions().stream()
+    				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
+    				.limit(20).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
+    	}
+    	
+    	return op.orElse(null);
     }
     
     @Funq
     public List<Legislator> getLegislators(Map<String, String> queryParams) {
-    	return ddb.query(Legislator.class, 25, queryParams.get("exclusiveStartKey"));
+    	if (cachedLegislators != null) return cachedLegislators;
+    	
+    	val legs = ddb.query(Legislator.class, 25, queryParams.get("exclusiveStartKey"));
+    	
+    	legs.forEach(l -> l.setInteractions(new LegislatorBillInteractionSet()));
+    	
+    	cachedLegislators = legs;
+    	
+    	return legs;
     }
     
     @Funq
@@ -34,6 +60,12 @@ public class Lambda {
     
     @Funq
     public List<Bill> getBills(Map<String, String> queryParams) {
-    	return ddb.query(Bill.class, 25, queryParams.get("exclusiveStartKey"));
+    	if (cachedBills != null) return cachedBills;
+    	
+    	val bills = ddb.query(Bill.class, 25, queryParams.get("exclusiveStartKey"));
+    	
+    	cachedBills = bills;
+    	
+    	return bills;
     }
 }

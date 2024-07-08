@@ -17,10 +17,9 @@ import jakarta.inject.Inject;
 import lombok.val;
 import us.poliscore.MissingBillTextException;
 import us.poliscore.PoliscoreUtil;
-import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Legislator;
+import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorBillInteraction;
-import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
@@ -137,17 +136,17 @@ public class DatabaseBuilder implements QuarkusApplication
 	private void interpretLegislators() {
 ////		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
 ////			for (String legId : memService.query(Legislator.class).stream().limit(10).map(l -> l.getId()).toList())
-//			String legId = memService.get(PoliscoreUtil.BERNIE_SANDERS_ID, Legislator.class).get().getId();
+//			String legId = memService.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "B000825"), Legislator.class).get().getId();
 //		{
 //			interpretLegislator(legId);
 //		}
 		
 		memService.query(Legislator.class).stream()
-			.filter(l -> l.getBirthday() != null)
+			.filter(l -> l.getBirthday() != null && l.getInteractions().size() > 0) //  && l.getTerms().last().getState().equals("CO")
 			.sorted(Comparator.comparing(Legislator::getBirthday).reversed())
 	//		.limit(400)
 	//		.filter(l -> l.getInteractions().stream().anyMatch(i -> billInterpreter.isInterpreted(i.getBillId())))
-			.limit(10)
+//			.limit(200)
 			.forEach(l -> {
 			interpretLegislator(l.getId());
 		});
@@ -160,10 +159,10 @@ public class DatabaseBuilder implements QuarkusApplication
 		val legislator = memService.get(legId, Legislator.class).orElseThrow();
 		legislator.setInterpretation(interp);
 		
-		int interpretedBills = 0;
+		val interacts = new LegislatorBillInteractionSet();
 		for (val interact : legislator.getInteractions().stream()
 				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
-				.limit(100)
+//				.limit(100)
 				.filter(i -> billInterpreter.isInterpreted(i.getBillId()))
 				.collect(Collectors.toList()))
 		{
@@ -176,7 +175,7 @@ public class DatabaseBuilder implements QuarkusApplication
 				bill.setInterpretation(billInterp);
 				
 				dynamoDb.put(bill);
-				interpretedBills++;
+				interacts.add(interact);
 			}
 			catch (NoSuchElementException e)
 			{
@@ -189,8 +188,10 @@ public class DatabaseBuilder implements QuarkusApplication
 			}
 		}
 		
-		if (interpretedBills > 0)
+		if (interacts.size() > 0) {
+			legislator.setInteractions(interacts);
 			dynamoDb.put(legislator);
+		}
 	}
 	
 	@Override

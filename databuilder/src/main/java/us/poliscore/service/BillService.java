@@ -55,28 +55,32 @@ public class BillService {
     	
     	if (view.getSponsor() != null && !StringUtils.isBlank(view.getSponsor().getBioguide_id()))
     	{
-			Legislator leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, view.getSponsor().getBioguide_id())).orElseThrow();
+			val leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, view.getSponsor().getBioguide_id()));
 			
-			LegislatorBillSponsor interaction = new LegislatorBillSponsor();
-			interaction.setBillId(bill.getId());
-			interaction.setDate(view.getIntroduced_at());
-			interaction.setBillName(bill.getName());
-			leg.addBillInteraction(interaction);
-			
-			lService.persist(leg);
+			if (leg.isPresent()) {
+				LegislatorBillSponsor interaction = new LegislatorBillSponsor();
+				interaction.setBillId(bill.getId());
+				interaction.setDate(view.getIntroduced_at());
+				interaction.setBillName(bill.getName());
+				leg.get().addBillInteraction(interaction);
+				
+				lService.persist(leg.get());
+			}
     	}
     	
     	view.getCosponsors().stream().filter(cs -> view.getSponsor() == null || !view.getSponsor().getBioguide_id().equals(cs.getBioguide_id())).forEach(cs -> {
     		if (!StringUtils.isBlank(cs.getBioguide_id())) {
-	    		Legislator leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, cs.getBioguide_id())).orElseThrow();
+	    		val leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, cs.getBioguide_id()));
 				
-				LegislatorBillCosponsor interaction = new LegislatorBillCosponsor();
-				interaction.setBillId(bill.getId());
-				interaction.setDate(view.getIntroduced_at());
-				interaction.setBillName(bill.getName());
-				leg.addBillInteraction(interaction);
-				
-				lService.persist(leg);
+	    		if (leg.isPresent()) {
+					LegislatorBillCosponsor interaction = new LegislatorBillCosponsor();
+					interaction.setBillId(bill.getId());
+					interaction.setDate(view.getIntroduced_at());
+					interaction.setBillName(bill.getName());
+					leg.get().addBillInteraction(interaction);
+					
+					lService.persist(leg.get());
+	    		}
     		}
     	});
     	
