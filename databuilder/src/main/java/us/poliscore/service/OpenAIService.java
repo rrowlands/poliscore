@@ -33,6 +33,8 @@ public class OpenAIService {
 	
 	public static final int PROMPT_VERSION = 0;
 	
+	public static final int MAX_TOKENS = 1000;
+	
 	public static final int WAIT_BETWEEN_CALLS = 60; // in seconds
 	
 	@Inject
@@ -75,7 +77,7 @@ public class OpenAIService {
     			.messages(msgs)
     			.n(1)
     			.temperature(0.0d) // We don't want randomness. Give us predictability and accuracy
-    			.maxTokens(1000)
+    			.maxTokens(MAX_TOKENS)
     	        .model(MODEL)
     	        .build();
     	

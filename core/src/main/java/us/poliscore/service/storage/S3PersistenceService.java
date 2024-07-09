@@ -69,13 +69,13 @@ public class S3PersistenceService implements PersistenceServiceIF
         try {
         	@Cleanup val resp = getClient().getObject(req);
         	
-        	Log.info("Retrieved " + clazz.getSimpleName() + " from S3 " + key);
+//        	Log.info("Retrieved " + clazz.getSimpleName() + " from S3 " + key);
         	
         	return Optional.of(PoliscoreUtil.getObjectMapper().readValue(resp, clazz));
         }
         catch (NoSuchKeyException ex)
         {
-        	Log.info(clazz.getSimpleName() + " not found on S3 " + key);
+//        	Log.info(clazz.getSimpleName() + " not found on S3 " + key);
         	
         	return Optional.empty();
         }

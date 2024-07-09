@@ -52,7 +52,7 @@ public class SlicerTest {
 			validateXpaths(sliced.get(i));
 		}
 		
-		val f = new File(Environment.getDeployedPath(), "../slice-test.txt");
+		val f = new File(Environment.getDeployedPath(), "slice-test.txt");
 		System.out.println("Writing to " + f.getAbsolutePath());
 		
 		IOUtils.write(String.join("\n\n\n\n===========================\n\n\n\n", sliced.stream().map(s -> s.getText()).collect(Collectors.toList())),
@@ -94,7 +94,7 @@ public class SlicerTest {
 			validateXpaths(sliced.get(i));
 		}
 		
-		val f = new File(Environment.getDeployedPath(), "../slice-test.txt");
+		val f = new File(Environment.getDeployedPath(), "slice-test.txt");
 		System.out.println("Writing to " + f.getAbsolutePath());
 		
 		IOUtils.write(String.join("\n\n\n\n===========================\n\n\n\n", sliced.stream().map(s -> s.getText()).collect(Collectors.toList())),
@@ -127,7 +127,7 @@ public class SlicerTest {
 			}
 		}
 		
-		val f = new File(Environment.getDeployedPath(), "../slice-test.txt");
+		val f = new File(Environment.getDeployedPath(), "slice-test.txt");
 		System.out.println("Writing to " + f.getAbsolutePath());
 		
 		IOUtils.write(String.join("\n\n\n\n===========================\n\n\n\n", sliced.stream().map(s -> s.getText()).collect(Collectors.toList())),

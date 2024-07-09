@@ -33,7 +33,7 @@ public class LegislatorInterpretationService
 	// Ensure that the x most recent bills are interpreted
 	public static final int LIMIT_BILLS = 999999;
 	
-	public static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) critique of this history, evaluating the performance, highlighting any specific accomplishments or alarming behaviour and pointing out major focuses and priorities of the legislator. In your critique, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
+	private static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) critique of this history, evaluating the performance, highlighting any specific accomplishments or alarming behaviour and pointing out major focuses and priorities of the legislator. In your critique, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
 	
 	@Inject
 	private CachedS3Service s3;
@@ -69,7 +69,7 @@ public class LegislatorInterpretationService
 		}
 	}
 	
-	protected int calculateInterpHashCode(Legislator leg)
+	public int calculateInterpHashCode(Legislator leg)
 	{
 		val builder = new HashCodeBuilder();
 		
@@ -87,7 +87,7 @@ public class LegislatorInterpretationService
 		else return 1;
 	}
 	
-	protected List<LegislatorBillInteraction> getInteractionsForInterpretation(Legislator leg)
+	public List<LegislatorBillInteraction> getInteractionsForInterpretation(Legislator leg)
 	{
 		return leg.getInteractions().stream()
 				// Remove duplicate bill interactions, favoring sponsor and co-sponsor over vote
@@ -127,7 +127,7 @@ public class LegislatorInterpretationService
 		&& (((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.NOT_VOTING) || ((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.PRESENT)));
 	}
 	
-	protected void populateInteractionStats(Legislator leg)
+	public void populateInteractionStats(Legislator leg)
 	{
 		for (val i : getInteractionsForInterpretation(leg))
 		{
@@ -172,10 +172,7 @@ public class LegislatorInterpretationService
 		
 		stats = stats.divideByTotalSummed();
 		
-		val prompt = PROMPT_TEMPLATE
-				.replace("{{full_name}}", leg.getName().getOfficial_full())
-				.replace("{{time_period}}", describeTimePeriod(periodStart, periodEnd));
-		
+		val prompt = getAiPrompt(leg, periodStart, periodEnd);
 		System.out.println(prompt);
 		System.out.println(String.join("\n", billMsgs));
 		val interpText = ai.chat(prompt, String.join("\n", billMsgs));
@@ -192,7 +189,13 @@ public class LegislatorInterpretationService
 		return interp;
 	}
 	
-	protected String describeTimePeriod(LocalDate periodStart, LocalDate periodEnd)
+	public static String getAiPrompt(Legislator leg, LocalDate periodStart, LocalDate periodEnd) {
+		return PROMPT_TEMPLATE
+		.replace("{{full_name}}", leg.getName().getOfficial_full())
+		.replace("{{time_period}}", describeTimePeriod(periodStart, periodEnd));
+	}
+	
+	public static String describeTimePeriod(LocalDate periodStart, LocalDate periodEnd)
 	{
 		if (periodStart == null || periodEnd == null) return "several months";
 		
@@ -216,7 +219,7 @@ public class LegislatorInterpretationService
 	    }
 	}
 	
-	protected void archive(LegislatorInterpretation interp)
+	public void archive(LegislatorInterpretation interp)
 	{
 		s3.put(interp);
 	}

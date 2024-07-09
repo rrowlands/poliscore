@@ -69,6 +69,9 @@ public class IssueStats {
 	
 	private static Pair<TrackedIssue, Integer> parseStat(String line)
 	{
+		// Open AI 4o sent us a response once which had back slashes at the end of every line? I don't know why.
+		if (line.endsWith("\\")) line = line.substring(0, line.length()-1);
+		
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
 			Pattern pattern = Pattern.compile("^-? ?" + issue.getName() + ": ([+-]?\\d+.?\\d*|N\\/A)$", Pattern.CASE_INSENSITIVE);

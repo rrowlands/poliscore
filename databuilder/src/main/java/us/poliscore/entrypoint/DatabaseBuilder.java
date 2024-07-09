@@ -20,12 +20,16 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorBillInteraction;
+import us.poliscore.model.LegislatorInterpretation;
+import us.poliscore.model.bill.Bill;
+import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.RollCallService;
+import us.poliscore.service.storage.CachedS3Service;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalFilePersistenceService;
 import us.poliscore.service.storage.MemoryPersistenceService;
@@ -43,7 +47,10 @@ public class DatabaseBuilder implements QuarkusApplication
 	private LocalFilePersistenceService localStore;
 	
 	@Inject
-	private DynamoDbPersistenceService dynamoDb;
+	private DynamoDbPersistenceService ddb;
+	
+	@Inject
+	private CachedS3Service s3;
 	
 	@Inject
 	private BillService billService;
@@ -125,7 +132,34 @@ public class DatabaseBuilder implements QuarkusApplication
 //			billInterpreter.getOrCreate(b.getId());
 //		});
 		
-		interpretLegislators();
+//		interpretLegislators();
+		
+		// Write all bills to ddb
+		memService.query(Bill.class).forEach(b -> {
+			val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class);
+			
+			if (interp.isPresent()) {
+				b.setInterpretation(interp.get());
+				ddb.put(b);
+			}
+		});
+		
+		// Write all legislators to ddb
+		memService.query(Legislator.class).forEach(l -> {
+			val interacts = new LegislatorBillInteractionSet();
+			legInterp.getInteractionsForInterpretation(l).forEach(interact -> {
+				val billInterp = s3.get(BillInterpretation.generateId(interact.getBillId(), null), BillInterpretation.class);
+				
+				if (billInterp.isPresent()) {
+					interact.setIssueStats(billInterp.get().getIssueStats());
+					interacts.add(interact);
+				}
+			});
+			
+			l.setInteractions(interacts);
+			l.setInterpretation(s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class).orElseThrow());
+			ddb.put(l);
+		});
 		
 		Log.info("Poliscore database build complete. Imported " + totalBills + " bills and " + totalVotes + " votes.");
 	}
@@ -174,7 +208,7 @@ public class DatabaseBuilder implements QuarkusApplication
 				val bill = billService.getById(interact.getBillId()).get();
 				bill.setInterpretation(billInterp);
 				
-				dynamoDb.put(bill);
+				ddb.put(bill);
 				interacts.add(interact);
 			}
 			catch (NoSuchElementException e)
@@ -190,7 +224,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 		if (interacts.size() > 0) {
 			legislator.setInteractions(interacts);
-			dynamoDb.put(legislator);
+			ddb.put(legislator);
 		}
 	}
 	

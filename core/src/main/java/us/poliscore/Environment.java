@@ -48,6 +48,11 @@ public class Environment {
 		{
 			sDeployPath = sDeployPath.replace("WEB-INF/classes", "");
 		}
+		
+		if (sDeployPath.endsWith("/classes"))
+		{
+			sDeployPath = sDeployPath.replace("/classes", "");
+		}
 
 		// getPath returns spaces as %20 for some reason
 		sDeployPath = sDeployPath.replace("%20", " ");

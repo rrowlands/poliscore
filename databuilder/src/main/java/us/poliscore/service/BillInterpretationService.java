@@ -39,7 +39,7 @@ import us.poliscore.service.storage.CachedS3Service;
 @ApplicationScoped
 public class BillInterpretationService {
 	
-	final String statsPromptTemplate = """
+	public static final String statsPromptTemplate = """
 			Score the following bill (or bill section) on the estimated impact to society upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Include a concise (single paragraph) report of the bill at the end which references concrete, notable and specific text of the bill where possible. Please format your response as a list in the example format:
 
             {issuesList}
@@ -47,13 +47,13 @@ public class BillInterpretationService {
 			<brief summary of the predicted impact to society and why>
 			""";
 	
-	final String statsPrompt;
-	{
+	public static final String statsPrompt;
+	static {
 		String issues = String.join("\n", Arrays.stream(TrackedIssue.values()).map(issue -> issue.getName() + ": <score or N/A>").toList());
     	statsPrompt = statsPromptTemplate.replaceFirst("\\{issuesList\\}", issues);
 	}
 	
-	final String summaryPrompt = "Evaluate the impact to society of the following summarized bill text in a concise (single paragraph) report. In your report, please attempt to reference concrete, notable and specific text of the summarized bill where possible.";
+	public static final String summaryPrompt = "Evaluate the impact to society of the following summarized bill text in a concise (single paragraph) report. In your report, please attempt to reference concrete, notable and specific text of the summarized bill where possible.";
 	
 	@Inject
 	protected OpenAIService ai;
