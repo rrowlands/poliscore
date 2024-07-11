@@ -243,6 +243,7 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 	{
 		if (StringUtils.isBlank(index)) index = Persistable.OBJECT_BY_DATE_INDEX;
 		if (ascending == null) ascending = Boolean.TRUE;
+		val field = (index.equals(Persistable.OBJECT_BY_DATE_INDEX)) ? "date" : "rating";
 		
 		@SuppressWarnings("unchecked")
 		val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, TableSchema.fromBean(clazz))).index(index);
@@ -252,18 +253,31 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 		val request = QueryEnhancedRequest.builder()
 				.queryConditional(QueryConditional.keyEqualTo(Key.builder().partitionValue(idClassPrefix).build()));
 		
-		if (pageSize != -1) request.limit(pageSize);
-		if (exclusiveStartKey != null) request.exclusiveStartKey(Map.of("date", AttributeValue.fromS(exclusiveStartKey)));
+		if (pageSize != -1) {
+			request.limit(pageSize);
+		}
+		if (exclusiveStartKey != null) request.exclusiveStartKey(Map.of(field, AttributeValue.fromS(exclusiveStartKey)));
 		request.scanIndexForward(ascending);
 		
-		var result = table.query(request.build());
-		val mapLastEval = result.stream().findAny().get().lastEvaluatedKey();
-		val lastEvaluatedKey = mapLastEval == null ? null : mapLastEval.get("date").s();
+		var pageIt = table.query(request.build()).iterator();
 		
-		List<T> objects = new ArrayList<T>();
-		result.stream().forEach(p -> objects.addAll(p.items()));
+		List<T> results = new ArrayList<T>();
 		
-		return new PaginatedList<T>(objects, pageSize, exclusiveStartKey, lastEvaluatedKey);
+		String lastEvaluatedKey = null;
+		
+		while (pageIt.hasNext() && results.size() < pageSize) {
+			val page = pageIt.next();
+			
+			results.addAll(page.items());
+			
+			if (field.equals(Persistable.OBJECT_BY_DATE_INDEX)) {
+				lastEvaluatedKey = page.lastEvaluatedKey().get(field).s();
+			} else {
+				lastEvaluatedKey = page.lastEvaluatedKey().get(field).n();
+			}
+		}
+		
+		return new PaginatedList<T>(results.stream().limit(pageSize).toList(), pageSize, exclusiveStartKey, lastEvaluatedKey);
 	}
 
 	@Override

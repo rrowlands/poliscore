@@ -32,6 +32,10 @@ export class AppService {
             params = params.set("exclusiveStartKey", page.exclusiveStartKey);
         }
 
+        if (page.ascending!= null) {
+            params = params.set("ascending", page.ascending.toString());
+        }
+
         return firstValueFrom(this.http.get<Legislator[]>(backendUrl + "/getLegislators", { params: params }));
     }
 

@@ -35,6 +35,10 @@ export class LegislatorsComponent implements OnInit {
   }
 
   togglePage(index: string) {
+    if (this.page.index == "ObjectsByDate" && index == "ObjectsByRating") {
+      this.page.ascending = false;
+    }
+
     this.page.ascending = (index == this.page.index) ? !this.page.ascending : this.page.ascending;
     this.page.index = index;
 

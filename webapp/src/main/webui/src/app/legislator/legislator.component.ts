@@ -128,6 +128,8 @@ export class LegislatorComponent implements OnInit {
   colorForGrade(grade: string): string { return colorForGrade(this.gradeForLegislator()); }
 
   subtitleForLegislator(): string {
+    if (this.leg == null) return "";
+
     return this.leg?.terms[this.leg?.terms.length - 1].chamber == "HOUSE" ? "House of Representatives" : "Senate";
   }
 
