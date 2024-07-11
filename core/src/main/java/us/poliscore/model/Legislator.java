@@ -78,7 +78,7 @@ public class Legislator implements Persistable {
 	
 	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
 	
-	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return terms.last().startDate; }
+	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return birthday; }
 
 	@Override @JsonIgnore public void setDate(LocalDate date) { }
 	

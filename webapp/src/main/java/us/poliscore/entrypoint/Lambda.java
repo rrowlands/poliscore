@@ -54,15 +54,16 @@ public class Lambda {
     	Boolean ascending = Boolean.TRUE;
     	if (queryParams.containsKey("ascending")) ascending = Boolean.parseBoolean(queryParams.get("ascending"));
     	
-    	val cacheable = ascending && StringUtils.isBlank(startKey) && pageSize == 25;
-    	if (cacheable && cachedLegislators.containsKey(index)) return cachedLegislators.get(index);
+    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25;
+    	val cacheKey = index + "-" + ascending.toString();
+    	if (cacheable && cachedLegislators.containsKey(cacheKey)) return cachedLegislators.get(cacheKey);
     	
     	val legs = ddb.query(Legislator.class, pageSize, index, ascending, startKey);
     	
     	legs.forEach(l -> l.setInteractions(new LegislatorBillInteractionSet()));
     	
     	if (cacheable) {
-    		cachedLegislators.put(index, legs);
+    		cachedLegislators.put(cacheKey, legs);
     	}
     	
     	return legs;
@@ -86,12 +87,13 @@ public class Lambda {
     	if (queryParams.containsKey("ascending")) ascending = Boolean.parseBoolean(queryParams.get("ascending"));
     	
     	val cacheable = ascending && StringUtils.isBlank(startKey) && pageSize == 25;
-    	if (cacheable && cachedBills.containsKey(index)) return cachedBills.get(index);
+    	val cacheKey = index + "-" + ascending.toString();
+    	if (cacheable && cachedBills.containsKey(cacheKey)) return cachedBills.get(cacheKey);
     	
     	val bills = ddb.query(Bill.class, pageSize, queryParams.get("index"), ascending, startKey);
     	
     	if (cacheable) {
-    		cachedBills.put(index, bills);
+    		cachedBills.put(cacheKey, bills);
     	}
     	
     	return bills;
