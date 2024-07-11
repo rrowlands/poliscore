@@ -13,7 +13,7 @@ import us.poliscore.service.OpenAIService;
 @RegisterForReflection
 @AllArgsConstructor
 @NoArgsConstructor
-public class BatchBillRequest {
+public class BatchOpenAIRequest {
 	// {"custom_id": "request-1", "method": "POST", "url": "/v1/chat/completions", "body": {"model": "gpt-3.5-turbo-0125", "messages": [{"role": "system", "content": "You are a helpful assistant."},{"role": "user", "content": "Hello world!"}],"max_tokens": 1000}}
 	
 	private String custom_id;
@@ -22,9 +22,9 @@ public class BatchBillRequest {
 	
 	private String url = "/v1/chat/completions";
 	
-	private BatchBillBody body;
+	private BatchOpenAIBody body;
 	
-	public BatchBillRequest(String id, BatchBillBody body) {
+	public BatchOpenAIRequest(String id, BatchOpenAIBody body) {
 		this.custom_id = id;
 		this.body = body;
 	}
@@ -33,14 +33,14 @@ public class BatchBillRequest {
 	@RegisterForReflection
 	@AllArgsConstructor
 	@NoArgsConstructor
-	public static class BatchBillBody {
+	public static class BatchOpenAIBody {
 		private String model = OpenAIService.MODEL;
 		
 		private List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();
 		
 		private int max_tokens = OpenAIService.MAX_TOKENS;
 		
-		public BatchBillBody(List<BatchBillMessage> messages) {
+		public BatchOpenAIBody(List<BatchBillMessage> messages) {
 			this.messages = messages;
 		}
 	}

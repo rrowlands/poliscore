@@ -19,6 +19,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.CompressedLegislatorBillInteractionSetConverter;
+import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverterProvider;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorLegislativeTermSortedSetConverter;
 
 @Data
@@ -48,7 +49,7 @@ public class Legislator implements Persistable {
 	protected LegislatorLegislativeTermSortedSet terms;
 	
 	@NonNull
-	@Getter(onMethod = @__({ @DynamoDbConvertedBy(CompressedLegislatorBillInteractionSetConverter.class)}))
+	@Getter(onMethod = @__({ @DynamoDbConvertedBy(CompressedLegislatorBillInteractionSetConverter.class), @DdbDataPage}))
 	protected LegislatorBillInteractionSet interactions = new LegislatorBillInteractionSet();
 	
 	@DynamoDbPartitionKey
@@ -132,7 +133,7 @@ public class Legislator implements Persistable {
 		
 	}
 	
-	@DynamoDbBean
+	@DynamoDbBean(converterProviders = LegislatorBillInteractionSetConverterProvider.class)
 	public static class LegislatorBillInteractionSet extends HashSet<LegislatorBillInteraction> {}
 	
 	@DynamoDbBean

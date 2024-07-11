@@ -24,14 +24,15 @@ import lombok.val;
 import us.poliscore.Environment;
 import us.poliscore.MissingBillTextException;
 import us.poliscore.PoliscoreUtil;
-import us.poliscore.ai.BatchBillRequest;
-import us.poliscore.ai.BatchBillRequest.BatchBillBody;
-import us.poliscore.ai.BatchBillRequest.BatchBillMessage;
+import us.poliscore.ai.BatchOpenAIRequest;
+import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
+import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.model.AISliceInterpretationMetadata;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorBillInteraction;
+import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillSlice;
@@ -77,7 +78,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	
 	private long tokenLen = 0;
 	
-	private List<BatchBillRequest> requests = new ArrayList<BatchBillRequest>();
+	private List<BatchOpenAIRequest> requests = new ArrayList<BatchOpenAIRequest>();
 	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
@@ -132,6 +133,8 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		
 		int block = 1;
 		
+		s3.optimizeExists(BillInterpretation.class);
+		
 		for (Bill b : memService.query(Bill.class).stream()
 				.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
 				.toList()) {
@@ -152,9 +155,9 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 						messages.add(new BatchBillMessage("system", BillInterpretationService.statsPrompt));
 		    			messages.add(new BatchBillMessage("user", b.getText().getXml()));
 		    			
-		    			requests.add(new BatchBillRequest(
+		    			requests.add(new BatchOpenAIRequest(
 		    					BillInterpretation.generateId(b.getId(), null),
-		    					new BatchBillBody(messages)
+		    					new BatchOpenAIBody(messages)
 		    			));
 		    		} else {
 		    			val sliceInterps = new ArrayList<BillInterpretation>();
@@ -195,7 +198,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 				if (tokenLen >= TOKEN_BLOCK_SIZE) {
 					writeBlock(requests, block++);
 					
-					requests = new ArrayList<BatchBillRequest>();
+					requests = new ArrayList<BatchOpenAIRequest>();
 					tokenLen = 0;
 				}
 			}
@@ -211,15 +214,15 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		messages.add(new BatchBillMessage("system", sysMsg));
 		messages.add(new BatchBillMessage("user", userMsg));
 		
-		requests.add(new BatchBillRequest(
+		requests.add(new BatchOpenAIRequest(
 				oid,
-				new BatchBillBody(messages)
+				new BatchOpenAIBody(messages)
 		));
 		
 		tokenLen += (userMsg.length() / 4);
 	}
 
-	private void writeBlock(List<BatchBillRequest> requests, int block) throws IOException {
+	private void writeBlock(List<BatchOpenAIRequest> requests, int block) throws IOException {
 		File f = new File(Environment.getDeployedPath(), "openapi-bills-bulk-" + block + ".jsonl");
 		
 		val mapper = PoliscoreUtil.getObjectMapper();

@@ -35,6 +35,10 @@ class PoliscoreStack extends Stack {
                         .name("id")
                         .type(AttributeType.STRING)
                         .build())
+                .sortKey(Attribute.builder()
+                        .name("page")
+                        .type(AttributeType.STRING)
+                        .build())
                 .removalPolicy(RemovalPolicy.DESTROY)
                 .build());
         

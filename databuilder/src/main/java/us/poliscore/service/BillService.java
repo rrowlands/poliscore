@@ -31,7 +31,7 @@ public class BillService {
 	private S3PersistenceService s3;
 	
 	@Inject
-	private MemoryPersistenceService pServ;
+	private MemoryPersistenceService memService;
 	
 	@Inject
 	protected LegislatorService lService;
@@ -64,7 +64,7 @@ public class BillService {
 				interaction.setBillName(bill.getName());
 				leg.get().addBillInteraction(interaction);
 				
-				lService.persist(leg.get());
+				memService.put(leg.get());
 			}
     	}
     	
@@ -79,7 +79,7 @@ public class BillService {
 					interaction.setBillName(bill.getName());
 					leg.get().addBillInteraction(interaction);
 					
-					lService.persist(leg.get());
+					memService.put(leg.get());
 	    		}
     		}
     	});
@@ -151,11 +151,11 @@ public class BillService {
     
     public Optional<Bill> getById(String id)
 	{
-		return pServ.get(id, Bill.class);
+		return memService.get(id, Bill.class);
 	}
     
     protected void archiveBill(Bill bill)
     {
-    	pServ.put(bill);
+    	memService.put(bill);
     }
 }

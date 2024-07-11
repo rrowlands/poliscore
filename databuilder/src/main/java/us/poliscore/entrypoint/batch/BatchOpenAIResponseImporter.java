@@ -4,9 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,9 +25,9 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIResponse;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Legislator;
+import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
 import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.VoteStatus;
-import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillSlice;
@@ -50,7 +50,7 @@ import us.poliscore.service.storage.MemoryPersistenceService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-	public static final String INPUT = "/Users/rrowlands/Downloads/batch_nvT2RGdyuJXAgNU4b23CDbfD_output.jsonl";
+	public static final String INPUT = "/Users/rrowlands/Downloads/batch_V4grdfPKD3szAMfMoP6RHdDH_output.jsonl";
 	
 //	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	
@@ -141,9 +141,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 					throw new RuntimeException(err);
 				}
 				
-				if (resp.getCustom_id().startsWith(Bill.ID_CLASS_PREFIX)) {
+				if (resp.getCustom_id().startsWith(BillInterpretation.ID_CLASS_PREFIX)) {
 					importBill(resp);
-				} else if (resp.getCustom_id().startsWith(Legislator.ID_CLASS_PREFIX)) {
+				} else if (resp.getCustom_id().startsWith(LegislatorInterpretation.ID_CLASS_PREFIX)) {
 					importLegislator(resp);
 				} else {
 					throw new UnsupportedOperationException("Unexpected object type " + resp.getCustom_id());
@@ -169,7 +169,22 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	private void importLegislator(final BatchOpenAIResponse resp) {
 		val leg = memService.get(resp.getCustom_id().replace(LegislatorInterpretation.ID_CLASS_PREFIX, Legislator.ID_CLASS_PREFIX), Legislator.class).orElseThrow();
 		
-		legInterp.populateInteractionStats(leg);
+		val importedBills = new HashSet<String>();
+		for (val i : legInterp.getInteractionsForInterpretation(leg))
+		{
+			val interp = s3.get(BillInterpretation.generateId(i.getBillId(), null), BillInterpretation.class);
+			
+			if (interp.isPresent()) {
+				i.setIssueStats(interp.get().getIssueStats());
+				
+				if (!importedBills.contains(i.getBillId())) {
+					val bill = memService.get(i.getBillId(), Bill.class).orElseThrow();
+					bill.setInterpretation(interp.get());
+					ddb.put(bill);
+					importedBills.add(bill.getId());
+				}
+			}
+		}
 		
 		IssueStats stats = new IssueStats();
 		
@@ -193,11 +208,11 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		val interp = new LegislatorInterpretation(OpenAIService.metadata(), leg, stats);
 		interp.setHash(legInterp.calculateInterpHashCode(leg));
-		legInterp.archive(interp);
+		s3.put(interp);
 		
 		leg.setInterpretation(interp);
 		
-		legService.persist(leg);
+		ddb.put(leg);
 	}
 
 	private void importBill(final BatchOpenAIResponse resp) {
@@ -232,6 +247,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		bi.setId(BillInterpretation.generateId(billId, sliceIndex));
 		
 		s3.put(bi);
+		
+		bill.setInterpretation(bi);
+		ddb.put(bill);
 	}
 	
 	@Override

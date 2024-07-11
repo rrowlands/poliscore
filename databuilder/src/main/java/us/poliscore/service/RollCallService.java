@@ -82,7 +82,7 @@ public class RollCallService {
 		
 		leg.addBillInteraction(interaction);
 		
-		lService.persist(leg);
+		memService.put(leg);
 	}
 	
 }

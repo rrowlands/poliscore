@@ -62,10 +62,5 @@ public class LegislatorService {
 	{
 		return pServ.get(id, Legislator.class);
 	}
-
-	public void persist(Legislator leg)
-	{
-		pServ.put(leg);
-	}
 	
 }

@@ -5,7 +5,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -26,6 +25,7 @@ import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.service.storage.CachedS3Service;
+import us.poliscore.service.storage.MemoryPersistenceService;
 
 @ApplicationScoped
 public class LegislatorInterpretationService
@@ -46,6 +46,9 @@ public class LegislatorInterpretationService
 	
 	@Inject
 	private LegislatorService legService;
+	
+	@Inject
+	private MemoryPersistenceService memService;
 	
 	@Inject
 	private OpenAIService ai;
@@ -180,11 +183,11 @@ public class LegislatorInterpretationService
 		
 		val interp = new LegislatorInterpretation(OpenAIService.metadata(), leg, stats);
 		interp.setHash(calculateInterpHashCode(leg));
-		archive(interp);
+		s3.put(interp);
 		
 		leg.setInterpretation(interp);
 		
-		legService.persist(leg);
+		memService.put(leg);
 		
 		return interp;
 	}
@@ -217,10 +220,5 @@ public class LegislatorInterpretationService
 	    	
 	    	return years + " year" + (years <= 1 ? "" : "s");
 	    }
-	}
-	
-	public void archive(LegislatorInterpretation interp)
-	{
-		s3.put(interp);
 	}
 }

@@ -25,9 +25,9 @@ import lombok.val;
 import us.poliscore.Environment;
 import us.poliscore.MissingBillTextException;
 import us.poliscore.PoliscoreUtil;
-import us.poliscore.ai.BatchBillRequest;
-import us.poliscore.ai.BatchBillRequest.BatchBillBody;
-import us.poliscore.ai.BatchBillRequest.BatchBillMessage;
+import us.poliscore.ai.BatchOpenAIRequest;
+import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
+import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.model.AISliceInterpretationMetadata;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Legislator;
@@ -82,7 +82,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 	
 	private long tokenLen = 0;
 	
-	private List<BatchBillRequest> requests = new ArrayList<BatchBillRequest>();
+	private List<BatchOpenAIRequest> requests = new ArrayList<BatchOpenAIRequest>();
 	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
@@ -137,16 +137,14 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		
 		int block = 1;
 		
+		s3.optimizeExists(LegislatorInterpretation.class);
+		
 		for (Legislator l : memService.query(Legislator.class).stream()
+				.filter(l -> 
+					l.getInteractions().size() > 0
+					&& !s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
 				.sorted(Comparator.comparing(Legislator::getDate).reversed())
 				.toList()) {
-			val cached = s3.get(l.getId().replaceFirst(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
-			
-			if (cached.isPresent()) //  && calculateInterpHashCode(leg) == cached.get().getHash()
-			{
-				continue;
-			}
-			
 			legInterp.populateInteractionStats(l);
 			
 			interpret(l);
@@ -154,7 +152,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 			if (tokenLen >= TOKEN_BLOCK_SIZE) {
 				writeBlock(requests, block++);
 				
-				requests = new ArrayList<BatchBillRequest>();
+				requests = new ArrayList<BatchOpenAIRequest>();
 				tokenLen = 0;
 			}
 		};
@@ -203,15 +201,15 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		messages.add(new BatchBillMessage("system", sysMsg));
 		messages.add(new BatchBillMessage("user", userMsg));
 		
-		requests.add(new BatchBillRequest(
+		requests.add(new BatchOpenAIRequest(
 				oid,
-				new BatchBillBody(messages)
+				new BatchOpenAIBody(messages)
 		));
 		
 		tokenLen += (userMsg.length() / 4);
 	}
 
-	private void writeBlock(List<BatchBillRequest> requests, int block) throws IOException {
+	private void writeBlock(List<BatchOpenAIRequest> requests, int block) throws IOException {
 		File f = new File(Environment.getDeployedPath(), "openapi-legislators-bulk-" + block + ".jsonl");
 		
 		val mapper = PoliscoreUtil.getObjectMapper();

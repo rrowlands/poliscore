@@ -4,7 +4,11 @@ package us.poliscore.model.dynamodb;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -17,9 +21,12 @@ import lombok.SneakyThrows;
 import lombok.val;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.ImmutableMap;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
@@ -156,5 +163,23 @@ public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
     	public CompressedLegislatorBillInteractionSetConverter() {
     		super(LegislatorBillInteractionSet.class);
     	}
+    }
+    
+    public static final class LegislatorBillInteractionSetConverterProvider implements AttributeConverterProvider {
+        private final Map<EnhancedType<?>, AttributeConverter<?>> converterCache = ImmutableMap.of(
+                // 1. Add HttpCookieConverter to the internal cache.
+                EnhancedType.of(LegislatorBillInteractionSet.class), new LegislatorBillInteractionSetConverter());
+
+        public static LegislatorBillInteractionSetConverterProvider create() {
+            return new LegislatorBillInteractionSetConverterProvider();
+        }
+
+        // The SDK calls this method to find out if the provider contains a AttributeConverter instance
+        // for the EnhancedType<T> argument.
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> AttributeConverter<T> converterFor(EnhancedType<T> enhancedType) {
+            return (AttributeConverter<T>) converterCache.get(enhancedType);
+        }
     }
 }
