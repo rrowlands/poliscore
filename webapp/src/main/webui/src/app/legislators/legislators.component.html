@@ -12,8 +12,8 @@
             <span class="sort">
                 Sort by:
                 <mat-button-toggle-group name="fontStyle" aria-label="Font Style">
-                  <mat-button-toggle value="bold">Rating</mat-button-toggle>
-                  <mat-button-toggle value="italic">Age</mat-button-toggle>
+                  <mat-button-toggle (click)="togglePage('ObjectsByRating')" value="bold">Rating</mat-button-toggle>
+                  <mat-button-toggle (click)="togglePage('ObjectsByDate')" value="italic">Age</mat-button-toggle>
                 </mat-button-toggle-group>
             </span>
         </div>

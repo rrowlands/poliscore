@@ -235,14 +235,17 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 	@Override
 	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz)
 	{
-		return query(clazz, -1, null);
+		return query(clazz, -1, null, null, null);
 	}
 	
 	@SneakyThrows
-	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz, int pageSize, String exclusiveStartKey)
+	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz, int pageSize, String index, Boolean ascending, String exclusiveStartKey)
 	{
+		if (StringUtils.isBlank(index)) index = Persistable.OBJECT_BY_DATE_INDEX;
+		if (ascending == null) ascending = Boolean.TRUE;
+		
 		@SuppressWarnings("unchecked")
-		val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, TableSchema.fromBean(clazz))).index(Persistable.OBJECT_BY_DATE_INDEX);
+		val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, TableSchema.fromBean(clazz))).index(index);
 		
 		val idClassPrefix =(String) clazz.getField("ID_CLASS_PREFIX").get(null);
 		
@@ -251,6 +254,7 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 		
 		if (pageSize != -1) request.limit(pageSize);
 		if (exclusiveStartKey != null) request.exclusiveStartKey(Map.of("date", AttributeValue.fromS(exclusiveStartKey)));
+		request.scanIndexForward(ascending);
 		
 		var result = table.query(request.build());
 		val mapLastEval = result.stream().findAny().get().lastEvaluatedKey();

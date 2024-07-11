@@ -61,6 +61,13 @@ export class IssueStats {
     explanation!: string;
 }
 
+export class Page {
+  index?: string;
+  ascending?: boolean;
+  pageSize?: number;
+  exclusiveStartKey?: string;
+}
+
 export function issueKeyToLabel(key: string): string
 {
   const map: {[key: string]: string} = {

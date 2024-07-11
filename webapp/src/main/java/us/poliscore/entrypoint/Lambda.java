@@ -43,7 +43,13 @@ public class Lambda {
     public List<Legislator> getLegislators(Map<String, String> queryParams) {
     	if (cachedLegislators != null) return cachedLegislators;
     	
-    	val legs = ddb.query(Legislator.class, 25, queryParams.get("exclusiveStartKey"));
+    	var pageSize = 25;
+    	if (queryParams.containsKey("pageSize")) pageSize = Integer.parseInt(queryParams.get("pageSize"));
+    	
+    	Boolean ascending = null;
+    	if (queryParams.containsKey("ascending")) ascending = Boolean.parseBoolean(queryParams.get("ascending"));
+    	
+    	val legs = ddb.query(Legislator.class, pageSize, queryParams.get("index"), ascending, queryParams.get("exclusiveStartKey"));
     	
     	legs.forEach(l -> l.setInteractions(new LegislatorBillInteractionSet()));
     	
@@ -62,7 +68,13 @@ public class Lambda {
     public List<Bill> getBills(Map<String, String> queryParams) {
     	if (cachedBills != null) return cachedBills;
     	
-    	val bills = ddb.query(Bill.class, 25, queryParams.get("exclusiveStartKey"));
+    	var pageSize = 25;
+    	if (queryParams.containsKey("pageSize")) pageSize = Integer.parseInt(queryParams.get("pageSize"));
+    	
+    	Boolean ascending = null;
+    	if (queryParams.containsKey("ascending")) ascending = Boolean.parseBoolean(queryParams.get("ascending"));
+    	
+    	val bills = ddb.query(Bill.class, pageSize, queryParams.get("index"), ascending, queryParams.get("exclusiveStartKey"));
     	
     	cachedBills = bills;
     	

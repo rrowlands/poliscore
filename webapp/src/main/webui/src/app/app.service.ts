@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpHeaders, HttpClient, HttpParams } from '@angular/common/http';
 import { backendUrl } from './app.config';
-import { Bill, Legislator } from './model';
+import { Bill, Legislator, Page } from './model';
 import { firstValueFrom } from 'rxjs/internal/firstValueFrom';
 
 @Injectable()
@@ -17,8 +17,20 @@ export class AppService {
         return firstValueFrom(this.http.get<Legislator>(backendUrl + "/getLegislator", { params: params }));
     }
 
-    getLegislators(): Promise<Legislator[]> {
+    getLegislators(page: Page): Promise<Legislator[]> {
         let params: HttpParams = new HttpParams();
+        
+        if (page.index!= null) {
+            params = params.set("index", page.index);
+        }
+        
+        if (page.pageSize!= null) {
+            params = params.set("pageSize", page.pageSize.toString());
+        }
+
+        if (page.exclusiveStartKey!= null) {
+            params = params.set("exclusiveStartKey", page.exclusiveStartKey);
+        }
 
         return firstValueFrom(this.http.get<Legislator[]>(backendUrl + "/getLegislators", { params: params }));
     }

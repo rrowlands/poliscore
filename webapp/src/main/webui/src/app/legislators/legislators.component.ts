@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats } from '../model';
+import { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page } from '../model';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -21,11 +21,28 @@ export class LegislatorsComponent implements OnInit {
 
   legs?: Legislator[];
 
+  public page: Page = {
+    index: "ObjectsByDate",
+    ascending: true,
+    pageSize: 25
+  };
+
   constructor(private service: AppService, private router: Router, private route: ActivatedRoute) {}
 
   ngOnInit(): void
   {
-    this.service.getLegislators().then(legs => {
+    this.fetchData();
+  }
+
+  togglePage(index: string) {
+    this.page.ascending = (index == this.page.index) ? !this.page.ascending : this.page.ascending;
+    this.page.index = index;
+
+    this.fetchData();
+  }
+
+  fetchData() {
+    this.service.getLegislators(this.page).then(legs => {
       this.legs = legs;
     });
   }

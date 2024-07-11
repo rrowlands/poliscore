@@ -10,6 +10,7 @@ import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
+import software.amazon.awscdk.services.dynamodb.BillingMode;
 import software.amazon.awscdk.services.dynamodb.GlobalSecondaryIndexProps;
 import software.amazon.awscdk.services.dynamodb.LocalSecondaryIndexProps;
 import software.amazon.awscdk.services.dynamodb.Table;
@@ -40,6 +41,7 @@ class PoliscoreStack extends Stack {
                         .type(AttributeType.STRING)
                         .build())
                 .removalPolicy(RemovalPolicy.DESTROY)
+                .billingMode(BillingMode.PAY_PER_REQUEST)
                 .build());
         
         table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()

@@ -40,8 +40,8 @@ public class Sandbox implements QuarkusApplication
 		
 		
 		
-		val legs = dynamoDb.query(Legislator.class, 25, null);
-		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(legs));
+//		val legs = dynamoDb.query(Legislator.class, 25, null, null, null);
+//		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(legs));
 		
 		
 //		val leg = dynamoDb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "F000480"), Legislator.class);
