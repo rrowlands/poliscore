@@ -2,8 +2,19 @@
     z-index: 1000;
 }
 
-mat-card {
+.vertical-content {
     max-width: 540px;
+}
+
+.vertical-content > * {
+    width: calc(100% - 20px);
+}
+
+.breadcrumb > .sort {
+    padding-left: 10px;
+}
+
+mat-card {
     margin: 10px;
     display: grid;
     color: black;
@@ -29,10 +40,4 @@ img {
     height: auto;
     margin-bottom: -5px;
     width: 150px;
-}
-
-@media screen and (min-width: 530px) {
-    mat-card {
-        width: 500px;
-    }
 }

@@ -168,6 +168,8 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 					.expressionAttributeValues(eav)
 					.build()).items().iterator();
 			
+			if (!results.hasNext()) return Optional.empty();
+			
 //			T head = clazz.getConstructor().newInstance();
 			
 //			results.next().forEach((k,rawValue) -> {

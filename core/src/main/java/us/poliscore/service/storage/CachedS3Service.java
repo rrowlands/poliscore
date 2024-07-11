@@ -56,4 +56,8 @@ public class CachedS3Service implements ApplicationDataStoreIF
 		throw new UnsupportedOperationException();
 	}
 	
+	public <T extends Persistable> void optimizeExists(Class<T> clazz) {
+		s3.optimizeExists(clazz);
+	}
+	
 }

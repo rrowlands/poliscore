@@ -93,47 +93,8 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 	protected void process() throws IOException
 	{
 		legService.importLegislators();
-		
-		long totalBills = 0;
-		long totalVotes = 0;
-		
-		for (File fCongress : Arrays.asList(PoliscoreUtil.USC_DATA.listFiles()).stream()
-				.filter(f -> f.getName().matches("\\d+") && f.isDirectory())
-				.sorted((a,b) -> a.getName().compareTo(b.getName()))
-				.collect(Collectors.toList()))
-		{
-			if (!PoliscoreUtil.SUPPORTED_CONGRESSES.contains(Integer.valueOf(fCongress.getName()))) continue;
-			
-			Log.info("Processing " + fCongress.getName() + " congress");
-			
-			for (val bt : PROCESS_BILL_TYPE)
-			{
-				Log.info("Processing bill types " + bt + " congress");
-				
-				for (File data : PoliscoreUtil.allFilesWhere(new File(fCongress, "bills/" + bt), f -> f.getName().equals("data.json")))
-				{
-					try (var fos = new FileInputStream(data))
-					{
-						billService.importUscData(fos);
-						totalBills++;
-					}
-				}
-				Log.info("Imported " + totalBills + " bills");
-			}
-			
-			int skipped = 0;
-			for (File data : PoliscoreUtil.allFilesWhere(new File(fCongress, "votes"), f -> f.getName().equals("data.json")))
-			{
-				try (var fos = new FileInputStream(data))
-				{
-					if (rollCallService.importUscData(fos))
-						totalVotes++;
-					else
-						skipped++;
-				}
-			}
-			Log.info("Imported " + totalVotes + " votes. Skipped " + skipped);
-		}
+		billService.importUscBills();
+		rollCallService.importUscVotes();
 		
 		int block = 1;
 		

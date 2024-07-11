@@ -118,6 +118,8 @@ export function getBenefitToSocietyIssue(issueStats: IssueStats): [string, numbe
 }
 
 export function gradeForStats(issueStats: IssueStats): string {
+  if (issueStats == null || getBenefitToSocietyIssue(issueStats) == null) return "?";
+
   let credit = getBenefitToSocietyIssue(issueStats)[1];
 
   /*
@@ -138,14 +140,30 @@ export function gradeForStats(issueStats: IssueStats): string {
 }
 
 export function colorForGrade(grade: string): string
-  {
-    const map: {[key: string]: string} = {
-      A: "#1a9641",
-      B: "#a6d96a",
-      C: "rgb(179, 179, 0)",
-      D: "#fdae61",
-      F: "#d7191c"
-    };
+{
+  const map: {[key: string]: string} = {
+    A: "#1a9641",
+    B: "#a6d96a",
+    C: "rgb(179, 179, 0)",
+    D: "#fdae61",
+    F: "#d7191c",
+    "?": "#ffffff"
+  };
 
-    return map[grade];
-  }
+  return map[grade];
+}
+
+export function subtitleForStats(issueStats: IssueStats): string
+{
+  let credit = getBenefitToSocietyIssue(issueStats)[1];
+
+  if (credit >= 50) return "Credit to humanity";
+  else if (credit >= 30 && credit < 50) return "Fighting the good fight";
+  else if (credit >= 15 && credit < 30) return "Positive";
+  else if (credit >= 0 && credit < 30) return "Barely positive";
+  else if (credit >= -15 && credit < 0) return "Slighty negative";
+  else if (credit >= -30 && credit < 15) return "Negative";
+  else if (credit > -50 && credit < -30) return "Public enemy";
+  else if (credit <= -50) return "Menace to society";
+  else return "Not enough data";
+}

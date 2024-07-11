@@ -1,7 +1,11 @@
 package us.poliscore.service;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -28,7 +32,36 @@ public class RollCallService {
 	protected MemoryPersistenceService memService;
 	
 	@SneakyThrows
-	public boolean importUscData(InputStream is)
+	public void importUscVotes() {
+		long totalVotes = 0;
+		long skipped = 0;
+		
+		for (File fCongress : Arrays.asList(PoliscoreUtil.USC_DATA.listFiles()).stream()
+				.filter(f -> f.getName().matches("\\d+") && f.isDirectory())
+				.sorted((a,b) -> a.getName().compareTo(b.getName()))
+				.collect(Collectors.toList()))
+		{
+			if (!PoliscoreUtil.SUPPORTED_CONGRESSES.contains(Integer.valueOf(fCongress.getName()))) continue;
+			
+			Log.info("Processing " + fCongress.getName() + " congress");
+			
+			for (File data : PoliscoreUtil.allFilesWhere(new File(fCongress, "votes"), f -> f.getName().equals("data.json")))
+			{
+				try (var fos = new FileInputStream(data))
+				{
+					if (importUscJson(fos))
+						totalVotes++;
+					else
+						skipped++;
+				}
+			}
+		}
+		
+		Log.info("Imported " + totalVotes + " votes. Skipped " + skipped);
+	}
+	
+	@SneakyThrows
+	protected boolean importUscJson(InputStream is)
 	{
 		USCRollCallData rollCall = PoliscoreUtil.getObjectMapper().readValue(is, USCRollCallData.class);
 		

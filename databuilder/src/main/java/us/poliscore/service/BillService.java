@@ -1,10 +1,14 @@
 package us.poliscore.service;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.quarkus.logging.Log;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -36,8 +40,41 @@ public class BillService {
 	@Inject
 	protected LegislatorService lService;
 	
+	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
+	
 	@SneakyThrows
-	public void importUscData(FileInputStream fos) {
+	public void importUscBills() {
+		long totalBills = 0;
+		
+		for (File fCongress : Arrays.asList(PoliscoreUtil.USC_DATA.listFiles()).stream()
+				.filter(f -> f.getName().matches("\\d+") && f.isDirectory())
+				.sorted((a,b) -> a.getName().compareTo(b.getName()))
+				.collect(Collectors.toList()))
+		{
+			if (!PoliscoreUtil.SUPPORTED_CONGRESSES.contains(Integer.valueOf(fCongress.getName()))) continue;
+			
+			Log.info("Processing " + fCongress.getName() + " congress");
+			
+			for (val bt : PROCESS_BILL_TYPE)
+			{
+				Log.info("Processing bill types " + bt + " congress");
+				
+				for (File data : PoliscoreUtil.allFilesWhere(new File(fCongress, "bills/" + bt), f -> f.getName().equals("data.json")))
+				{
+					try (var fos = new FileInputStream(data))
+					{
+						importUscBill(fos);
+						totalBills++;
+					}
+				}
+			}
+		}
+		
+		Log.info("Imported " + totalBills + " bills");
+	}
+	
+	@SneakyThrows
+	protected void importUscBill(FileInputStream fos) {
 		val view = PoliscoreUtil.getObjectMapper().readValue(fos, USCBillView.class);
 		
 //		String text = fetchBillText(view.getUrl());

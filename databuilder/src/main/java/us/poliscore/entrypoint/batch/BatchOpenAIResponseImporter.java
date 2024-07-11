@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -75,7 +76,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	@Inject
 	private MemoryPersistenceService memService;
 	
-	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
+	private Set<String> importedBills = new HashSet<String>();
 	
 	public static void main(String[] args) {
 		Quarkus.run(BatchOpenAIResponseImporter.class, args);
@@ -85,47 +86,8 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	protected void process()
 	{
 		legService.importLegislators();
-		
-		long totalBills = 0;
-		long totalVotes = 0;
-		
-		for (File fCongress : Arrays.asList(PoliscoreUtil.USC_DATA.listFiles()).stream()
-				.filter(f -> f.getName().matches("\\d+") && f.isDirectory())
-				.sorted((a,b) -> a.getName().compareTo(b.getName()))
-				.collect(Collectors.toList()))
-		{
-			if (!PoliscoreUtil.SUPPORTED_CONGRESSES.contains(Integer.valueOf(fCongress.getName()))) continue;
-			
-			Log.info("Processing " + fCongress.getName() + " congress");
-			
-			for (val bt : PROCESS_BILL_TYPE)
-			{
-				Log.info("Processing bill types " + bt + " congress");
-				
-				for (File data : PoliscoreUtil.allFilesWhere(new File(fCongress, "bills/" + bt), f -> f.getName().equals("data.json")))
-				{
-					try (var fos = new FileInputStream(data))
-					{
-						billService.importUscData(fos);
-						totalBills++;
-					}
-				}
-				Log.info("Imported " + totalBills + " bills");
-			}
-			
-			int skipped = 0;
-			for (File data : PoliscoreUtil.allFilesWhere(new File(fCongress, "votes"), f -> f.getName().equals("data.json")))
-			{
-				try (var fos = new FileInputStream(data))
-				{
-					if (rollCallService.importUscData(fos))
-						totalVotes++;
-					else
-						skipped++;
-				}
-			}
-			Log.info("Imported " + totalVotes + " votes. Skipped " + skipped);
-		}
+		billService.importUscBills();
+		rollCallService.importUscVotes();
 		
 		@Cleanup BufferedReader reader = new BufferedReader(new FileReader(INPUT));
 		String line = reader.readLine();
@@ -169,7 +131,8 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	private void importLegislator(final BatchOpenAIResponse resp) {
 		val leg = memService.get(resp.getCustom_id().replace(LegislatorInterpretation.ID_CLASS_PREFIX, Legislator.ID_CLASS_PREFIX), Legislator.class).orElseThrow();
 		
-		val importedBills = new HashSet<String>();
+		if (ddb.exists(leg.getId(), Legislator.class)) return;
+		
 		for (val i : legInterp.getInteractionsForInterpretation(leg))
 		{
 			val interp = s3.get(BillInterpretation.generateId(i.getBillId(), null), BillInterpretation.class);
@@ -250,6 +213,8 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		bill.setInterpretation(bi);
 		ddb.put(bill);
+		
+		importedBills.add(billId);
 	}
 	
 	@Override

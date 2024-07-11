@@ -1,16 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall } from '../model';
+import { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats } from '../model';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {MatCardModule} from '@angular/material/card'; 
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatButtonModule } from '@angular/material/button';
+import {MatButtonToggleModule} from '@angular/material/button-toggle'; 
 
 @Component({
   selector: 'app-legislators',
   standalone: true,
-  imports: [HttpClientModule, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule],
+  imports: [HttpClientModule, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule],
   providers: [AppService, HttpClient],
   templateUrl: './legislators.component.html',
   styleUrl: './legislators.component.scss'
@@ -74,17 +76,7 @@ export class LegislatorsComponent implements OnInit {
 
   subtitleForLegislator(leg: Legislator): string
   {
-    let credit = Object.entries(leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number;
-
-    if (credit >= 50) return "Credit to humanity";
-    else if (credit >= 30 && credit < 50) return "Fighting the good fight";
-    else if (credit >= 15 && credit < 30) return "Positive";
-    else if (credit >= 0 && credit < 30) return "Barely positive";
-    else if (credit >= -15 && credit < 0) return "Slighty negative";
-    else if (credit >= -30 && credit < 15) return "Negative";
-    else if (credit > -50 && credit < -30) return "Public enemy";
-    else if (credit <= -50) return "Menace to society";
-    else return "Not enough data";
+    return subtitleForStats(leg.interpretation?.issueStats!);
   }
 
 }

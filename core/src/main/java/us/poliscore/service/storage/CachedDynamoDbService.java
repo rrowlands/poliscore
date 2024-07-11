@@ -44,7 +44,9 @@ public class CachedDynamoDbService implements ApplicationDataStoreIF
 
 	@Override
 	public <T extends Persistable> boolean exists(String id, Class<T> clazz) {
-		return memory.exists(id, clazz) || dynamodb.exists(id, clazz);
+		// You really can't check the memory here since if it's a legislator it could have been imported into memory from usc 
+		
+		return dynamodb.exists(id, clazz);
 	}
 
 	@Override
