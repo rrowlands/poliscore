@@ -10,8 +10,31 @@
     width: calc(100% - 20px);
 }
 
-.breadcrumb > .sort {
-    padding-left: 10px;
+.breadcrumb > * {
+    flex: 1;
+    height:100%;
+}
+
+.breadcrumb > a {
+    font-size: 16px;
+}
+
+.sort {
+    padding-right: 5px;
+}
+
+.sort-label {
+    display: inline-block;
+    width:100%;
+    text-align: center;
+}
+
+mat-button-toggle-group {
+    width: 100%;
+}
+
+mat-button-toggle {
+    width: 100%;
 }
 
 mat-card {

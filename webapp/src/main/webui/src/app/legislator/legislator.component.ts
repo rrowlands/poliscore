@@ -133,6 +133,12 @@ export class LegislatorComponent implements OnInit {
     return this.leg?.terms[this.leg?.terms.length - 1].chamber == "HOUSE" ? "House of Representatives" : "Senate";
   }
 
+  legPhotoError(leg: any) {
+    if (leg != null) {
+      leg.photoError = true;
+    }
+  }
+
   getDisplayedColumns(): string[] {
     if (window.innerWidth < 480) {
       return ['billName', 'billGrade'];

@@ -17,6 +17,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
+import org.jsoup.Jsoup;
 
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import us.poliscore.model.Legislator;
+import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.storage.MemoryPersistenceService;
 
@@ -51,6 +53,9 @@ public class S3ImageDatabaseBuilder implements QuarkusApplication {
 	
 	private S3Client client;
 	
+	private int lastWaitMs = -1;
+	private int lastWaitMs2 = -1;
+	
 	@SneakyThrows
 	protected void process() throws IOException
 	{
@@ -59,33 +64,25 @@ public class S3ImageDatabaseBuilder implements QuarkusApplication {
 		int success = 0;
 		int skipped = 0;
 		
-		val legs = memService.query(Legislator.class).stream().filter(l -> l.getBirthday() == null || l.getBirthday().isAfter(LocalDate.of(1900,1,1))).toList();
+		Log.info("Building list of legislators to fetch. This will take a minute...");
+		
+		val legs = memService.query(Legislator.class).stream()
+				.filter(l -> l.getBirthday() == null || l.getBirthday().isAfter(LocalDate.of(1900,1,1)))
+				.filter(l -> l.getTerms().size() > 0 && l.getTerms().last().getStartDate().isAfter(LocalDate.of(1990,1,1)))
+				.filter(l -> !exists(l))
+				.toList();
 		
 		Log.info("About to fetch " + legs.size() + " legislator images from congress.gov.");
 		
 		for (Legislator leg : legs)	{
 			try
 			{
-				if (exists(leg))
-				{
-					Log.info("Image for legislator " + leg.getId() + " already exists on S3. Skipping...");
-					continue;
-				}
-				
 				Optional<byte[]> bytes = getImage(leg);
 				
-				if (bytes.isEmpty()) { continue; }
+				if (bytes.isEmpty()) { skipped++; continue; }
 				
-				if (!isJPEG(bytes.get())) {
-					Log.warn("congress.gov sent invalid bytes for " + leg.getName().getOfficial_full() + " " + leg.getBioguideId() + ". skipping...");
-					skipped++;
-					continue;
-				} else {
-					upload(bytes.get(), leg.getId() + ".jpg");
-					success++;
-				}
-				
-//				Thread.sleep(2000); // Don't hammer their servers
+				upload(bytes.get(), leg.getId() + ".jpg");
+				success++;
 			}
 			catch (IOException e)
 			{
@@ -121,11 +118,77 @@ public class S3ImageDatabaseBuilder implements QuarkusApplication {
 		}
 	}
 	
+	/**
+	 * The legislator images on congress.gov do not follow a consistent pattern. The most consistent pattern seems to be something like: 
+	 * 		https://www.congress.gov/img/member/" + leg.getBioguideId().toLowerCase() + "_200.jpg
+	 * 
+	 * And this actually works for about 90% or 95% of legislators. The rest of the legislators follow inconsistent naming conventions,
+	 * for example John Peterson (P000263)'s image url is /img/member/h_peterson_john_20073196577_200.jpg.
+	 * 
+	 * This algorithm's job is to fetch the legislator's member page (at congress.gov/member), and then find the photo url on that page
+	 * and then return that url.
+	 * 
+	 * @param leg
+	 * @return
+	 */
+	@SneakyThrows
+	private String scrapeImageUrlFromMemberPage(Legislator leg)
+	{
+		val fallback = "https://www.congress.gov/img/member/" + leg.getBioguideId().toLowerCase() + "_200.jpg";
+		
+		val memberUrl = "https://www.congress.gov/member/" + leg.getName().getFirst().toLowerCase().replace(" ", "-") + "-" + leg.getName().getLast().toLowerCase().replace(" ", "-")+ "/" + leg.getBioguideId();
+		
+		val opis = urlFetch(leg, memberUrl);
+		
+		if (!opis.isPresent()) return fallback;
+		
+		val html = new String(opis.get(), "UTF-8");
+		
+		// JOOX can't read HTML
+//		val img = $(XMLBillSlicer.toDoc(html)).find(".overview-member-column-picture > img");
+//		
+//		if (img.isEmpty()) {
+//			return fallback;
+//		} else {
+//			return img.attr("src");
+//		}
+		
+		val img = Jsoup.parse(html).selectFirst(".overview-member-column-picture > img");
+		
+		if (img == null) {
+			return fallback;
+		} else {
+			return "https://www.congress.gov" + img.attr("src");
+		}
+	}
+	
 	@SneakyThrows
 	private Optional<byte[]> getImage(Legislator leg) throws IOException, InterruptedException
 	{
-		val url = "https://www.congress.gov/img/member/" + leg.getBioguideId().toLowerCase() + "_200.jpg";
+		val url = scrapeImageUrlFromMemberPage(leg);
 		
+		val op = urlFetch(leg, url);
+		
+		if (op.isPresent() && !isJPEG(op.get())) {
+			if (lastWaitMs2 == -1) lastWaitMs2 = 2000;
+			else lastWaitMs2 = lastWaitMs2 * 2;
+			
+			if (lastWaitMs2 > 20000) {
+				Log.warn("Too many requests when fetching " + leg.getBioguideId());
+				lastWaitMs2 = -1;
+				return Optional.empty();
+			}
+			Log.warn("congress.gov sent invalid bytes for " + leg.getName().getOfficial_full() + " " + leg.getBioguideId() + ". Retrying in " + lastWaitMs2 + " miliseconds");
+			Thread.sleep(lastWaitMs2);
+			
+			return getImage(leg);
+		}
+		
+		return op;
+	}
+	
+	@SneakyThrows
+	private Optional<byte[]> urlFetch(Legislator leg, String url) {
 		String keyPassphrase = "changeit";
 
 		KeyStore keyStore = KeyStore.getInstance("PKCS12");
@@ -146,9 +209,31 @@ public class S3ImageDatabaseBuilder implements QuarkusApplication {
 		HttpResponse resp = httpClient.execute(get);
 		@Cleanup InputStream is = resp.getEntity().getContent();
 		
-		if (resp.getStatusLine().getStatusCode() >= 300) {
+		val statusCode = resp.getStatusLine().getStatusCode();
+		
+		if (statusCode == 429 || statusCode == 403) // Too many requests. Backoff and try again
+		{
+			if (lastWaitMs == -1) lastWaitMs = 2000;
+			else lastWaitMs = lastWaitMs * 2;
+			
+			if (lastWaitMs > 300000) {
+				Log.warn("Too many requests when fetching " + leg.getBioguideId());
+				lastWaitMs = -1;
+				return Optional.empty();
+			}
+			
+			Log.warn("[" + leg.getBioguideId() + " " + leg.getName().getOfficial_full() + "] Received " + statusCode + ". Will wait " + lastWaitMs + " miliseconds and try again.");
+			
+			Thread.sleep(lastWaitMs);
+			
+			return urlFetch(leg, url);
+		}
+		
+		lastWaitMs = -1;
+		
+		if (statusCode >= 400) {
 			val body = IOUtils.toString(is, "UTF-8");
-			Log.warn("Received response code " + resp.getStatusLine().getStatusCode() + " and body " + body.substring(0, Math.min(body.length(), 300)));
+			Log.warn("[" + leg.getBioguideId() + " " + leg.getName().getOfficial_full() + "] Received response code " + resp.getStatusLine().getStatusCode() + " and body " + body.substring(0, Math.min(body.length(), 300)));
 			
 			return Optional.empty();
 		}

@@ -7,10 +7,10 @@
 
         <div class="vertical-content">
 
-        <div class="breadcrumb">
+        <div class="breadcrumb horizontal-layout">
             <a href="#" routerLink="/">Home</a>
             <span class="sort">
-                Sort by:
+                <label class="sort-label">Sort by:</label>
                 <mat-button-toggle-group name="fontStyle" aria-label="Font Style">
                   <mat-button-toggle (click)="togglePage('ObjectsByRating')" value="bold">Rating</mat-button-toggle>
                   <mat-button-toggle (click)="togglePage('ObjectsByDate')" value="italic">Age</mat-button-toggle>
@@ -20,7 +20,8 @@
         
         <mat-card *ngFor="let leg of legs" (click)="routeTo(leg)" class="example-card" appearance="outlined">
             <div class="left">
-                <img [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" >
+                <img *ngIf="!leg.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" (error)="leg.photoError = true;" >
+                <img *ngIf="leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>
             </div>
             <div class="right">
                 <mat-card-header>

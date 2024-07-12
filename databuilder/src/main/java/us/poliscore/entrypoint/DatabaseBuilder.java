@@ -106,31 +106,34 @@ public class DatabaseBuilder implements QuarkusApplication
 //		});
 		
 		// Write all legislators to ddb
-		memService.query(Legislator.class).forEach(l -> {
-//			val interacts = new LegislatorBillInteractionSet();
-//			legInterp.getInteractionsForInterpretation(l).forEach(interact -> {
-//				val billInterp = s3.get(BillInterpretation.generateId(interact.getBillId(), null), BillInterpretation.class);
-//				
-//				if (billInterp.isPresent()) {
-//					interact.setIssueStats(billInterp.get().getIssueStats());
-//					interacts.add(interact);
-//				}
-//			});
+//		memService.query(Legislator.class).forEach(l -> {
+////			val interacts = new LegislatorBillInteractionSet();
+////			legInterp.getInteractionsForInterpretation(l).forEach(interact -> {
+////				val billInterp = s3.get(BillInterpretation.generateId(interact.getBillId(), null), BillInterpretation.class);
+////				
+////				if (billInterp.isPresent()) {
+////					interact.setIssueStats(billInterp.get().getIssueStats());
+////					interacts.add(interact);
+////				}
+////			});
+////			
+////			l.setInteractions(interacts);
+////			l.setInterpretation(s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class).orElseThrow());
+////			ddb.put(l);
 //			
-//			l.setInteractions(interacts);
-//			l.setInterpretation(s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class).orElseThrow());
-//			ddb.put(l);
-			
-			val leg = ddb.get(l.getId(), Legislator.class);
-			
-			if (leg.isPresent()) {
-			
-				leg.get().setDate(leg.get().getBirthday());
-				
-				ddb.put(leg.get());
-			
-			}
-		});
+//			val leg = ddb.get(l.getId(), Legislator.class);
+//			
+//			if (leg.isPresent()) {
+//			
+//				leg.get().setDate(leg.get().getBirthday());
+//				
+//				ddb.put(leg.get());
+//			
+//			}
+//		});
+		
+		val legs = memService.query(Legislator.class).stream().filter(l -> l.getDate() != null).sorted(Comparator.comparing(Legislator::getDate).reversed()).limit(10).toList();
+		System.out.println(legs);
 		
 		Log.info("Poliscore database build complete.");
 	}

@@ -48,6 +48,7 @@ export class Legislator {
       party: string,
       url: string,
     }];
+    photoError: boolean = false;
 }
 
 export class LegislatorInterpretation {
