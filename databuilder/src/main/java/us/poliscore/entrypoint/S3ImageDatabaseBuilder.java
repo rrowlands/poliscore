@@ -39,6 +39,9 @@ import us.poliscore.service.storage.MemoryPersistenceService;
 
 /**
  * Fetches images from congress.gov for all the legislators and uploads them to our S3 repository.
+ * 
+ * TODO : Legislators that do not have photos on congress.gov might have photos on bioguide.congress.gov. For example:
+ * https://bioguide.congress.gov/search/bio/L000592
  */
 @QuarkusMain(name="S3ImageDatabaseBuilder")
 public class S3ImageDatabaseBuilder implements QuarkusApplication {

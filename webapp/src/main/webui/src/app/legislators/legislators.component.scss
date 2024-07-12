@@ -1,3 +1,12 @@
+.poliscore {
+    background-image: linear-gradient(red, #f0f0f0, blue);
+    color: transparent;
+    background-clip: text;
+    font-size: 3em;
+    cursor: pointer;
+    padding-left: 10px;
+}
+
 .tran-div {
     z-index: 1000;
 }
