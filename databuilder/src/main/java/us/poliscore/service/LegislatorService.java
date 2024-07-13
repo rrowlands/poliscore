@@ -1,10 +1,13 @@
 package us.poliscore.service;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
+
+import org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,7 +17,10 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
+import lombok.val;
+import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
+import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.Legislator.LegislatorLegislativeTermSortedSet;
 import us.poliscore.service.storage.MemoryPersistenceService;
@@ -24,7 +30,7 @@ import us.poliscore.view.USCLegislatorView;
 public class LegislatorService {
 	
 	@Inject
-	private MemoryPersistenceService pServ;
+	private MemoryPersistenceService memService;
 	
 	@SneakyThrows
 	public void importLegislators()
@@ -51,7 +57,7 @@ public class LegislatorService {
 			leg.setBirthday(view.getBio().getBirthday());
 			leg.setTerms(view.getTerms().stream().map(t -> t.convert()).collect(Collectors.toCollection(LegislatorLegislativeTermSortedSet::new)));
 			
-			pServ.put(leg);
+			memService.put(leg);
 			count++;
 		}
 		
@@ -60,7 +66,19 @@ public class LegislatorService {
 	
 	public Optional<Legislator> getById(String id)
 	{
-		return pServ.get(id, Legislator.class);
+		return memService.get(id, Legislator.class);
 	}
-	
+
+	@SneakyThrows
+	public void generateLegislatorWebappIndex() {
+		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/resources/legislators.index");
+		
+		val data = memService.query(Legislator.class).stream()
+			.filter(l -> l.isMemberOfSession(CongressionalSession.S118))
+			.map(l -> Arrays.asList(l.getBioguideId(),l.getName().getOfficial_full()))
+			.sorted((a,b) -> a.get(1).compareTo(b.get(1)))
+			.toList();
+		
+		FileUtils.write(out, PoliscoreUtil.getObjectMapper().writeValueAsString(data), "UTF-8");
+	}
 }

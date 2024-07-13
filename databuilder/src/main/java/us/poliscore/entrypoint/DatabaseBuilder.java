@@ -1,7 +1,5 @@
 package us.poliscore.entrypoint;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -16,21 +14,17 @@ import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.val;
 import us.poliscore.MissingBillTextException;
-import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorBillInteraction;
-import us.poliscore.model.LegislatorInterpretation;
-import us.poliscore.model.bill.Bill;
-import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.RollCallService;
-import us.poliscore.service.storage.CachedS3Service;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
+import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.LocalFilePersistenceService;
 import us.poliscore.service.storage.MemoryPersistenceService;
 
@@ -50,7 +44,7 @@ public class DatabaseBuilder implements QuarkusApplication
 	private DynamoDbPersistenceService ddb;
 	
 	@Inject
-	private CachedS3Service s3;
+	private LocalCachedS3Service s3;
 	
 	@Inject
 	private BillService billService;
@@ -76,6 +70,7 @@ public class DatabaseBuilder implements QuarkusApplication
 	protected void process() throws IOException
 	{
 		legService.importLegislators();
+		legService.generateLegislatorWebappIndex();
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
@@ -106,7 +101,9 @@ public class DatabaseBuilder implements QuarkusApplication
 //		});
 		
 		// Write all legislators to ddb
-//		memService.query(Legislator.class).forEach(l -> {
+//		long total = 535;
+//		long count = 0;
+//		for (Legislator l : memService.query(Legislator.class)) {
 ////			val interacts = new LegislatorBillInteractionSet();
 ////			legInterp.getInteractionsForInterpretation(l).forEach(interact -> {
 ////				val billInterp = s3.get(BillInterpretation.generateId(interact.getBillId(), null), BillInterpretation.class);
@@ -121,19 +118,32 @@ public class DatabaseBuilder implements QuarkusApplication
 ////			l.setInterpretation(s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class).orElseThrow());
 ////			ddb.put(l);
 //			
-//			val leg = ddb.get(l.getId(), Legislator.class);
+//			val op = ddb.get(l.getId(), Legislator.class);
 //			
-//			if (leg.isPresent()) {
-//			
-//				leg.get().setDate(leg.get().getBirthday());
+//			if (op.isPresent()) {
+//				val leg = op.get();
 //				
-//				ddb.put(leg.get());
-//			
+//				legInterp.populateInteractionStats(leg);
+//				
+//				val interacts = new LegislatorBillInteractionSet();
+//				for (val interact : legInterp.getInteractionsForInterpretation(leg))
+//				{
+//					if (interact.getIssueStats() != null)
+//					{
+//						interacts.add(interact);
+//					}
+//				}
+//				
+//				if (interacts.size() > 0) {
+//					leg.setInteractions(interacts);
+//					ddb.put(leg);
+//					Log.info("Put legislator " + leg.getId() + ". " + (total - count++));
+//				}
 //			}
-//		});
+//		};
 		
-		val legs = memService.query(Legislator.class).stream().filter(l -> l.getDate() != null).sorted(Comparator.comparing(Legislator::getDate).reversed()).limit(10).toList();
-		System.out.println(legs);
+//		val legs = memService.query(Legislator.class).stream().filter(l -> l.getDate() != null).sorted(Comparator.comparing(Legislator::getDate).reversed()).limit(10).toList();
+//		System.out.println(legs);
 		
 		Log.info("Poliscore database build complete.");
 	}

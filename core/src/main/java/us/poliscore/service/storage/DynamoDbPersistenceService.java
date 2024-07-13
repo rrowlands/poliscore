@@ -45,7 +45,7 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 	public static class DdbPage {
 		public static DdbPage ALL = new DdbPage(null);
 		
-		public static DdbPage NONE = new DdbPage("__~`-=NONE=-`~__");
+		public static DdbPage HEAD = new DdbPage(HEAD_PAGE);
 		
 		private String page;
 		
@@ -144,14 +144,14 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 	@SneakyThrows
 	public <T extends Persistable> Optional<T> get(@NonNull String id, @NonNull Class<T> clazz, @NonNull DdbPage page)
 	{
-		val builder = Key.builder().partitionValue(id);
-		
-		if (page.equals(DdbPage.NONE)) {
-			@SuppressWarnings("unchecked")
-			val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, TableSchema.fromBean(clazz)));
-			
-			return Optional.ofNullable(table.getItem(builder.build()));
-		} else {
+//		if (page.equals(DdbPage.HEAD)) {
+//			val builder = Key.builder().partitionValue(id).sortValue(HEAD_PAGE);
+//			
+//			@SuppressWarnings("unchecked")
+//			val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, TableSchema.fromBean(clazz)));
+//			
+//			return Optional.ofNullable(table.getItem(builder.build()));
+//		} else {
 			val schema = TableSchema.fromBean(clazz);
 			
 			var keyExpression = "id=:id";
@@ -195,7 +195,7 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 			}
 			
 			return Optional.of(head);
-		}
+//		}
 	}
 
 	@SneakyThrows

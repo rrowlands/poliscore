@@ -8,11 +8,14 @@ import {MatCardModule} from '@angular/material/card';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import {MatButtonToggleModule} from '@angular/material/button-toggle'; 
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Observable, map, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-legislators',
   standalone: true,
-  imports: [HttpClientModule, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule],
+  imports: [HttpClientModule, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule, MatAutocompleteModule, ReactiveFormsModule],
   providers: [AppService, HttpClient],
   templateUrl: './legislators.component.html',
   styleUrl: './legislators.component.scss'
@@ -20,6 +23,12 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 export class LegislatorsComponent implements OnInit {
 
   legs?: Legislator[];
+
+  allLegislators: [string, string][] = [];
+
+  myControl = new FormControl('');
+
+  filteredOptions?: Observable<[string, string][]>;
 
   public page: Page = {
     index: "ObjectsByDate",
@@ -31,7 +40,25 @@ export class LegislatorsComponent implements OnInit {
 
   ngOnInit(): void
   {
-    this.fetchData();
+    this.service.getLegislatorPageData().then(data => {
+      this.legs = data.legislators;
+      this.allLegislators = data.allLegislators;
+    });
+
+    this.filteredOptions = this.myControl.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value || '')),
+    );
+  }
+
+  private _filter(value: string): [string, string][] {
+    const filterValue = value.toLowerCase();
+
+    return this.allLegislators.filter(shortLeg => shortLeg[1].toLowerCase().includes(filterValue));
+  }
+
+  onSelectAutocomplete(bioguideId: string) {
+    this.router.navigate(['/legislator', "LEG/us/congress/" + bioguideId]);
   }
 
   togglePage(index: string) {

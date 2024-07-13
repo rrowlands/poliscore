@@ -29,6 +29,7 @@ import us.poliscore.model.Legislator;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
 import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.VoteStatus;
+import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillSlice;
@@ -151,16 +152,15 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		IssueStats stats = new IssueStats();
 		
+		val interacts = new LegislatorBillInteractionSet();
 		for (val interact : legInterp.getInteractionsForInterpretation(leg))
 		{
 			if (interact.getIssueStats() != null)
 			{
-				if (interact instanceof LegislatorBillVote
-						&& (((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.NOT_VOTING) || ((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.PRESENT)))
-					continue;
-				
 				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
 				stats = stats.sum(weightedStats, Math.abs(interact.getJudgementWeight()));
+				
+				interacts.add(interact);
 			}
 		}
 		
@@ -173,6 +173,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		interp.setHash(legInterp.calculateInterpHashCode(leg));
 		s3.put(interp);
 		
+		leg.setInteractions(interacts);
 		leg.setInterpretation(interp);
 		
 		ddb.put(leg);

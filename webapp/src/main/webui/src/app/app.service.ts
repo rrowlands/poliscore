@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpHeaders, HttpClient, HttpParams } from '@angular/common/http';
 import { backendUrl } from './app.config';
-import { Bill, Legislator, Page } from './model';
+import { Bill, Legislator, LegislatorPageData, Page } from './model';
 import { firstValueFrom } from 'rxjs/internal/firstValueFrom';
 
 @Injectable()
@@ -37,6 +37,10 @@ export class AppService {
         }
 
         return firstValueFrom(this.http.get<Legislator[]>(backendUrl + "/getLegislators", { params: params }));
+    }
+
+    getLegislatorPageData(): Promise<LegislatorPageData> {
+        return firstValueFrom(this.http.get<LegislatorPageData>(backendUrl + "/getLegislatorPageData"));
     }
 
     getBill(billId: string) {

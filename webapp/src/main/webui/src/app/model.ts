@@ -51,6 +51,11 @@ export class Legislator {
     photoError: boolean = false;
 }
 
+export interface LegislatorPageData {
+  legislators: Legislator[];
+  allLegislators: [string, string][];
+}
+
 export class LegislatorInterpretation {
     issueStats!: IssueStats;
     legislatorId!: string;

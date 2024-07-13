@@ -6,12 +6,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.funqy.Funq;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.SneakyThrows;
 import lombok.val;
+import us.poliscore.LegislatorPageData;
+import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorBillInteraction;
@@ -24,6 +28,8 @@ public class Lambda {
 
     @Inject
     CachedDynamoDbService ddb;
+    
+    private LegislatorPageData cachedLegPageData;
     
     private Map<String, List<Legislator>> cachedLegislators = new HashMap<String, List<Legislator>>();
     
@@ -67,6 +73,20 @@ public class Lambda {
     	}
     	
     	return legs;
+    }
+    
+    @Funq
+    @SneakyThrows
+    public LegislatorPageData getLegislatorPageData(Map<String, String> queryParams) {
+    	if (cachedLegPageData != null) return cachedLegPageData;
+    	
+    	val legs = getLegislators(queryParams);
+    	@SuppressWarnings("unchecked")
+		List<List<String>> allLegs = PoliscoreUtil.getObjectMapper().readValue(IOUtils.toString(Lambda.class.getResourceAsStream("/legislators.index"), "UTF-8"), List.class);
+    	
+    	cachedLegPageData = new LegislatorPageData(legs, allLegs);
+    	
+    	return cachedLegPageData;
     }
     
     @Funq

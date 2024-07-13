@@ -7,48 +7,47 @@
 
         <div class="vertical-content">
 
-        <div class="breadcrumb horizontal-layout">
-            <h1 class="poliscore" href="#" routerLink="/">poliscore.us</h1>
-            <span class="sort">
-                <label class="sort-label">Sort by:</label>
-                <mat-button-toggle-group name="fontStyle" aria-label="Font Style">
-                  <mat-button-toggle (click)="togglePage('ObjectsByRating')" value="bold">Rating</mat-button-toggle>
-                  <mat-button-toggle (click)="togglePage('ObjectsByDate')" value="italic">Age</mat-button-toggle>
-                </mat-button-toggle-group>
-            </span>
-        </div>
-        
-        <mat-card *ngFor="let leg of legs" (click)="routeTo(leg)" class="example-card" appearance="outlined">
-            <div class="left">
-                <img *ngIf="!leg.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" (error)="leg.photoError = true;" >
-                <img *ngIf="leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>
+            <div class="breadcrumb horizontal-layout">
+                <h1 class="poliscore" href="#" routerLink="/">poliscore.us</h1>
+                <span *ngIf="legs" class="sort">
+                    <label class="sort-label">Sort by:</label>
+                    <mat-button-toggle-group name="fontStyle" aria-label="Font Style">
+                    <mat-button-toggle (click)="togglePage('ObjectsByRating')" value="bold">Rating</mat-button-toggle>
+                    <mat-button-toggle (click)="togglePage('ObjectsByDate')" value="italic">Age</mat-button-toggle>
+                    </mat-button-toggle-group>
+                </span>
             </div>
-            <div class="right">
-                <mat-card-header>
-                    <mat-card-title-group>
-                        <mat-card-title>{{leg.name.official_full}}</mat-card-title>
-                        <h1 class="col-2 g-0"><p class="text-end" style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForLegislator(leg))}">{{gradeForLegislator(leg)}}</p></h1>
-                        <mat-card-subtitle>{{subtitleForLegislator(leg)}}</mat-card-subtitle>
-                    </mat-card-title-group>
-                </mat-card-header>
-                <mat-card-content>
-                    <span><p>{{descriptionForLegislator(leg)}}</p></span>
-                </mat-card-content>
-            </div>
-        </mat-card>
 
-        <!-- <mat-paginator #paginator
-               class="demo-paginator"
-               (page)="handlePageEvent($event)"
-               [length]="length"
-               [pageSize]="pageSize"
-               [disabled]="disabled"
-               [showFirstLastButtons]="showFirstLastButtons"
-               [pageSizeOptions]="showPageSizeOptions ? pageSizeOptions : []"
-               [hidePageSize]="hidePageSize"
-               [pageIndex]="pageIndex"
-               aria-label="Select page">
-        </mat-paginator> -->
+            <input *ngIf="allLegislators.length > 0" class="searchbox" type="text"
+                placeholder="Search by name"
+                aria-label="Number"
+                matInput
+                [formControl]="myControl"
+                [matAutocomplete]="auto">
+            <mat-autocomplete #auto="matAutocomplete">
+                @for (shortLeg of filteredOptions | async; track shortLeg) {
+                    <mat-option (click)="onSelectAutocomplete(shortLeg[0])" [value]="shortLeg[0]">{{shortLeg[1]}}</mat-option>
+                }
+            </mat-autocomplete>
+            
+            <mat-card *ngFor="let leg of legs" (click)="routeTo(leg)" class="example-card" appearance="outlined">
+                <div class="left">
+                    <img *ngIf="!leg.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" (error)="leg.photoError = true;" >
+                    <img *ngIf="leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>
+                </div>
+                <div class="right">
+                    <mat-card-header>
+                        <mat-card-title-group>
+                            <mat-card-title>{{leg.name.official_full}}</mat-card-title>
+                            <h1 class="col-2 g-0"><p class="text-end" style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForLegislator(leg))}">{{gradeForLegislator(leg)}}</p></h1>
+                            <mat-card-subtitle>{{subtitleForLegislator(leg)}}</mat-card-subtitle>
+                        </mat-card-title-group>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <span><p>{{descriptionForLegislator(leg)}}</p></span>
+                    </mat-card-content>
+                </div>
+            </mat-card>
        
         </div>
 

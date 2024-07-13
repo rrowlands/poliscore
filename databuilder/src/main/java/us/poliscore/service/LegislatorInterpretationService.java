@@ -24,7 +24,7 @@ import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.parsing.BillSlicer;
-import us.poliscore.service.storage.CachedS3Service;
+import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryPersistenceService;
 
 @ApplicationScoped
@@ -36,7 +36,7 @@ public class LegislatorInterpretationService
 	private static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) critique of this history, evaluating the performance, highlighting any specific accomplishments or alarming behaviour and pointing out major focuses and priorities of the legislator. In your critique, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
 	
 	@Inject
-	private CachedS3Service s3;
+	private LocalCachedS3Service s3;
 	
 	@Inject
 	private BillService billService;

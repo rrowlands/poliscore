@@ -4,7 +4,8 @@
     background-clip: text;
     font-size: 2em;
     cursor: pointer;
-    padding-left: 10px;
+    padding:0;
+    margin:16px;
 }
 
 .tran-div {
@@ -17,6 +18,12 @@
 
 .vertical-content > * {
     width: calc(100% - 20px);
+    margin: 10px;
+}
+
+.vertical-content > input {
+    height: 30px;
+    width: calc(100% - 27px);
 }
 
 .breadcrumb > * {

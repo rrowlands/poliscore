@@ -25,7 +25,7 @@ public class LocalFilePersistenceService implements PersistenceServiceIF
 		return new File(PoliscoreUtil.APP_DATA, "store");
 	}
 	
-	public File getStore(String idClassPrefix)
+	protected File getStore(String idClassPrefix)
 	{
 //		if (Bill.class.equals(clazz)) return new File(getLocalStorage(), "bills");
 //		else if (BillInterpretation.class.equals(clazz)) return new File(getLocalStorage(), "interpretations");
@@ -42,13 +42,22 @@ public class LocalFilePersistenceService implements PersistenceServiceIF
 		return f;
 	}
 	
+	protected File fileFor(String id) {
+		File f = new File(getLocalStorage(), id + ".json");
+		
+		if (!f.getParentFile().exists()) {
+			f.getParentFile().mkdirs();
+		}
+		
+		return f;
+	}
+	
 	@SneakyThrows
 	public void put(Persistable obj) {
-		File storage = getStore(obj.getIdClassPrefix());
-		File out = new File(storage, obj.getId() + ".json");
+		File f = fileFor(obj.getId());
 		
 		var mapper = PoliscoreUtil.getObjectMapper();
-		mapper.writerWithDefaultPrettyPrinter().writeValue(out, obj);
+		mapper.writerWithDefaultPrettyPrinter().writeValue(f, obj);
 		
 //		Log.info("Wrote file to " + out.getAbsolutePath());
 	}
@@ -56,37 +65,37 @@ public class LocalFilePersistenceService implements PersistenceServiceIF
 	@SneakyThrows
 	public <T extends Persistable> Optional<T> get(String id, Class<T> clazz)
 	{
-		File objectStore = getStore(id.substring(0, 3));
-		File stored = new File(objectStore, id + ".json");
+		File f = fileFor(id);
 		
-		if (!stored.exists())
+		if (!f.exists())
 			return Optional.empty();
 		
 		var mapper = PoliscoreUtil.getObjectMapper();
-		return Optional.of(mapper.readValue(stored, clazz));
+		return Optional.of(mapper.readValue(f, clazz));
 	}
 
 	@Override
 	public <T extends Persistable> boolean exists(String id, Class<T> clazz) {
-		File objectStore = getStore(id.substring(0, 3));
-		File stored = new File(objectStore, id + ".json");
-		return stored.exists();
+		File f = fileFor(id);
+		return f.exists();
 	}
 	
 	@Override
 	@SneakyThrows
 	public <T extends Persistable> List<T> query(Class<T> clazz) {
-		val idClassPrefix =(String) clazz.getField("ID_CLASS_PREFIX").get(null);
-		File objectStore = getStore(idClassPrefix);
+//		val idClassPrefix =(String) clazz.getField("ID_CLASS_PREFIX").get(null);
+//		File objectStore = getStore(idClassPrefix);
+//		
+//		val mapper = PoliscoreUtil.getObjectMapper();
+//		return Arrays.asList(objectStore.listFiles()).stream().map(f -> {
+//			try {
+//				return mapper.readValue(FileUtils.readFileToString(f, "UTF-8"), clazz);
+//			} catch (IOException e) {
+//				throw new RuntimeException(e);
+//			}
+//		}).toList();
 		
-		val mapper = PoliscoreUtil.getObjectMapper();
-		return Arrays.asList(objectStore.listFiles()).stream().map(f -> {
-			try {
-				return mapper.readValue(FileUtils.readFileToString(f, "UTF-8"), clazz);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}).toList();
+		throw new UnsupportedOperationException();
 	}
 	
 }

@@ -13,6 +13,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.val;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
@@ -67,6 +68,15 @@ public class Legislator implements Persistable {
 	{
 		interactions.removeIf(existing -> incoming.supercedes(existing));
 		interactions.add(incoming);
+	}
+	
+	public boolean isMemberOfSession(CongressionalSession session) {
+		if (this.terms == null || this.terms.size() == 0) return false;
+		
+		val term = this.terms.last();
+		
+		return (term.getStartDate().isBefore(session.getStartDate()) || term.getStartDate().isEqual(session.getStartDate()))
+				&& (term.getEndDate().isAfter(session.getStartDate()) || term.getEndDate().equals(session.getEndDate()));
 	}
 	
 	public static String generateId(LegislativeNamespace ns, String bioguideId)
