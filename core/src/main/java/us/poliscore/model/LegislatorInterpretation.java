@@ -66,11 +66,11 @@ public class LegislatorInterpretation implements Persistable
 	
 	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
 	
-	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return metadata.getDate(); }
+	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return metadata.getDate(); }
 
-	@Override @JsonIgnore public void setDate(LocalDate date) { }
+	@JsonIgnore public void setDate(LocalDate date) { }
 	
-	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return issueStats.getRating(); }
+	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return issueStats.getRating(); }
 
-	@Override @JsonIgnore public void setRating(int rating) { }
+	@JsonIgnore public void setRating(int rating) { }
 }

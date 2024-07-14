@@ -64,11 +64,22 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 	@Inject
 	DynamoDbClient ddb;
 	
+	private Map<Class<?>, BeanTableSchema<?>> schemas  = new HashMap<Class<?>, BeanTableSchema<?>>();
+	
+	@SuppressWarnings("unchecked")
+	private <T extends Persistable> BeanTableSchema<T> getSchema(Class<T> clazz) {
+		if (!schemas.containsKey(clazz)) {
+			schemas.put(clazz, TableSchema.fromBean(clazz));
+		}
+		
+		return (BeanTableSchema<T>) schemas.get(clazz);
+	}
+	
 	@SuppressWarnings("unchecked")
 	@SneakyThrows
 	public <T extends Persistable> void put(T obj)
 	{
-//		val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, TableSchema.fromBean(obj.getClass())));
+//		val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, getSchema(obj.getClass())));
 		
 		Map<String, Map<String, AttributeValue>> pages = new HashMap<String, Map<String, AttributeValue>>();
 		
@@ -109,7 +120,7 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 		Class clazz = obj.getClass();
 		
 		@SuppressWarnings("unchecked")
-		Map<String, AttributeValue> objAttrs = new HashMap<String, AttributeValue>(TableSchema.fromBean(clazz).itemToMap(clazz.cast(obj), true));
+		Map<String, AttributeValue> objAttrs = new HashMap<String, AttributeValue>(getSchema(clazz).itemToMap(clazz.cast(obj), true));
 		objAttrs.put("page", AttributeValue.fromS(HEAD_PAGE));
 		
 		for (String fieldName : pages.values().stream().map(v -> v.keySet()).reduce(new HashSet<String>(), (a,b) -> { a.addAll(b); return a; })) {
@@ -148,11 +159,11 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 //			val builder = Key.builder().partitionValue(id).sortValue(HEAD_PAGE);
 //			
 //			@SuppressWarnings("unchecked")
-//			val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, TableSchema.fromBean(clazz)));
+//			val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, getSchema(clazz)));
 //			
 //			return Optional.ofNullable(table.getItem(builder.build()));
 //		} else {
-			val schema = TableSchema.fromBean(clazz);
+			val schema = getSchema(clazz);
 			
 			var keyExpression = "id=:id";
 			val eav = new HashMap<String,AttributeValue>(Map.of(":id", AttributeValue.fromS(id)));

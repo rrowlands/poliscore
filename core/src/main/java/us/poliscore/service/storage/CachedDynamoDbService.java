@@ -54,9 +54,9 @@ public class CachedDynamoDbService implements ApplicationDataStoreIF
 		return dynamodb.query(clazz);
 	}
 	
-	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz, int pageSize, String index, Boolean ascending, String exclusiveStartKey)
+	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz, int pageSize, String index, Boolean ascending, String exclusiveStartKey, String sortKey)
 	{
-		return dynamodb.query(clazz, pageSize, index, ascending, exclusiveStartKey, null); // TODO : Clone the objects and then store them in memory
+		return dynamodb.query(clazz, pageSize, index, ascending, exclusiveStartKey, sortKey); // TODO : Clone the objects and then store them in memory
 	}
 	
 }

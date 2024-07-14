@@ -40,14 +40,12 @@ public class BillText implements Persistable
 	public static String generateId(String billId) { return billId.replace(Bill.ID_CLASS_PREFIX, ID_CLASS_PREFIX); }
 	
 	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
-	
 	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
 	
-	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return lastUpdated; }
-
-	@Override @JsonIgnore public void setDate(LocalDate date) { lastUpdated = date; }
+	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return lastUpdated; }
+	@JsonIgnore public void setDate(LocalDate date) { lastUpdated = date; }
 	
-	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return 0; }
-	@Override @JsonIgnore public void setRating(int rating) { }
+	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return 0; }
+	@JsonIgnore public void setRating(int rating) { }
 	
 }

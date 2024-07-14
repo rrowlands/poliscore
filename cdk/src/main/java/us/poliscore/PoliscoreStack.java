@@ -42,6 +42,7 @@ class PoliscoreStack extends Stack {
                         .build())
                 .removalPolicy(RemovalPolicy.DESTROY)
                 .billingMode(BillingMode.PAY_PER_REQUEST)
+                .timeToLiveAttribute("expireDate")
                 .build());
         
         table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()

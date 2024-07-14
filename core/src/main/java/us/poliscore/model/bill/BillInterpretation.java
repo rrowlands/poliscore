@@ -78,15 +78,13 @@ public class BillInterpretation implements Persistable
 	}
 	
 	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
-	
 	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
 	
-	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return metadata.getDate(); }
-
-	@Override @JsonIgnore public void setDate(LocalDate date) { }
+	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return metadata.getDate(); }
+	@JsonIgnore public void setDate(LocalDate date) { }
 	
-	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return issueStats.getRating(); }
-	@Override @JsonIgnore public void setRating(int rating) { }
+	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return issueStats.getRating(); }
+	@JsonIgnore public void setRating(int rating) { }
 	
 	public static String generateId(String billId, Integer sliceIndex)
 	{

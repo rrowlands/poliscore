@@ -8,9 +8,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.resteasy.reactive.RestPath;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -47,7 +49,7 @@ public class Lambda {
 
     @GET
     @Path("/getLegislator")
-    public Legislator getLegislator(@PathParam("id") String id) {
+    public Legislator getLegislator(@RestPath String id) {
     	val op = ddb.get(id, Legislator.class);
     	
     	if (op.isPresent()) {
@@ -62,7 +64,7 @@ public class Lambda {
     
     @GET
     @Path("/getLegislators")
-    public List<Legislator> getLegislators(@PathParam("pageSize") Integer _pageSize, @PathParam("index") String _index, @PathParam("ascending") Boolean _ascending, @PathParam("exclusiveStartKey") String _exclusiveStartKey, @PathParam("sortKey") String sortKey) {
+    public List<Legislator> getLegislators(@RestPath Integer _pageSize, @RestPath String _index, @RestPath Boolean _ascending, @RestPath String _exclusiveStartKey, @RestPath String sortKey) {
     	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
     	val startKey = _exclusiveStartKey;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
@@ -72,7 +74,7 @@ public class Lambda {
     	val cacheKey = index + "-" + ascending.toString();
     	if (cacheable && cachedLegislators.containsKey(cacheKey)) return cachedLegislators.get(cacheKey);
     	
-    	val legs = ddb.query(Legislator.class, pageSize, index, ascending, startKey);
+    	val legs = ddb.query(Legislator.class, pageSize, index, ascending, startKey, sortKey);
     	
     	legs.forEach(l -> l.setInteractions(new LegislatorBillInteractionSet()));
     	
@@ -87,11 +89,21 @@ public class Lambda {
     @SneakyThrows
     @Path("/getLegislatorPageData")
     public LegislatorPageData getLegislatorPageData(@Context APIGatewayV2HTTPEvent event) {
-    	val sourceIp = event.getRequestContext().getHttp().getSourceIp();
-    	val location = ipService.locateIp(sourceIp);
-    	val legs = getLegislators(null, (location.isEmpty() ? null : Persistable.OBJECT_BY_LOCATION_INDEX), null, null, location.orElse(null));
+    	String location = null;
     	
-    	return new LegislatorPageData(legs, getAllLegs());
+    	try {
+	    	val sourceIp = event.getRequestContext().getHttp().getSourceIp();
+	    	location = ipService.locateIp(sourceIp).orElse(null);
+    	}
+    	catch(Exception e) {
+    		Log.error(e);
+    	}
+    	
+    	String index = (location == null ? null : Persistable.OBJECT_BY_LOCATION_INDEX);
+    	
+    	val legs = getLegislators(null, index, null, null, location);
+    	
+    	return new LegislatorPageData(location, legs, getAllLegs());
     }
     
     @SuppressWarnings("unchecked")
@@ -113,7 +125,7 @@ public class Lambda {
     
     @GET
     @Path("/getBills")
-    public List<Bill> getBills(@PathParam("pageSize") Integer _pageSize, @PathParam("index") String _index, @PathParam("ascending") Boolean _ascending, @PathParam("exclusiveStartKey") String _exclusiveStartKey, @PathParam("sortKey") String sortKey) {
+    public List<Bill> getBills(@RestPath Integer _pageSize, @RestPath String _index, @RestPath Boolean _ascending, @RestPath String _exclusiveStartKey, @RestPath String sortKey) {
     	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
     	val startKey = _exclusiveStartKey;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
@@ -123,7 +135,7 @@ public class Lambda {
     	val cacheKey = index + "-" + ascending.toString();
     	if (cacheable && cachedBills.containsKey(cacheKey)) return cachedBills.get(cacheKey);
     	
-    	val bills = ddb.query(Bill.class, pageSize, index, ascending, startKey);
+    	val bills = ddb.query(Bill.class, pageSize, index, ascending, startKey, sortKey);
     	
     	if (cacheable) {
     		cachedBills.put(cacheKey, bills);
