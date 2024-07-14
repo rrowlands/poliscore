@@ -120,7 +120,9 @@ export class LegislatorsComponent implements OnInit {
 
   subtitleForLegislator(leg: Legislator): string
   {
-    return subtitleForStats(leg.interpretation?.issueStats!);
+    // return subtitleForStats(leg.interpretation?.issueStats!);
+
+    return leg.terms[leg.terms.length - 1].chamber == "SENATE" ? "Senator" : "House (District " + leg.terms[leg.terms.length - 1].district + ")";
   }
 
 }
