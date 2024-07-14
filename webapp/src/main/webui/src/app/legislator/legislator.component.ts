@@ -145,7 +145,7 @@ export class LegislatorComponent implements OnInit {
 
   getDisplayedColumns(): string[] {
     if (window.innerWidth < 480) {
-      return ['billName', 'billGrade'];
+      return ['billName', 'billGrade', "association"];
     } else {
       return this.displayedColumns;
     }

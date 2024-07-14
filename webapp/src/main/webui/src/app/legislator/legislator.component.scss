@@ -86,6 +86,11 @@ p {
     }
 }
 
+@media screen and (max-width: 410px) {
+    table.bill-history-table {
+        margin-left: calc(50vw - 210px);
+    }
+}
 
 
 @media screen and (max-width: 424px) {
