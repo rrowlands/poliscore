@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page } from '../model';
+import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page } from '../model';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -122,7 +122,9 @@ export class LegislatorsComponent implements OnInit {
   {
     // return subtitleForStats(leg.interpretation?.issueStats!);
 
-    return leg.terms[leg.terms.length - 1].chamber == "SENATE" ? "Senator" : "House (District " + leg.terms[leg.terms.length - 1].district + ")";
+    let term = leg.terms[leg.terms.length - 1];
+
+    return (term.chamber == "SENATE" ? "Senator" : "House") + " (" + convertStateCodeToName(term.state) + ")";
   }
 
 }

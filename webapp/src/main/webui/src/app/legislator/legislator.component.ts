@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { AppService } from '../app.service';
-import { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade, issueKeyToLabelSmall } from '../model';
+import convertStateCodeToName, { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade, issueKeyToLabelSmall } from '../model';
 import { HttpHeaders, HttpClient, HttpParams, HttpHandler, HttpClientModule } from '@angular/common/http';
 import { CommonModule, DatePipe, KeyValuePipe } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
@@ -130,7 +130,11 @@ export class LegislatorComponent implements OnInit {
   subtitleForLegislator(): string {
     if (this.leg == null) return "";
 
-    return this.leg?.terms[this.leg?.terms.length - 1].chamber == "HOUSE" ? "House of Representatives" : "Senate";
+    // return this.leg?.terms[this.leg?.terms.length - 1].chamber == "HOUSE" ? "House of Representatives" : "Senate";
+
+    let term = this.leg.terms[this.leg.terms.length - 1];
+
+    return (term.chamber == "SENATE" ? "Senator" : "House (" + convertStateCodeToName(term.state) + " District " + term.district + ")");
   }
 
   legPhotoError(leg: any) {

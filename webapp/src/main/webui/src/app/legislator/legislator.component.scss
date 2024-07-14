@@ -11,7 +11,7 @@ mat-card {
 .grade {
     position: absolute;
     top: 15px;
-    left: 25px;
+    left: 20px;
 }
 
 .grade > p {
@@ -22,6 +22,11 @@ mat-card {
 .card-text {
     max-height: 250px;
     overflow: clip;
+}
+
+.card-title {
+    margin-left: 25px;
+    margin-right: 25px;
 }
 
 .card-tex small {
