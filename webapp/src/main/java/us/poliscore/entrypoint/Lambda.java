@@ -65,7 +65,7 @@ public class Lambda {
     
     @GET
     @Path("/getLegislators")
-    public List<Legislator> getLegislators(@RestQuery Integer _pageSize, @RestQuery String _index, @RestQuery Boolean _ascending, @RestQuery String _exclusiveStartKey, @RestQuery String sortKey) {
+    public List<Legislator> getLegislators(@RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") String _exclusiveStartKey, @RestQuery String sortKey) {
     	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
     	val startKey = _exclusiveStartKey;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
@@ -126,7 +126,7 @@ public class Lambda {
     
     @GET
     @Path("/getBills")
-    public List<Bill> getBills(@RestQuery Integer _pageSize, @RestQuery String _index, @RestQuery Boolean _ascending, @RestQuery String _exclusiveStartKey, @RestQuery String sortKey) {
+    public List<Bill> getBills(@RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") String _exclusiveStartKey, @RestQuery String sortKey) {
     	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
     	val startKey = _exclusiveStartKey;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
