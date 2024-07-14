@@ -17,7 +17,6 @@ import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Context;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -119,7 +118,7 @@ public class Lambda {
     
     @GET
     @Path("/getBill")
-    public Bill getBill(@NonNull @PathParam("id") String id)
+    public Bill getBill(@NonNull @RestQuery("id") String id)
     {
     	return ddb.get(id, Bill.class).orElse(null);
     }
