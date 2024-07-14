@@ -235,23 +235,54 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 	@Override
 	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz)
 	{
-		return query(clazz, -1, null, null, null);
+		return query(clazz, -1, null, null, null, null);
+	}
+	
+	private String fieldForIndex(String index) {
+		if (index.equals(Persistable.OBJECT_BY_DATE_INDEX)) {
+			return "date";
+		} else if (index.equals(Persistable.OBJECT_BY_RATING_INDEX)) {
+			return "rating";
+		} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
+			return "location";
+		} else {
+			throw new UnsupportedOperationException();
+		}
+	}
+	
+	private String readValue(String index, AttributeValue av) {
+		if (index.equals(Persistable.OBJECT_BY_DATE_INDEX)) {
+			return av.s();
+		} else if (index.equals(Persistable.OBJECT_BY_RATING_INDEX)) {
+			return av.n();
+		} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
+			return av.s();
+		} else {
+			throw new UnsupportedOperationException();
+		}
 	}
 	
 	@SneakyThrows
-	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz, int pageSize, String index, Boolean ascending, String exclusiveStartKey)
+	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz, int pageSize, String index, Boolean ascending, String exclusiveStartKey, String sortKey)
 	{
 		if (StringUtils.isBlank(index)) index = Persistable.OBJECT_BY_DATE_INDEX;
 		if (ascending == null) ascending = Boolean.TRUE;
-		val field = (index.equals(Persistable.OBJECT_BY_DATE_INDEX)) ? "date" : "rating";
+		val field = fieldForIndex(index);
 		
 		@SuppressWarnings("unchecked")
 		val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, TableSchema.fromBean(clazz))).index(index);
 		
 		val idClassPrefix =(String) clazz.getField("ID_CLASS_PREFIX").get(null);
 		
+		QueryConditional condition;
+		if (sortKey == null) {
+			condition = QueryConditional.keyEqualTo(Key.builder().partitionValue(idClassPrefix).build());
+		} else {
+			condition = QueryConditional.sortBeginsWith(Key.builder().partitionValue(idClassPrefix).sortValue(sortKey).build());
+		}
+		
 		val request = QueryEnhancedRequest.builder()
-				.queryConditional(QueryConditional.keyEqualTo(Key.builder().partitionValue(idClassPrefix).build()));
+				.queryConditional(condition);
 		
 		if (pageSize != -1) {
 			request.limit(pageSize);
@@ -270,11 +301,7 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 			
 			results.addAll(page.items());
 			
-			if (field.equals(Persistable.OBJECT_BY_DATE_INDEX)) {
-				lastEvaluatedKey = page.lastEvaluatedKey().get(field).s();
-			} else {
-				lastEvaluatedKey = page.lastEvaluatedKey().get(field).n();
-			}
+			lastEvaluatedKey = page.lastEvaluatedKey() == null ? null : readValue(index, page.lastEvaluatedKey().get(field));
 		}
 		
 		return new PaginatedList<T>(results.stream().limit(pageSize).toList(), pageSize, exclusiveStartKey, lastEvaluatedKey);

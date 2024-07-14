@@ -5,17 +5,25 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.PathParam;
 import lombok.SneakyThrows;
+import lombok.val;
 import us.poliscore.entrypoint.Lambda;
+import us.poliscore.model.Legislator;
+import us.poliscore.model.Persistable;
+import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.bill.BillType;
+import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalFilePersistenceService;
 import us.poliscore.service.storage.MemoryPersistenceService;
@@ -30,7 +38,10 @@ public class Sandbox implements QuarkusApplication
 	private LocalFilePersistenceService localStore;
 	
 	@Inject
-	private DynamoDbPersistenceService dynamoDb;
+	private DynamoDbPersistenceService ddb;
+	
+	@Inject
+    IpGeolocationService ipService;
 	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
@@ -51,8 +62,31 @@ public class Sandbox implements QuarkusApplication
 //		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(leg));
 		
 		
-		getLegislatorPageData();
+//		getLegislatorPageData();
+		
+		
+//		String sourceIp = "71.56.241.71";
+//		val location = ipService.locateIp(sourceIp).orElse(null);
+		String location = "CO";
+    	val out = getLegislators(null, (location == null ? null : Persistable.OBJECT_BY_LOCATION_INDEX), null, null, location);
+    	
+    	
+    	
+    	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));
 	}
+	
+	public List<Legislator> getLegislators(Integer _pageSize, String _index, Boolean _ascending, String _exclusiveStartKey, String sortKey) {
+    	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
+    	val startKey = _exclusiveStartKey;
+    	var pageSize = _pageSize == null ? 25 : _pageSize;
+    	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
+    	
+    	val legs = ddb.query(Legislator.class, pageSize, index, ascending, startKey, sortKey);
+    	
+    	legs.forEach(l -> l.setInteractions(new LegislatorBillInteractionSet()));
+    	
+    	return legs;
+    }
 	
 	@SneakyThrows
 	public void getLegislatorPageData() {

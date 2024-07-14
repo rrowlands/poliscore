@@ -101,28 +101,30 @@ public class DatabaseBuilder implements QuarkusApplication
 //		});
 		
 		// Write all legislators to ddb
-//		long total = 535;
-//		long count = 0;
-//		for (Legislator l : memService.query(Legislator.class)) {
-////			val interacts = new LegislatorBillInteractionSet();
-////			legInterp.getInteractionsForInterpretation(l).forEach(interact -> {
-////				val billInterp = s3.get(BillInterpretation.generateId(interact.getBillId(), null), BillInterpretation.class);
-////				
-////				if (billInterp.isPresent()) {
-////					interact.setIssueStats(billInterp.get().getIssueStats());
-////					interacts.add(interact);
-////				}
-////			});
-////			
-////			l.setInteractions(interacts);
-////			l.setInterpretation(s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class).orElseThrow());
-////			ddb.put(l);
-//			
-//			val op = ddb.get(l.getId(), Legislator.class);
-//			
-//			if (op.isPresent()) {
-//				val leg = op.get();
+		long total = 535;
+		long count = 0;
+		for (Legislator l : memService.query(Legislator.class)) {
+//			val interacts = new LegislatorBillInteractionSet();
+//			legInterp.getInteractionsForInterpretation(l).forEach(interact -> {
+//				val billInterp = s3.get(BillInterpretation.generateId(interact.getBillId(), null), BillInterpretation.class);
 //				
+//				if (billInterp.isPresent()) {
+//					interact.setIssueStats(billInterp.get().getIssueStats());
+//					interacts.add(interact);
+//				}
+//			});
+//			
+//			l.setInteractions(interacts);
+//			l.setInterpretation(s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class).orElseThrow());
+//			ddb.put(l);
+			
+			val op = ddb.get(l.getId(), Legislator.class);
+			
+			if (op.isPresent()) {
+				val leg = op.get();
+				
+				
+				
 //				legInterp.populateInteractionStats(leg);
 //				
 //				val interacts = new LegislatorBillInteractionSet();
@@ -136,11 +138,11 @@ public class DatabaseBuilder implements QuarkusApplication
 //				
 //				if (interacts.size() > 0) {
 //					leg.setInteractions(interacts);
-//					ddb.put(leg);
-//					Log.info("Put legislator " + leg.getId() + ". " + (total - count++));
+					ddb.put(leg);
+					Log.info("Put legislator " + leg.getId() + ". " + (total - count++));
 //				}
-//			}
-//		};
+			}
+		};
 		
 //		val legs = memService.query(Legislator.class).stream().filter(l -> l.getDate() != null).sorted(Comparator.comparing(Legislator::getDate).reversed()).limit(10).toList();
 //		System.out.println(legs);

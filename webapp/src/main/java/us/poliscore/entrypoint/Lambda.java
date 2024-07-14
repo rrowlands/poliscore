@@ -9,9 +9,14 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import io.quarkus.funqy.Funq;
-import jakarta.enterprise.context.ApplicationScoped;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
+
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.core.Context;
 import lombok.SneakyThrows;
 import lombok.val;
 import us.poliscore.LegislatorPageData;
@@ -21,23 +26,29 @@ import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorBillInteraction;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.bill.Bill;
+import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.CachedDynamoDbService;
 
-@ApplicationScoped
+@Path("")
+@RequestScoped
 public class Lambda {
 
     @Inject
     CachedDynamoDbService ddb;
     
-    private LegislatorPageData cachedLegPageData;
+    @Inject
+    IpGeolocationService ipService;
+    
+    private List<List<String>> cachedAllLegs;
     
     private Map<String, List<Legislator>> cachedLegislators = new HashMap<String, List<Legislator>>();
     
     private Map<String, List<Bill>> cachedBills = new HashMap<String, List<Bill>>();
 
-    @Funq
-    public Legislator getLegislator(Map<String, String> queryParams) {
-    	val op = ddb.get(queryParams.get("id"), Legislator.class);
+    @GET
+    @Path("/getLegislator")
+    public Legislator getLegislator(@PathParam("id") String id) {
+    	val op = ddb.get(id, Legislator.class);
     	
     	if (op.isPresent()) {
     		val leg = op.get();
@@ -49,16 +60,13 @@ public class Lambda {
     	return op.orElse(null);
     }
     
-    @Funq
-    public List<Legislator> getLegislators(Map<String, String> queryParams) {
-    	val index = queryParams.containsKey("index") ? queryParams.get("index") : Persistable.OBJECT_BY_DATE_INDEX;
-    	val startKey = queryParams.get("exclusiveStartKey");
-    	
-    	var pageSize = 25;
-    	if (queryParams.containsKey("pageSize")) pageSize = Integer.parseInt(queryParams.get("pageSize"));
-    	
-    	Boolean ascending = Boolean.TRUE;
-    	if (queryParams.containsKey("ascending")) ascending = Boolean.parseBoolean(queryParams.get("ascending"));
+    @GET
+    @Path("/getLegislators")
+    public List<Legislator> getLegislators(@PathParam("pageSize") Integer _pageSize, @PathParam("index") String _index, @PathParam("ascending") Boolean _ascending, @PathParam("exclusiveStartKey") String _exclusiveStartKey, @PathParam("sortKey") String sortKey) {
+    	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
+    	val startKey = _exclusiveStartKey;
+    	var pageSize = _pageSize == null ? 25 : _pageSize;
+    	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
     	
     	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25;
     	val cacheKey = index + "-" + ascending.toString();
@@ -75,42 +83,47 @@ public class Lambda {
     	return legs;
     }
     
-    @Funq
+    @GET
     @SneakyThrows
-    public LegislatorPageData getLegislatorPageData(Map<String, String> queryParams) {
-    	if (cachedLegPageData != null) return cachedLegPageData;
+    @Path("/getLegislatorPageData")
+    public LegislatorPageData getLegislatorPageData(@Context APIGatewayV2HTTPEvent event) {
+    	val sourceIp = event.getRequestContext().getHttp().getSourceIp();
+    	val location = ipService.locateIp(sourceIp);
+    	val legs = getLegislators(null, (location.isEmpty() ? null : Persistable.OBJECT_BY_LOCATION_INDEX), null, null, location.orElse(null));
     	
-    	val legs = getLegislators(queryParams);
-    	@SuppressWarnings("unchecked")
-		List<List<String>> allLegs = PoliscoreUtil.getObjectMapper().readValue(IOUtils.toString(Lambda.class.getResourceAsStream("/legislators.index"), "UTF-8"), List.class);
-    	
-    	cachedLegPageData = new LegislatorPageData(legs, allLegs);
-    	
-    	return cachedLegPageData;
+    	return new LegislatorPageData(legs, getAllLegs());
     }
     
-    @Funq
-    public Bill getBill(Map<String, String> queryParams)
+    @SuppressWarnings("unchecked")
+	@SneakyThrows
+    private List<List<String>> getAllLegs() {
+    	if (cachedAllLegs == null) {
+    		cachedAllLegs = PoliscoreUtil.getObjectMapper().readValue(IOUtils.toString(Lambda.class.getResourceAsStream("/legislators.index"), "UTF-8"), List.class);
+    	}
+    	
+    	return cachedAllLegs;
+    }
+    
+    @GET
+    @Path("/getBill")
+    public Bill getBill(@PathParam("id") String id)
     {
-    	return ddb.get(queryParams.get("id"), Bill.class).orElse(null);
+    	return ddb.get(id, Bill.class).orElse(null);
     }
     
-    @Funq
-    public List<Bill> getBills(Map<String, String> queryParams) {
-    	val startKey = queryParams.get("exclusiveStartKey");
-    	val index = queryParams.containsKey("index") ? queryParams.get("index") : Persistable.OBJECT_BY_DATE_INDEX;
-    	
-    	var pageSize = 25;
-    	if (queryParams.containsKey("pageSize")) pageSize = Integer.parseInt(queryParams.get("pageSize"));
-    	
-    	Boolean ascending = Boolean.TRUE;
-    	if (queryParams.containsKey("ascending")) ascending = Boolean.parseBoolean(queryParams.get("ascending"));
+    @GET
+    @Path("/getBills")
+    public List<Bill> getBills(@PathParam("pageSize") Integer _pageSize, @PathParam("index") String _index, @PathParam("ascending") Boolean _ascending, @PathParam("exclusiveStartKey") String _exclusiveStartKey, @PathParam("sortKey") String sortKey) {
+    	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
+    	val startKey = _exclusiveStartKey;
+    	var pageSize = _pageSize == null ? 25 : _pageSize;
+    	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
     	
     	val cacheable = ascending && StringUtils.isBlank(startKey) && pageSize == 25;
     	val cacheKey = index + "-" + ascending.toString();
     	if (cacheable && cachedBills.containsKey(cacheKey)) return cachedBills.get(cacheKey);
     	
-    	val bills = ddb.query(Bill.class, pageSize, queryParams.get("index"), ascending, startKey);
+    	val bills = ddb.query(Bill.class, pageSize, index, ascending, startKey);
     	
     	if (cacheable) {
     		cachedBills.put(cacheKey, bills);

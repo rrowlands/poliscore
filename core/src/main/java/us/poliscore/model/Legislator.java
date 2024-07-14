@@ -84,7 +84,7 @@ public class Legislator implements Persistable {
 		return ID_CLASS_PREFIX + "/" + ns.getNamespace() + "/" + bioguideId;
 	}
 	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
 	
 	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
 	
@@ -95,6 +95,10 @@ public class Legislator implements Persistable {
 	@Override @JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return interpretation.getRating(); }
 
 	@Override @JsonIgnore public void setRating(int rating) { }
+	
+	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_LOCATION_INDEX }) public String getLocation() { return this.terms.last().getState() + (this.terms.last().getDistrict() == null ? "" : "/" + this.terms.last().getDistrict() ); }
+
+	@JsonIgnore public void setLocation(String location) { }
 	
 	@Data
 	@DynamoDbBean

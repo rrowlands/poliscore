@@ -12,7 +12,6 @@ import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.BillingMode;
 import software.amazon.awscdk.services.dynamodb.GlobalSecondaryIndexProps;
-import software.amazon.awscdk.services.dynamodb.LocalSecondaryIndexProps;
 import software.amazon.awscdk.services.dynamodb.Table;
 import software.amazon.awscdk.services.dynamodb.TableProps;
 import software.amazon.awscdk.services.lambda.Architecture;
@@ -24,6 +23,7 @@ import software.amazon.awscdk.services.lambda.FunctionUrlAuthType;
 import software.amazon.awscdk.services.lambda.FunctionUrlCorsOptions;
 import software.amazon.awscdk.services.lambda.HttpMethod;
 import software.amazon.awscdk.services.lambda.Runtime;
+import software.amazon.awscdk.services.secretsmanager.Secret;
 import software.constructs.Construct;
 
 class PoliscoreStack extends Stack {
@@ -42,6 +42,18 @@ class PoliscoreStack extends Stack {
                         .build())
                 .removalPolicy(RemovalPolicy.DESTROY)
                 .billingMode(BillingMode.PAY_PER_REQUEST)
+                .build());
+        
+        table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
+                .indexName("ObjectsByLocation")
+                .partitionKey(Attribute.builder()
+                        .name("idClassPrefix")
+                        .type(AttributeType.STRING)
+                        .build())
+                .sortKey(Attribute.builder()
+                        .name("location")
+                        .type(AttributeType.STRING)
+                        .build())
                 .build());
         
         table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
@@ -93,6 +105,10 @@ class PoliscoreStack extends Stack {
         	.build();
 
         table.grantReadWriteData(fPoliscore);
+        
+        
+        Secret dbReadSecret = new Secret(this, "ipstack");
+        dbReadSecret.grantRead(fPoliscore.getRole());
         
         
         
