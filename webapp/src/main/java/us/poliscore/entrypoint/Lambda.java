@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jboss.resteasy.reactive.RestPath;
+import org.jboss.resteasy.reactive.RestQuery;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 
@@ -19,6 +19,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Context;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 import us.poliscore.LegislatorPageData;
@@ -48,8 +49,8 @@ public class Lambda {
     private Map<String, List<Bill>> cachedBills = new HashMap<String, List<Bill>>();
 
     @GET
-    @Path("/getLegislator")
-    public Legislator getLegislator(@RestPath String id) {
+    @Path("getLegislator")
+    public Legislator getLegislator(@NonNull @RestQuery String id) {
     	val op = ddb.get(id, Legislator.class);
     	
     	if (op.isPresent()) {
@@ -64,7 +65,7 @@ public class Lambda {
     
     @GET
     @Path("/getLegislators")
-    public List<Legislator> getLegislators(@RestPath Integer _pageSize, @RestPath String _index, @RestPath Boolean _ascending, @RestPath String _exclusiveStartKey, @RestPath String sortKey) {
+    public List<Legislator> getLegislators(@RestQuery Integer _pageSize, @RestQuery String _index, @RestQuery Boolean _ascending, @RestQuery String _exclusiveStartKey, @RestQuery String sortKey) {
     	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
     	val startKey = _exclusiveStartKey;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
@@ -118,14 +119,14 @@ public class Lambda {
     
     @GET
     @Path("/getBill")
-    public Bill getBill(@PathParam("id") String id)
+    public Bill getBill(@NonNull @PathParam("id") String id)
     {
     	return ddb.get(id, Bill.class).orElse(null);
     }
     
     @GET
     @Path("/getBills")
-    public List<Bill> getBills(@RestPath Integer _pageSize, @RestPath String _index, @RestPath Boolean _ascending, @RestPath String _exclusiveStartKey, @RestPath String sortKey) {
+    public List<Bill> getBills(@RestQuery Integer _pageSize, @RestQuery String _index, @RestQuery Boolean _ascending, @RestQuery String _exclusiveStartKey, @RestQuery String sortKey) {
     	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
     	val startKey = _exclusiveStartKey;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
