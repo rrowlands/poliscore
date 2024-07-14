@@ -134,7 +134,7 @@ export class LegislatorComponent implements OnInit {
 
     let term = this.leg.terms[this.leg.terms.length - 1];
 
-    return (term.chamber == "SENATE" ? "Senator" : "House (" + convertStateCodeToName(term.state) + " District " + term.district + ")");
+    return (term.chamber == "SENATE" ? "Senator" : "House") + " (" + convertStateCodeToName(term.state) + (term.chamber == "HOUSE" ? " District " + term.district : "") + ")";
   }
 
   legPhotoError(leg: any) {
