@@ -19,14 +19,14 @@
             </div>
 
             <input *ngIf="allLegislators.length > 0" class="searchbox" type="text"
-                placeholder="Search by name"
+                placeholder="Search for legislator or state"
                 aria-label="Number"
                 matInput
                 [formControl]="myControl"
                 [matAutocomplete]="auto">
             <mat-autocomplete #auto="matAutocomplete">
-                @for (shortLeg of filteredOptions | async; track shortLeg) {
-                    <mat-option (click)="onSelectAutocomplete(shortLeg[0])" [value]="shortLeg[0]">{{shortLeg[1]}}</mat-option>
+                @for (idAndName of filteredOptions | async; track idAndName) {
+                    <mat-option (click)="onSelectAutocomplete(idAndName[0])" [value]="idAndName[0]">{{idAndName[1]}}</mat-option>
                 }
             </mat-autocomplete>
             

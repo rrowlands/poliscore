@@ -36,6 +36,10 @@ export class AppService {
             params = params.set("ascending", page.ascending.toString());
         }
 
+        if (page.sortKey!= null) {
+            params = params.set("sortKey", page.sortKey);
+        }
+
         return firstValueFrom(this.http.get<Legislator[]>(backendUrl + "/getLegislators", { params: params }));
     }
 

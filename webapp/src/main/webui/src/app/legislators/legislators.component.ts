@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page } from '../model';
+import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states } from '../model';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -26,6 +26,8 @@ export class LegislatorsComponent implements OnInit {
 
   allLegislators: [string, string][] = [];
 
+  searchOptions: [string, string][] = [];
+
   myControl = new FormControl('');
 
   filteredOptions?: Observable<[string, string][]>;
@@ -43,6 +45,7 @@ export class LegislatorsComponent implements OnInit {
     this.service.getLegislatorPageData().then(data => {
       this.legs = data.legislators;
       this.allLegislators = data.allLegislators;
+      this.searchOptions = data.allLegislators.concat(states.map(s => ["STATE/" + s[1], s[0]]));
     });
 
     this.filteredOptions = this.myControl.valueChanges.pipe(
@@ -54,11 +57,25 @@ export class LegislatorsComponent implements OnInit {
   private _filter(value: string): [string, string][] {
     const filterValue = value.toLowerCase();
 
-    return this.allLegislators.filter(shortLeg => shortLeg[1].toLowerCase().includes(filterValue));
+    // This algo is apparently awful? I thought it was the way to go...
+    // return this.allLegislators.sort((a,b) => 
+    //   levenshtein(a[1].toLowerCase(), filterValue.toLowerCase())
+    //   - levenshtein(b[1].toLowerCase(), filterValue.toLowerCase())
+    // ).slice(0, 15);
+
+    return this.searchOptions.filter(leg => leg[1].toLowerCase().includes(filterValue.toLowerCase()));
   }
 
   onSelectAutocomplete(bioguideId: string) {
-    this.router.navigate(['/legislator', "LEG/us/congress/" + bioguideId]);
+    if (bioguideId.startsWith("STATE/")) {
+      this.page.index = "ObjectsByLocation";
+      this.page.sortKey = bioguideId.substring(6);
+      this.page.ascending = true;
+      this.fetchData();
+      this.myControl.setValue("");
+    } else {
+      this.router.navigate(['/legislator', "LEG/us/congress/" + bioguideId]);
+    }
   }
 
   togglePage(index: string) {
