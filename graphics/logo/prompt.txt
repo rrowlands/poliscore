@@ -1,0 +1,44 @@
+This prompt used with ChatGPT (Dalle?)
+====
+
+
+i own a website at https://poliscore.us. The website is focused on US politics and the central idea is that we use ai to scan through bills in congress. Do not include any reference to currency, I am talking about congressional bills, not money. Please design a logo for my website. I want the background to be white, and I would like  a magnifying glass searching through a bill scroll. On top of that, I would like “Poliscore” written. For colors, please tastefully integrate red, white and blue, in equal amounts.
+
+Generated poliscore2 and poliscore3
+
+
+====
+
+
+i own a website at https://poliscore.us. The website is focused on US politics and the central idea is that we use ai to scan through bills in congress. Do not include any reference to currency, I am talking about congressional bills, not money. Please design a logo for my website. I want the background to be white, and I would like  a magnifying glass searching through a bill scroll. On top of that, I would like “Poliscore” written.  When choosing colors, please use purple.
+
+Generated poliscore.png
+
+====
+
+
+i own a website at https://poliscore.us. The website is focused on US politics and the central idea is that we use ai to scan through bills in congress. Do not include any reference to currency, I am talking about congressional bills, not money. Please design a logo for my website. I want the background to be white, and I would like  a magnifying glass searching through a bill scroll. On top of that, I would like “Poliscore” written.  When choosing colors, please use purple.
+
+
+=====
+
+
+i own a website at https://poliscore.us. The website is focused on US politics and the central idea is that we assign a letter grade to legislators from A to F based on their recent legislative performance. "Poliscore" can be broken down conceptually as "poli", short for politics, and "score", as in we're scoring the legislators. Please design a logo for my website. I want the background to be white, and I would like the logo to be a magnifying glass searching through a bill scroll. On top of that, I would like “Poliscore” written with exciting action lines.  When choosing colors, please use purple.
+
+
+=====
+
+
+i own a website at https://poliscore.us. The website is focused on US politics and the central idea is that we assign a letter grade to legislators from A to F based on their recent legislative performance. "Poliscore" can be broken down conceptually as "poli", short for politics, and "score", as in we're scoring the legislators. Please design a logo for my website. I want the background to be transparent, and I would like the image to consist of two distinct images, one which simply says “poliscore” and another which is a magnifying glass searching through a bill scroll.
+
+
+
+=====
+
+i own a website at https://poliscore.us. The website is focused on US politics and the central idea is that we assign a letter grade to legislators from A to F based on their recent legislative performance. AI is used to interpret both bills and legislators, so please include a magnifying glass searching through a bill. "Poliscore" can be broken down conceptually as "poli", short for politics, and "score", as in we're scoring the legislators. Please design a logo for my website.
+
+
+
+=====
+
+

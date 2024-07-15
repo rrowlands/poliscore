@@ -1,0 +1,13 @@
+Used with ChatGPT 4o (Dalle)
+
+
+
+I need a very small, minimalist favicon for my website. The image should feature a magnifying glass with “PS” inside it. Please make the background pure white and please include the colors red white and blue into the logo.
+
+
+=====
+
+
+I need a 64 by 64 pixel favicon for my website. I need a very simple design, with only a magnifying glass and the letters p and s inside it
+
+

@@ -3,6 +3,21 @@ button {
 	min-width: 100px;
 }
 
+.poliscore-full {
+}
+.poliscore-mini {
+	display: none;
+}
+
+@media screen and (max-width: 500px) {
+	.poliscore-full {
+		display: none;
+	}
+	.poliscore-mini {
+		display: inherit;
+	}
+}
+
 
 /*
 	Fractal by HTML5 UP
