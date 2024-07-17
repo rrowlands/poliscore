@@ -4,6 +4,10 @@
     margin:16px;
 }
 
+.stripedbg {
+    min-height: 100dvh; // dvh here means "dynamic viewport height", which simply means that it accounts for chrome's address bar resizing
+}
+
 .tran-div {
     z-index: 1000;
 }
@@ -75,4 +79,12 @@ img {
     height: auto;
     margin-bottom: -5px;
     width: 150px;
+}
+
+.loading {
+    width: 15px;
+	aspect-ratio: 1;
+	border-radius: 50%;
+	animation: l5 1s infinite linear alternate;
+    margin: 40px;
 }

@@ -1,7 +1,7 @@
 <div>
     <span class="purplebg"></span> <!-- There's a bug on Mobile Chrome browsers where when the nav bar hides, it reveals the white bg. -->
-<div class="stripedbg" (scroll)="onScroll($event)">
-    <div *ngIf="legs == null" class="loader"></div>
+<div class="stripedbg" >
+    <!-- <div *ngIf="legs == null" class="loader"></div> -->
 
 	<div class="vertical-layout">
 
@@ -47,6 +47,11 @@
                     <mat-card-content>
                         <span><p>{{descriptionForLegislator(leg)}}</p></span>
                     </mat-card-content>
+                </div>
+            </mat-card>
+
+            <mat-card *ngIf="hasMoreContent && isRequestingData" class="loading-card vertical-layout" appearance="outlined">
+                <div class="loading">
                 </div>
             </mat-card>
        

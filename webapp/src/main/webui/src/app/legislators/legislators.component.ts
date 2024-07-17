@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
 import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue } from '../model';
 import { CommonModule, KeyValuePipe } from '@angular/common';
@@ -32,6 +32,12 @@ export class LegislatorsComponent implements OnInit {
 
   filteredOptions?: Observable<[string, string][]>;
 
+  public hasMoreContent: boolean = true;
+
+  public isRequestingData: boolean = false;
+
+  private lastScrollTop = 0;
+
   public page: Page = {
     index: "ObjectsByLocation",
     ascending: false,
@@ -42,10 +48,14 @@ export class LegislatorsComponent implements OnInit {
 
   ngOnInit(): void
   {
+    this.isRequestingData = true;
+
     this.service.getLegislatorPageData().then(data => {
       this.legs = data.legislators;
       this.allLegislators = data.allLegislators;
       this.searchOptions = data.allLegislators.concat(states.map(s => ["STATE/" + s[1], s[0]]));
+    }).finally(() => {
+      this.isRequestingData = false;
     });
 
     this.filteredOptions = this.myControl.valueChanges.pipe(
@@ -57,7 +67,7 @@ export class LegislatorsComponent implements OnInit {
   private _filter(value: string): [string, string][] {
     const filterValue = value.toLowerCase();
 
-    // This algo is apparently awful? I thought it was the way to go...
+    // levenshtein apparently doesn't work for this search usecase? 
     // return this.allLegislators.sort((a,b) => 
     //   levenshtein(a[1].toLowerCase(), filterValue.toLowerCase())
     //   - levenshtein(b[1].toLowerCase(), filterValue.toLowerCase())
@@ -66,11 +76,21 @@ export class LegislatorsComponent implements OnInit {
     return this.searchOptions.filter(leg => leg[1].toLowerCase().includes(filterValue.toLowerCase()));
   }
 
+  @HostListener('window:scroll', ['$event'])
   onScroll(e: any) {
-    let sep = "~`~";
+    const el = e.target.documentElement;
 
-    if (e.target.offsetHeight + e.target.scrollTop >= e.target.scrollHeight && this.legs != null) {
-      let lastLeg = this.legs[this.legs.length - 1];
+    // Ignore scrolling upwards
+    if (el.scrollTop < this.lastScrollTop){
+        return;
+    } else {
+      this.lastScrollTop = el.scrollTop <= 0 ? 0 : el.scrollTop;
+    }
+
+    // Trigger when scrolled to bottom
+    if (el.offsetHeight + el.scrollTop >= (el.scrollHeight - 200) && this.legs != null) {
+      const lastLeg = this.legs[this.legs.length - 1];
+      const sep = "~`~";
 
       if (this.page.index === "ObjectsByDate") {
         this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.birthday;
@@ -103,17 +123,30 @@ export class LegislatorsComponent implements OnInit {
     this.page.ascending = (index == this.page.index) ? !this.page.ascending : false;
     this.page.index = index;
     this.page.exclusiveStartKey = undefined;
+    this.hasMoreContent = true;
+
+    this.legs = [];
 
     this.fetchData();
   }
 
   fetchData(replace: boolean = true) {
+    if (!this.hasMoreContent) return;
+
+    this.isRequestingData = true;
+
     this.service.getLegislators(this.page).then(legs => {
       if (replace) {
         this.legs = legs;
       } else if (legs.length > 0 && this.legs?.findIndex(l => l.id == legs[0].id) == -1) {
         this.legs = this.legs.concat(legs);
       }
+
+      if (legs.length == 0) {
+        this.hasMoreContent = false;
+      }
+    }).finally(() => {
+      this.isRequestingData = false;
     });
   }
 
