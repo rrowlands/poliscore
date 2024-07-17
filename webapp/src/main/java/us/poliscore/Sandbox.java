@@ -65,13 +65,14 @@ public class Sandbox implements QuarkusApplication
 //		getLegislatorPageData();
 		
 		
-		String sourceIp = "71.56.241.71";
-		val location = ipService.locateIp(sourceIp).orElse(null);
+//		String sourceIp = "71.56.241.71";
+//		val location = ipService.locateIp(sourceIp).orElse(null);
 //		String location = "CO";
-    	val out = getLegislators(null, (location == null ? null : Persistable.OBJECT_BY_LOCATION_INDEX), null, null, location);
+//    	val out = getLegislators(10000, (location == null ? null : Persistable.OBJECT_BY_LOCATION_INDEX), null, null, location);
     	
 		
-		
+		val date = "1980-12-23";
+		val out = getLegislators(null, Persistable.OBJECT_BY_DATE_INDEX, null, null, null);
     	
     	
     	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));

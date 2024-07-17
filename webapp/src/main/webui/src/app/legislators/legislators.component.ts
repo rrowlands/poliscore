@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states } from '../model';
+import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue } from '../model';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -33,7 +33,7 @@ export class LegislatorsComponent implements OnInit {
   filteredOptions?: Observable<[string, string][]>;
 
   public page: Page = {
-    index: "ObjectsByDate",
+    index: "ObjectsByLocation",
     ascending: false,
     pageSize: 25
   };
@@ -66,6 +66,27 @@ export class LegislatorsComponent implements OnInit {
     return this.searchOptions.filter(leg => leg[1].toLowerCase().includes(filterValue.toLowerCase()));
   }
 
+  onScroll(e: any) {
+    let sep = "~`~";
+
+    if (e.target.offsetHeight + e.target.scrollTop >= e.target.scrollHeight && this.legs != null) {
+      let lastLeg = this.legs[this.legs.length - 1];
+
+      if (this.page.index === "ObjectsByDate") {
+        this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.birthday;
+      } else if (this.page.index === "ObjectsByRating") {
+        this.page.exclusiveStartKey = lastLeg.id + sep + getBenefitToSocietyIssue(lastLeg.interpretation!.issueStats)[1];
+      } else if (this.page.index === "ObjectsByLocation") {
+        this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.terms[0].state;
+      } else {
+        console.log("Unknown page index: " + this.page.index);
+        return
+      }
+
+      this.fetchData(false);
+    }
+  }
+
   onSelectAutocomplete(bioguideId: string) {
     if (bioguideId.startsWith("STATE/")) {
       this.page.index = "ObjectsByLocation";
@@ -78,16 +99,21 @@ export class LegislatorsComponent implements OnInit {
     }
   }
 
-  togglePage(index: string) {
+  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByLocation") {
     this.page.ascending = (index == this.page.index) ? !this.page.ascending : false;
     this.page.index = index;
+    this.page.exclusiveStartKey = undefined;
 
     this.fetchData();
   }
 
-  fetchData() {
+  fetchData(replace: boolean = true) {
     this.service.getLegislators(this.page).then(legs => {
-      this.legs = legs;
+      if (replace) {
+        this.legs = legs;
+      } else if (legs.length > 0 && this.legs?.findIndex(l => l.id == legs[0].id) == -1) {
+        this.legs = this.legs.concat(legs);
+      }
     });
   }
 

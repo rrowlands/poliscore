@@ -295,10 +295,26 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 		val request = QueryEnhancedRequest.builder()
 				.queryConditional(condition);
 		
-		if (pageSize != -1) {
-			request.limit(pageSize);
+//		if (pageSize != -1) {
+//			request.limit(pageSize);
+//		}
+		if (exclusiveStartKey != null) {
+			HashMap<String,AttributeValue> map = new HashMap<String,AttributeValue>();
+			
+			map.put("idClassPrefix", AttributeValue.fromS(idClassPrefix));
+			map.put("page", AttributeValue.fromS(HEAD_PAGE));
+			map.put("id", AttributeValue.fromS(exclusiveStartKey.split("~`~")[0]));
+			
+			if (index.equals(Persistable.OBJECT_BY_DATE_INDEX)) {
+				map.put(fieldForIndex(index), AttributeValue.fromS(exclusiveStartKey.split("~`~")[1]));
+			} else if (index.equals(Persistable.OBJECT_BY_RATING_INDEX)) {
+				map.put(fieldForIndex(index), AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
+			} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
+				map.put(fieldForIndex(index), AttributeValue.fromS(exclusiveStartKey.split("~`~")[1]));
+			}
+			
+			request.exclusiveStartKey(map);
 		}
-		if (exclusiveStartKey != null) request.exclusiveStartKey(Map.of(field, AttributeValue.fromS(exclusiveStartKey)));
 		request.scanIndexForward(ascending);
 		
 		var pageIt = table.query(request.build()).iterator();

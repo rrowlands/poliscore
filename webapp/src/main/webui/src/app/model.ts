@@ -49,6 +49,7 @@ export class Legislator {
       url: string,
     }];
     photoError: boolean = false;
+    birthday: string | undefined;
 }
 
 export interface LegislatorPageData {
@@ -69,10 +70,10 @@ export class IssueStats {
 }
 
 export class Page {
-  index?: string;
+  index?: "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating";
   ascending?: boolean;
   pageSize?: number;
-  exclusiveStartKey?: string;
+  exclusiveStartKey?: string | number;
   sortKey?: string;
 }
 
