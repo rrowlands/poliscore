@@ -80,12 +80,15 @@ export class LegislatorsComponent implements OnInit {
   onScroll(e: any) {
     const el = e.target.documentElement;
 
+    // console.log("offsetHeight: " + el.offsetHeight + ", scrollTop: " + el.scrollTop + ", scrollHeight: " + el.scrollHeight);
+
+    // TODO : If you want to use this code, you'll need to set lastScrollTop in all the data refresh events as well
     // Ignore scrolling upwards
-    if (el.scrollTop < this.lastScrollTop){
-        return;
-    } else {
-      this.lastScrollTop = el.scrollTop <= 0 ? 0 : el.scrollTop;
-    }
+    // if (el.scrollTop < this.lastScrollTop){
+    //     return;
+    // } else {
+    //   this.lastScrollTop = el.scrollTop <= 0 ? 0 : el.scrollTop;
+    // }
 
     // Trigger when scrolled to bottom
     if (el.offsetHeight + el.scrollTop >= (el.scrollHeight - 200) && this.legs != null) {
