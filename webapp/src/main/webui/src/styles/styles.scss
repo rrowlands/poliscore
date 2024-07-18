@@ -94,6 +94,16 @@ html {
 	  100%{box-shadow: 20px 0 #0002,-20px 0 #000; background: #000 }
   }
 
+.content-section {
+	width: 80%;
+    max-width: 1200px;
+    margin: 10px;
+    background-color: white;
+    color: black;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
 .breadcrumb {
     width: 80%;
     max-width: 1200px;

@@ -1,15 +1,17 @@
-.poliscore {
-    cursor: pointer;
-    padding:0;
-    margin:16px;
-}
-
 .stripedbg {
     min-height: 100dvh; // dvh here means "dynamic viewport height", which simply means that it accounts for chrome's address bar resizing
 }
 
 .tran-div {
     z-index: 1000;
+}
+
+.logo {
+    cursor: pointer;
+    width:230px;
+    padding:0;
+    margin:16px;
+    margin-top:5px;
 }
 
 .vertical-content {
@@ -26,6 +28,11 @@
     width: calc(100% - 27px);
 }
 
+.title {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+}
+
 .breadcrumb > * {
     flex: 1;
     height:100%;
@@ -35,14 +42,17 @@
     font-size: 16px;
 }
 
-.sort {
-    padding-right: 5px;
+.nav-buttons {
+    margin-right: 10px;
+}
+
+.sorting {
 }
 
 .sort-label {
-    display: inline-block;
-    width:100%;
     text-align: center;
+    width: 8em;
+    font-weight: bold;
 }
 
 mat-button-toggle-group {
@@ -56,11 +66,18 @@ mat-button-toggle {
 mat-card {
     margin: 10px;
     display: grid;
+    grid-template-columns: 150px 1fr;
     color: black;
 }
 
 mat-card-content {
     margin-top: 20px;
+}
+
+.searchbox {
+    width: calc(100% - 25px);
+    margin: 10px;
+    height: 30px;
 }
 
 .left {
@@ -75,7 +92,7 @@ mat-card-content {
     grid-row: 1;
 }
 
-img {
+mat-card img {
     height: auto;
     margin-bottom: -5px;
     width: 150px;

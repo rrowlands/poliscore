@@ -7,18 +7,27 @@
 
         <div class="vertical-content">
 
-            <div class="breadcrumb horizontal-layout">
+            <div class="content-section breadcrumb">
                 <!-- <h1 class="poliscore" href="#" routerLink="/">poliscore.us</h1> -->
-                <img class="poliscore" src="/images/poliscore-word.png" routerLink="/">
-                <span *ngIf="legs" class="sort">
-                    <label class="sort-label">Sort by:</label>
-                    <mat-button-toggle-group name="fontStyle" aria-label="Font Style">
-                    <mat-button-toggle (click)="togglePage('ObjectsByRating')" value="bold">Rating</mat-button-toggle>
-                    <mat-button-toggle (click)="togglePage('ObjectsByDate')" value="italic">Age</mat-button-toggle>
-                    </mat-button-toggle-group>
-                </span>
+                 <div class="title">
+                    <img class="logo" src="/images/poliscore-word.png" routerLink="/">
+                    <div class="horizontal-layout" style="flex-direction: row-reverse !important;">
+                        <div class="nav-buttons vertical-layout">
+                            <button mat-raised-button><span>View Bills</span><i class="icon solid fa-solid fa-arrow-right" style="margin-right:-10px; margin-left:10px; color: #81548f !important"></i></button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
+            <div class="content-section">
+                <div *ngIf="legs" class="sorting horizontal-layout">
+                    <label class="sort-label left">Sort by:</label>
+                    <mat-button-toggle-group name="fontStyle" class="right" aria-label="Font Style">
+                        <mat-button-toggle (click)="togglePage('ObjectsByLocation')" value="bold">Location</mat-button-toggle>
+                        <mat-button-toggle (click)="togglePage('ObjectsByRating')" value="bold">Rating</mat-button-toggle>
+                        <mat-button-toggle (click)="togglePage('ObjectsByDate')" value="italic">Age</mat-button-toggle>
+                    </mat-button-toggle-group>
+                </div>
             <input *ngIf="allLegislators.length > 0" class="searchbox" type="text"
                 placeholder="Search for legislator or state"
                 aria-label="Number"
@@ -30,6 +39,7 @@
                     <mat-option (click)="onSelectAutocomplete(idAndName[0])" [value]="idAndName[0]">{{idAndName[1]}}</mat-option>
                 }
             </mat-autocomplete>
+            </div>
             
             <mat-card *ngFor="let leg of legs" (click)="routeTo(leg)" class="example-card" appearance="outlined">
                 <div class="left">

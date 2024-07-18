@@ -15,7 +15,7 @@ import { Observable, map, startWith } from 'rxjs';
 @Component({
   selector: 'app-legislators',
   standalone: true,
-  imports: [HttpClientModule, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule, MatAutocompleteModule, ReactiveFormsModule],
+  imports: [HttpClientModule, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule, MatAutocompleteModule, ReactiveFormsModule, MatButtonModule],
   providers: [AppService, HttpClient],
   templateUrl: './legislators.component.html',
   styleUrl: './legislators.component.scss'
@@ -31,6 +31,8 @@ export class LegislatorsComponent implements OnInit {
   myControl = new FormControl('');
 
   filteredOptions?: Observable<[string, string][]>;
+  
+  myLocation?: string;
 
   public hasMoreContent: boolean = true;
 
@@ -54,6 +56,7 @@ export class LegislatorsComponent implements OnInit {
       this.legs = data.legislators;
       this.allLegislators = data.allLegislators;
       this.searchOptions = data.allLegislators.concat(states.map(s => ["STATE/" + s[1], s[0]]));
+      this.myLocation = data.location;
     }).finally(() => {
       this.isRequestingData = false;
     });
@@ -127,6 +130,12 @@ export class LegislatorsComponent implements OnInit {
     this.page.index = index;
     this.page.exclusiveStartKey = undefined;
     this.hasMoreContent = true;
+
+    if (index === "ObjectsByLocation") {
+      this.page.sortKey = this.myLocation;
+    } else {
+      this.page.sortKey = undefined;
+    }
 
     this.legs = [];
 
