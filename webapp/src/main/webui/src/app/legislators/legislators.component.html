@@ -19,8 +19,8 @@
                 </div>
             </div>
 
-            <div class="content-section">
-                <div *ngIf="legs" class="sorting horizontal-layout">
+            <div *ngIf="legs" class="content-section">
+                <div class="sorting horizontal-layout">
                     <label class="sort-label left">Sort by:</label>
                     <mat-button-toggle-group name="fontStyle" class="right" aria-label="Font Style">
                         <mat-button-toggle (click)="togglePage('ObjectsByLocation')" value="bold">Location</mat-button-toggle>
