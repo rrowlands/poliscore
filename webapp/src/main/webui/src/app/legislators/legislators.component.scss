@@ -30,7 +30,7 @@
 
 .title {
     display: grid;
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: minmax(100px, 260px) 1fr;
 }
 
 .breadcrumb > * {
@@ -44,6 +44,7 @@
 
 .nav-buttons {
     margin-right: 10px;
+    min-width: 120px;
 }
 
 .sorting {
@@ -104,4 +105,10 @@ mat-card img {
 	border-radius: 50%;
 	animation: l5 1s infinite linear alternate;
     margin: 40px;
+}
+
+@media screen and (max-width: 400px) {
+    .logo {
+        width: 180px;
+    }
 }
