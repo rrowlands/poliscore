@@ -118,6 +118,8 @@ export class LegislatorsComponent implements OnInit {
       this.page.index = "ObjectsByLocation";
       this.page.sortKey = bioguideId.substring(6);
       this.page.ascending = true;
+      this.legs = [];
+      this.page.exclusiveStartKey = undefined;
       this.fetchData();
       this.myControl.setValue("");
     } else {
