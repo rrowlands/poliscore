@@ -131,7 +131,7 @@ public class Lambda {
     	var pageSize = _pageSize == null ? 25 : _pageSize;
     	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
     	
-    	val cacheable = ascending && StringUtils.isBlank(startKey) && pageSize == 25;
+    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25;
     	val cacheKey = index + "-" + ascending.toString();
     	if (cacheable && cachedBills.containsKey(cacheKey)) return cachedBills.get(cacheKey);
     	
