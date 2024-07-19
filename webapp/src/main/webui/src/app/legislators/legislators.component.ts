@@ -118,6 +118,7 @@ export class LegislatorsComponent implements OnInit {
       this.page.index = "ObjectsByLocation";
       this.page.sortKey = bioguideId.substring(6);
       this.page.ascending = true;
+      this.hasMoreContent = true;
       this.legs = [];
       this.page.exclusiveStartKey = undefined;
       this.fetchData();
@@ -156,7 +157,7 @@ export class LegislatorsComponent implements OnInit {
         this.legs = this.legs.concat(legs);
       }
 
-      if (legs.length == 0 || legs.length == 1) {
+      if (legs.length < (this.page.pageSize == null ? 25 : this.page.pageSize)) {
         this.hasMoreContent = false;
       }
     }).finally(() => {
