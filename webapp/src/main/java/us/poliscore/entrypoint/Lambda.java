@@ -71,7 +71,7 @@ public class Lambda {
     	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
     	
     	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25;
-    	val cacheKey = index + "-" + ascending.toString() + (sortKey == null ? "" : "-" + sortKey);
+    	val cacheKey = index + "-" + ascending.toString() + (StringUtils.isBlank(sortKey) ? "" : "-" + sortKey);
     	if (cacheable && cachedLegislators.containsKey(cacheKey)) return cachedLegislators.get(cacheKey);
     	
     	val legs = ddb.query(Legislator.class, pageSize, index, ascending, startKey, sortKey);
