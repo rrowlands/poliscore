@@ -156,7 +156,7 @@ export class LegislatorsComponent implements OnInit {
         this.legs = this.legs.concat(legs);
       }
 
-      if (legs.length == 0) {
+      if (legs.length == 0 || legs.length == 1) {
         this.hasMoreContent = false;
       }
     }).finally(() => {
