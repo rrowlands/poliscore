@@ -14,7 +14,7 @@ import us.poliscore.model.bill.Bill;
 @ApplicationScoped
 public class MemoryPersistenceService implements PersistenceServiceIF {
 	
-	protected Map<String, Persistable> memoryStore = new HashMap<String,Persistable>();
+	protected static Map<String, Persistable> memoryStore = new HashMap<String,Persistable>();
 	
 	public void put(Persistable obj)
 	{
