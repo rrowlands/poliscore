@@ -76,7 +76,7 @@ public class Sandbox implements QuarkusApplication
 //		val date = "1980-12-23";
 //		val out = getLegislators(null, Persistable.OBJECT_BY_DATE_INDEX, null, null, null);
 		
-		val out = getBills(null, Persistable.OBJECT_BY_DATE_INDEX, null, null, null);
+		val out = getBills(25, Persistable.OBJECT_BY_DATE_INDEX, false, null, null);
     	
     	
     	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));
@@ -87,6 +87,10 @@ public class Sandbox implements QuarkusApplication
     	val startKey = _exclusiveStartKey;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
     	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
+    	
+    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25 && StringUtils.isBlank(sortKey);
+    	val cacheKey = index + "-" + ascending.toString();
+    	System.out.println("cacheable? " + cacheable + "; cacheKey= " + cacheKey);
     	
     	val bills = ddb.query(Bill.class, pageSize, index, ascending, startKey, sortKey);
     	
