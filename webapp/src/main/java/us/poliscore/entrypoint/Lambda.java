@@ -41,11 +41,11 @@ public class Lambda {
     @Inject
     IpGeolocationService ipService;
     
-    private List<List<String>> cachedAllLegs;
+    private static List<List<String>> cachedAllLegs;
     
-    private Map<String, List<Legislator>> cachedLegislators = new HashMap<String, List<Legislator>>();
+    private static Map<String, List<Legislator>> cachedLegislators = new HashMap<String, List<Legislator>>();
     
-    private Map<String, List<Bill>> cachedBills = new HashMap<String, List<Bill>>();
+    private static Map<String, List<Bill>> cachedBills = new HashMap<String, List<Bill>>();
 
     @GET
     @Path("getLegislator")
