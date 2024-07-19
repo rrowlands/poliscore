@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.resteasy.reactive.RestQuery;
 
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
@@ -22,6 +23,7 @@ import us.poliscore.entrypoint.Lambda;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
+import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
@@ -71,12 +73,25 @@ public class Sandbox implements QuarkusApplication
 //    	val out = getLegislators(10000, (location == null ? null : Persistable.OBJECT_BY_LOCATION_INDEX), null, null, location);
     	
 		
-		val date = "1980-12-23";
-		val out = getLegislators(null, Persistable.OBJECT_BY_DATE_INDEX, null, null, null);
+//		val date = "1980-12-23";
+//		val out = getLegislators(null, Persistable.OBJECT_BY_DATE_INDEX, null, null, null);
+		
+		val out = getBills(null, Persistable.OBJECT_BY_DATE_INDEX, null, null, null);
     	
     	
     	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));
 	}
+	
+	public List<Bill> getBills(@RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") String _exclusiveStartKey, @RestQuery String sortKey) {
+    	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
+    	val startKey = _exclusiveStartKey;
+    	var pageSize = _pageSize == null ? 25 : _pageSize;
+    	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
+    	
+    	val bills = ddb.query(Bill.class, pageSize, index, ascending, startKey, sortKey);
+    	
+    	return bills;
+    }
 	
 	public List<Legislator> getLegislators(Integer _pageSize, String _index, Boolean _ascending, String _exclusiveStartKey, String sortKey) {
     	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;

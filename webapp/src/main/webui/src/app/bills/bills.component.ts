@@ -1,6 +1,6 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue } from '../model';
+import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue, Bill } from '../model';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -11,20 +11,19 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Observable, map, startWith } from 'rxjs';
+import { BillComponent } from '../bill/bill.component';
 
 @Component({
-  selector: 'legislators',
+  selector: 'bills',
   standalone: true,
   imports: [HttpClientModule, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule, MatAutocompleteModule, ReactiveFormsModule, MatButtonModule],
   providers: [AppService, HttpClient],
-  templateUrl: './legislators.component.html',
-  styleUrl: './legislators.component.scss'
+  templateUrl: './bills.component.html',
+  styleUrl: './bills.component.scss'
 })
-export class LegislatorsComponent implements OnInit {
-
-  legs?: Legislator[];
-
-  allLegislators: [string, string][] = [];
+export class BillsComponent implements OnInit {
+  
+  bills?: Bill[];
 
   searchOptions: [string, string][] = [];
 
@@ -38,10 +37,8 @@ export class LegislatorsComponent implements OnInit {
 
   public isRequestingData: boolean = false;
 
-  private lastScrollTop = 0;
-
   public page: Page = {
-    index: "ObjectsByLocation",
+    index: "ObjectsByDate",
     ascending: false,
     pageSize: 25
   };
@@ -52,14 +49,16 @@ export class LegislatorsComponent implements OnInit {
   {
     this.isRequestingData = true;
 
-    this.service.getLegislatorPageData().then(data => {
-      this.legs = data.legislators;
-      this.allLegislators = data.allLegislators;
-      this.searchOptions = data.allLegislators.concat(states.map(s => ["STATE/" + s[1], s[0]]));
-      this.myLocation = data.location;
-    }).finally(() => {
-      this.isRequestingData = false;
-    });
+    // this.service.getLegislatorPageData().then(data => {
+    //   this.bills = data.legislators;
+    //   this.allLegislators = data.allLegislators;
+    //   this.searchOptions = data.allLegislators.concat(states.map(s => ["STATE/" + s[1], s[0]]));
+    //   this.myLocation = data.location;
+    // }).finally(() => {
+    //   this.isRequestingData = false;
+    // });
+
+    this.fetchData();
 
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
@@ -94,16 +93,16 @@ export class LegislatorsComponent implements OnInit {
     // }
 
     // Trigger when scrolled to bottom
-    if (el.offsetHeight + el.scrollTop >= (el.scrollHeight - 200) && this.legs != null) {
-      const lastLeg = this.legs[this.legs.length - 1];
+    if (el.offsetHeight + el.scrollTop >= (el.scrollHeight - 200) && this.bills != null) {
+      const lastBill = this.bills[this.bills.length - 1];
       const sep = "~`~";
 
       if (this.page.index === "ObjectsByDate") {
-        this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.birthday;
+        this.page.exclusiveStartKey = lastBill.id + sep + lastBill.introducedDate;
       } else if (this.page.index === "ObjectsByRating") {
-        this.page.exclusiveStartKey = lastLeg.id + sep + getBenefitToSocietyIssue(lastLeg.interpretation!.issueStats)[1];
-      } else if (this.page.index === "ObjectsByLocation") {
-        this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.terms[0].state;
+        this.page.exclusiveStartKey = lastBill.id + sep + getBenefitToSocietyIssue(lastBill.interpretation!.issueStats)[1];
+      // } else if (this.page.index === "ObjectsByLocation") {
+      //   this.page.exclusiveStartKey = lastBill.id + sep + lastBill.terms[0].state;
       } else {
         console.log("Unknown page index: " + this.page.index);
         return
@@ -113,16 +112,16 @@ export class LegislatorsComponent implements OnInit {
     }
   }
 
-  onSelectAutocomplete(bioguideId: string) {
-    if (bioguideId.startsWith("STATE/")) {
-      this.page.index = "ObjectsByLocation";
-      this.page.sortKey = bioguideId.substring(6);
-      this.page.ascending = true;
-      this.fetchData();
-      this.myControl.setValue("");
-    } else {
-      this.router.navigate(['/legislator', "LEG/us/congress/" + bioguideId]);
-    }
+  onSelectAutocomplete(id: string) {
+    // if (id.startsWith("STATE/")) {
+    //   this.page.index = "ObjectsByLocation";
+    //   this.page.sortKey = bioguideId.substring(6);
+    //   this.page.ascending = true;
+    //   this.fetchData();
+    //   this.myControl.setValue("");
+    // } else {
+      this.router.navigate(['/bill', id]);
+    // }
   }
 
   togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByLocation") {
@@ -137,7 +136,7 @@ export class LegislatorsComponent implements OnInit {
       this.page.sortKey = undefined;
     }
 
-    this.legs = [];
+    this.bills= [];
 
     this.fetchData();
   }
@@ -147,14 +146,14 @@ export class LegislatorsComponent implements OnInit {
 
     this.isRequestingData = true;
 
-    this.service.getLegislators(this.page).then(legs => {
+    this.service.getBills(this.page).then(bills => {
       if (replace) {
-        this.legs = legs;
-      } else if (legs.length > 0 && this.legs?.findIndex(l => l.id == legs[0].id) == -1) {
-        this.legs = this.legs.concat(legs);
+        this.bills = bills;
+      } else if (bills.length > 0 && this.bills?.findIndex(l => l.id == bills[0].id) == -1) {
+        this.bills = this.bills.concat(bills);
       }
 
-      if (legs.length == 0) {
+      if (bills.length == 0) {
         this.hasMoreContent = false;
       }
     }).finally(() => {
@@ -162,31 +161,36 @@ export class LegislatorsComponent implements OnInit {
     });
   }
 
-  routeTo(leg: Legislator)
+  routeTo(bill: Bill)
   {
-    document.getElementById(leg.id)?.classList.add("tran-div");
-    this.router.navigate(['/legislator', leg.id]);
+    document.getElementById(bill.id)?.classList.add("tran-div");
+    this.router.navigate(['/bill', bill.id]);
   }
 
-  descriptionForLegislator(leg: Legislator): string
+  descriptionForBill(bill: Bill): string
   {
-    var issueStats: any = Object.entries(leg?.interpretation?.issueStats?.stats)
-      .filter(kv => kv[0] != "OverallBenefitToSociety")
-      .sort((a,b) => Math.abs(b[1] as number) - Math.abs(a[1] as number))
-      // .map(kv => issueKeyToLabel(kv[0]));
-
-    if (window.innerWidth < 480) {
-      issueStats = issueStats.map((kv: any) => issueKeyToLabelSmall(kv[0]));
-    } else {
-      issueStats = issueStats.map((kv: any) => issueKeyToLabel(kv[0]));
-    }
-
-    issueStats = issueStats.slice(0, Math.min(3, issueStats.length));
-
-    return "Focuses on " + issueStats.join(", ");
+    return bill.interpretation.issueStats.explanation.substring(0, 300) + "...";
   }
 
-  gradeForLegislator(leg: Legislator): string
+  // descriptionForBill(bill: Bill): string
+  // {
+  //   var issueStats: any = Object.entries(bill?.interpretation?.issueStats?.stats)
+  //     .filter(kv => kv[0] != "OverallBenefitToSociety")
+  //     .sort((a,b) => Math.abs(b[1] as number) - Math.abs(a[1] as number))
+  //     // .map(kv => issueKeyToLabel(kv[0]));
+
+  //   if (window.innerWidth < 480) {
+  //     issueStats = issueStats.map((kv: any) => issueKeyToLabelSmall(kv[0]));
+  //   } else {
+  //     issueStats = issueStats.map((kv: any) => issueKeyToLabel(kv[0]));
+  //   }
+
+  //   issueStats = issueStats.slice(0, Math.min(3, issueStats.length));
+
+  //   return "Focuses on " + issueStats.join(", ");
+  // }
+
+  gradeForBill(bill: Bill): string
   {
     /*
     let credit = Object.entries(leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number;
@@ -199,20 +203,24 @@ export class LegislatorsComponent implements OnInit {
     else return "Not enough data";
     */
 
-    return gradeForStats(leg.interpretation?.issueStats!);
+    return gradeForStats(bill.interpretation?.issueStats!);
   }
 
   colorForGrade(grade: string): string {
     return colorForGrade(grade);
   }
 
-  subtitleForLegislator(leg: Legislator): string
+  subtitleForBill(bill: Bill): string
   {
     // return subtitleForStats(leg.interpretation?.issueStats!);
 
-    let term = leg.terms[leg.terms.length - 1];
+    // let term = bill.terms[bill.terms.length - 1];
 
-    return (term.chamber == "SENATE" ? "Senator" : "House") + " (" + convertStateCodeToName(term.state) + ")";
+    // return (term.chamber == "SENATE" ? "Senator" : "House") + " (" + convertStateCodeToName(term.state) + ")";
+
+    let chamber = bill.type.toLowerCase().startsWith("s") ? "Senate" : "House";
+
+    return "Sponsor: " + bill.sponsor.name + " (" + chamber + ")";
   }
 
 }

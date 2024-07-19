@@ -1,3 +1,6 @@
+.stripedbg {
+    min-height: 100dvh; // dvh here means "dynamic viewport height", which simply means that it accounts for chrome's address bar resizing
+}
 
 .tran-div {
     z-index: 1000;
@@ -63,13 +66,15 @@ mat-button-toggle {
 
 mat-card {
     margin: 10px;
-    display: grid;
-    grid-template-columns: 150px 1fr;
     color: black;
 }
 
 mat-card-content {
     margin-top: 20px;
+}
+
+mat-card-header {
+    margin-right: 60px;
 }
 
 .searchbox {
@@ -78,22 +83,22 @@ mat-card-content {
     height: 30px;
 }
 
-.left {
-    grid-column: 1 / 2;
-    grid-row: 1;
-    margin-top: auto;
-    margin-bottom: auto;
+.bill-title {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 7em 1fr 2em;
 }
 
-.right {
-    grid-column: 2 / 2;
-    grid-row: 1;
+.title-date {
+    position: absolute;
+    top: 2px;
+    right: 2px;
 }
 
-mat-card img {
-    height: auto;
-    margin-bottom: -5px;
-    width: 150px;
+.title-grade {
+    position: absolute;
+    top: 20px;
+    right: 20px;
 }
 
 .loading {

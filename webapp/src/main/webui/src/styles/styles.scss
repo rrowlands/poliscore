@@ -19,6 +19,7 @@
 	background-attachment: fixed, fixed;
 	background-size: auto, cover;
 	height: 100%; // Make sure to use 100% and not 100vh here otherwise it won't work with chrome's address bar hiding
+	min-height: 100dvh; // dvh here means "dynamic viewport height", which simply means that it accounts for chrome's address bar resizing
 	width: 100vw;
 	margin: 0;
 	padding: 0;
