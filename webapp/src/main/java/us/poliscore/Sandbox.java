@@ -76,11 +76,24 @@ public class Sandbox implements QuarkusApplication
 //		val date = "1980-12-23";
 //		val out = getLegislators(null, Persistable.OBJECT_BY_DATE_INDEX, null, null, null);
 		
-		val out = getBills(25, Persistable.OBJECT_BY_DATE_INDEX, false, null, null);
+//		val out = getBills(25, Persistable.OBJECT_BY_DATE_INDEX, false, null, null);
+		
+		
+		val out = queryBills("gun");
     	
     	
     	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));
 	}
+	
+	@SneakyThrows
+	public List<List<String>> queryBills(@RestQuery("text") String text) {
+		List<List<String>> cachedAllBills = PoliscoreUtil.getObjectMapper().readValue(IOUtils.toString(Lambda.class.getResourceAsStream("/bills.index"), "UTF-8"), List.class);
+		
+    	return cachedAllBills.stream()
+    			.filter(b -> b.get(1).toLowerCase().contains(text.toLowerCase()) || b.get(0).toLowerCase().contains(text.toLowerCase()))
+    			.limit(30)
+    			.collect(Collectors.toList());
+    }
 	
 	public List<Bill> getBills(@RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") String _exclusiveStartKey, @RestQuery String sortKey) {
     	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;

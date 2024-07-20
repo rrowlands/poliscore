@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
+
 import io.quarkus.logging.Log;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -15,7 +17,9 @@ import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.val;
 import software.amazon.awssdk.utils.StringUtils;
+import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
+import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillCosponsor;
@@ -122,6 +126,21 @@ public class BillService {
     	});
     	
     	archiveBill(bill);
+	}
+	
+	@SneakyThrows
+	public void generateBillWebappIndex() {
+		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/resources/bills.index");
+		
+		val data = memService.query(Bill.class).stream()
+			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118))
+			.map(b -> Arrays.asList(b.getId(), b.getName()))
+			.sorted((a,b) -> a.get(1).compareTo(b.get(1)))
+			.toList();
+		
+		Log.info("Generated a bill 'index' of size " + data.size());
+		
+		FileUtils.write(out, PoliscoreUtil.getObjectMapper().writeValueAsString(data), "UTF-8");
 	}
 	
 //	protected List<String> parseBillSponsors(String text)

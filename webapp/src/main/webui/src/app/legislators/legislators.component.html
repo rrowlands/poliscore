@@ -31,17 +31,18 @@
                         <mat-button-toggle (click)="togglePage('ObjectsByDate')" value="italic">Age</mat-button-toggle>
                     </mat-button-toggle-group>
                 </div>
-            <input *ngIf="allLegislators.length > 0" class="searchbox" type="text"
-                placeholder="Search for legislator or state"
-                aria-label="Number"
-                matInput
-                [formControl]="myControl"
-                [matAutocomplete]="auto">
-            <mat-autocomplete #auto="matAutocomplete">
-                @for (idAndName of filteredOptions | async; track idAndName) {
-                    <mat-option (click)="onSelectAutocomplete(idAndName[0])" [value]="idAndName[0]">{{idAndName[1]}}</mat-option>
-                }
-            </mat-autocomplete>
+                
+                <input *ngIf="allLegislators.length > 0" class="searchbox" type="text"
+                    placeholder="Search for legislator or state"
+                    aria-label="Number"
+                    matInput
+                    [formControl]="myControl"
+                    [matAutocomplete]="auto">
+                <mat-autocomplete #auto="matAutocomplete">
+                    @for (idAndName of filteredOptions | async; track idAndName) {
+                        <mat-option (click)="onSelectAutocomplete(idAndName[0])" [value]="idAndName[0]">{{idAndName[1]}}</mat-option>
+                    }
+                </mat-autocomplete>
             </div>
             
             <mat-card *ngFor="let leg of legs" (click)="routeTo(leg)" class="example-card" appearance="outlined">

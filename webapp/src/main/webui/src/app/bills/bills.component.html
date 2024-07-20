@@ -31,17 +31,18 @@
                         <mat-button-toggle (click)="togglePage('ObjectsByRating')" value="bold">Rating</mat-button-toggle>
                     </mat-button-toggle-group>
                 </div>
-            <!-- <input *ngIf="allLegislators.length > 0" class="searchbox" type="text"
-                placeholder="Search for a bill"
-                aria-label="Number"
-                matInput
-                [formControl]="myControl"
-                [matAutocomplete]="auto">
-            <mat-autocomplete #auto="matAutocomplete">
-                @for (idAndName of filteredOptions | async; track idAndName) {
-                    <mat-option (click)="onSelectAutocomplete(idAndName[0])" [value]="idAndName[0]">{{idAndName[1]}}</mat-option>
-                }
-            </mat-autocomplete> -->
+
+                <input class="searchbox" type="text"
+                    placeholder="Search for a bill by name, number and/or type"
+                    aria-label="Number"
+                    matInput
+                    [formControl]="myControl"
+                    [matAutocomplete]="auto">
+                <mat-autocomplete #auto="matAutocomplete">
+                    @for (idAndName of filteredOptions | async; track idAndName) {
+                        <mat-option (click)="onSelectAutocomplete(idAndName[0])" [value]="idAndName[0]">{{idAndName[1]}}</mat-option>
+                    }
+                </mat-autocomplete>
             </div>
             
             <mat-card *ngFor="let bill of bills" (click)="routeTo(bill)" class="example-card" appearance="outlined">

@@ -30,6 +30,7 @@ import us.poliscore.model.Persistable;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.CachedDynamoDbService;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 
 @Path("")
 @RequestScoped
@@ -46,6 +47,8 @@ public class Lambda {
     private static Map<String, List<Legislator>> cachedLegislators = new HashMap<String, List<Legislator>>();
     
     private static Map<String, List<Bill>> cachedBills = new HashMap<String, List<Bill>>();
+    
+    private static List<List<String>> cachedAllBills;
 
     @GET
     @Path("getLegislator")
@@ -142,5 +145,25 @@ public class Lambda {
     	}
     	
     	return bills;
+    }
+    
+    @SuppressWarnings("unchecked")
+    @SneakyThrows
+    private List<List<String>> getAllBills() {
+    	if (cachedAllBills == null) {
+    		cachedAllBills = PoliscoreUtil.getObjectMapper().readValue(IOUtils.toString(Lambda.class.getResourceAsStream("/bills.index"), "UTF-8"), List.class);
+    	}
+    	
+    	return cachedAllBills;
+    }
+    
+    @GET
+    @Path("/queryBills")
+    public List<List<String>> queryBills(@RestQuery("text") String text) {
+    	return getAllBills().stream()
+    			.filter(b -> b.get(1).toLowerCase().contains(text.toLowerCase()) || b.get(0).toLowerCase().contains(text.toLowerCase()))
+    			.sorted((a,b) -> LevenshteinDistance.getDefaultInstance().apply(a.get(1), text) - LevenshteinDistance.getDefaultInstance().apply(b.get(1), text))
+    			.limit(30)
+    			.collect(Collectors.toList());
     }
 }

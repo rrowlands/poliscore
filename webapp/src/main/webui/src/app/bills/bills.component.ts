@@ -10,7 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import {MatButtonToggleModule} from '@angular/material/button-toggle'; 
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { Observable, map, startWith } from 'rxjs';
+import { Observable, debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs';
 import { BillComponent } from '../bill/bill.component';
 
 @Component({
@@ -60,22 +60,32 @@ export class BillsComponent implements OnInit {
 
     this.fetchData();
 
-    this.filteredOptions = this.myControl.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filter(value || '')),
-    );
+    // this.filteredOptions = this.myControl.valueChanges.pipe(
+    //   startWith(''),
+    //   map(value => this._filter(value || '')),
+    // );
+
+    this.filteredOptions = this.myControl.valueChanges
+        .pipe(
+          startWith(''),
+          debounceTime(400),
+          distinctUntilChanged(),
+          switchMap(val => {
+            return this.filter(val || '')
+          })       
+        );
   }
 
-  private _filter(value: string): [string, string][] {
+  private filter(value: string): Observable<[string, string][]> {
     const filterValue = value.toLowerCase();
 
-    // levenshtein apparently doesn't work for this search usecase? 
-    // return this.allLegislators.sort((a,b) => 
-    //   levenshtein(a[1].toLowerCase(), filterValue.toLowerCase())
-    //   - levenshtein(b[1].toLowerCase(), filterValue.toLowerCase())
-    // ).slice(0, 15);
+    // return this.searchOptions.filter(leg => leg[1].toLowerCase().includes(filterValue.toLowerCase()));
 
-    return this.searchOptions.filter(leg => leg[1].toLowerCase().includes(filterValue.toLowerCase()));
+    // return this.service.queryBills(filterValue).then(data => {
+    //   this.bills = data.bills;
+    // });
+
+    return this.service.queryBills(filterValue);
   }
 
   @HostListener('window:scroll', ['$event'])

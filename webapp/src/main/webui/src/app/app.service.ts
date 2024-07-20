@@ -4,6 +4,7 @@ import { HttpHeaders, HttpClient, HttpParams } from '@angular/common/http';
 import { backendUrl } from './app.config';
 import { Bill, Legislator, LegislatorPageData, Page } from './model';
 import { firstValueFrom } from 'rxjs/internal/firstValueFrom';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class AppService {
@@ -41,6 +42,13 @@ export class AppService {
         }
 
         return firstValueFrom(this.http.get<Bill[]>(backendUrl + "/getBills", { params: params }));
+    }
+
+    queryBills(text: string): Observable<[string,string][]> {
+        let params: HttpParams = new HttpParams();
+        params = params.set("text", text);
+
+        return this.http.get<[string,string][]>(backendUrl + "/queryBills", { params: params });
     }
 
     getLegislators(page: Page): Promise<Legislator[]> {

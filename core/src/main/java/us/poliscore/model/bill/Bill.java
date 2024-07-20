@@ -14,6 +14,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
+import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Persistable;
 
@@ -77,6 +78,10 @@ public class Bill implements Persistable {
 	}
 	
 	public void setId(String id) { }
+	
+	public boolean isIntroducedInSession(CongressionalSession session) {
+		return Integer.valueOf(session.getNumber()).equals(this.congress);
+	}
 	
 	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
 	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
