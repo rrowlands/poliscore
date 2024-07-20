@@ -43,11 +43,17 @@
 }
 
 .nav-buttons {
-    margin-right: 10px;
+    margin-left: 10px;
     min-width: 130px;
 }
 
 .sorting {
+}
+
+.sort-arrow {
+    margin-right:-10px;
+    margin-left:10px;
+    color: #81548f !important
 }
 
 .sort-label {

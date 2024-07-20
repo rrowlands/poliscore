@@ -42,7 +42,7 @@ export class LegislatorsComponent implements OnInit {
 
   public page: Page = {
     index: "ObjectsByLocation",
-    ascending: false,
+    ascending: true,
     pageSize: 25
   };
 
