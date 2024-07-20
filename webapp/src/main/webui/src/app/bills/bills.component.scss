@@ -30,7 +30,7 @@
 
 .title {
     display: grid;
-    grid-template-columns: minmax(100px, 260px) 1fr;
+    grid-template-columns: 1fr minmax(100px, 260px);
 }
 
 .breadcrumb > * {
@@ -44,7 +44,7 @@
 
 .nav-buttons {
     margin-right: 10px;
-    min-width: 120px;
+    min-width: 130px;
 }
 
 .sorting {
