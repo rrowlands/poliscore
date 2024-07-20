@@ -53,6 +53,13 @@
     color: #81548f !important
 }
 
+@media screen and (max-width: 480px) {
+    .sort-arrow {
+        margin-right:-5px;
+        margin-left:3px;
+    }
+}
+
 .sort-label {
     text-align: center;
     width: 8em;
