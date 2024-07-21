@@ -1,8 +1,7 @@
 import { Routes } from '@angular/router';
 
-import { AppComponent } from './app.component';
 import { LegislatorComponent } from './legislator/legislator.component';
-import { PoliscoreComponent } from './poliscore/poliscore.component';
+import { AboutComponent } from './about/about.component';
 import { LegislatorsComponent } from './legislators/legislators.component';
 import { BillComponent } from './bill/bill.component';
 import { BillsComponent } from './bills/bills.component';
@@ -15,4 +14,5 @@ export const routes: Routes = [
   { path: 'bills', component: BillsComponent, data: { animation: 'billsPage' } },
   { path: 'bill', component: BillComponent, data: { animation: 'billPage' } },
   { path: 'bill/:id', component: BillComponent, data: { animation: 'billPage' } },
+  { path: 'about', component: AboutComponent, data: { animation: 'about' } }
 ];

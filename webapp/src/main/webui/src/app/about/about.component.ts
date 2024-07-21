@@ -2,12 +2,12 @@ import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 @Component({
-  selector: 'app-poliscore',
+  selector: 'about',
   standalone: true,
   imports: [RouterModule],
-  templateUrl: './poliscore.component.html',
-  styleUrl: './poliscore.component.scss'
+  templateUrl: './about.component.html',
+  styleUrl: './about.component.scss'
 })
-export class PoliscoreComponent {
+export class AboutComponent {
 
 }

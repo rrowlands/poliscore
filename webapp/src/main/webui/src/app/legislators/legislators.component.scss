@@ -40,8 +40,13 @@
 }
 
 .nav-buttons {
-    margin-right: 10px;
     min-width: 120px;
+}
+
+.nav-buttons button {
+    width: 110px;
+    height: 40px;
+    margin: 5px;
 }
 
 .sorting {

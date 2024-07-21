@@ -594,10 +594,14 @@ input, select, textarea {
 		margin-bottom: 0.5em;
 	}
 
-	#header p {
+	#header > * {
 		font-size: 1.5em;
 		line-height: 1.35em;
 		color: white;
+	}
+
+	#header .content ul {
+		text-align: left;
 	}
 
 		#header p br {
@@ -3317,41 +3321,54 @@ input, select, textarea {
 		margin: 0 0 2em 0;
 	}
 
-		.spotlight .image {
-			width: 30%;
-			border-radius: 100%;
-			margin: 0 3em 0 0;
+	.spotlight .image {
+		width: 30%;
+		border-radius: 100%;
+		margin: 0 3em 0 0;
+		display: block;
+	}
+
+		.spotlight .image img {
 			display: block;
+			border-radius: 100%;
+			width: 100%;
 		}
 
-			.spotlight .image img {
-				display: block;
-				border-radius: 100%;
-				width: 100%;
-			}
+	.spotlight .content {
+		width: 70%;
+	}
 
-		.spotlight .content {
-			width: 70%;
+		.spotlight .content > :last-child {
+			margin-bottom: 0;
 		}
 
-			.spotlight .content > :last-child {
-				margin-bottom: 0;
-			}
+	.spotlight:nth-child(2n) {
+		-moz-flex-direction: row-reverse;
+		-webkit-flex-direction: row-reverse;
+		-ms-flex-direction: row-reverse;
+		flex-direction: row-reverse;
+	}
 
-		.spotlight:nth-child(2n) {
-			-moz-flex-direction: row-reverse;
-			-webkit-flex-direction: row-reverse;
-			-ms-flex-direction: row-reverse;
-			flex-direction: row-reverse;
-		}
+	.spotlight:nth-child(2n) .image {
+		margin: 0 0 0 3em;
+	}
 
-			.spotlight:nth-child(2n) .image {
-				margin: 0 0 0 3em;
-			}
+	.spotlight:nth-child(2n) .content-header {
+		text-align: right;
+	}
 
-			.spotlight:nth-child(2n) .content {
-				text-align: right;
-			}
+	.spotlight .content p {
+		text-indent: 4em;
+	}
+
+	.spotlight .wrapper .inner:nth-child(2n) {
+		background-color: #fbfbfb;
+		color: #999999;
+	}
+
+	.wrapper .vertical-layout > p {
+		width: 50em;
+	}
 
 	@media screen and (max-width: 736px) and (orientation: landscape) {
 
@@ -3374,16 +3391,20 @@ input, select, textarea {
 			flex-direction: column !important;
 		}
 
-			.spotlight .image {
-				width: 100%;
-				max-width: 60%;
-				margin: 0 0 2em 0 !important;
-			}
+		.spotlight .image {
+			width: 100%;
+			max-width: 60%;
+			margin: 0 0 2em 0 !important;
+		}
 
-			.spotlight .content {
-				width: 100%;
-				text-align: center !important;
-			}
+		.spotlight .content .content-header {
+			width: 100%;
+			text-align: center !important;
+		}
+
+		.wrapper header .vertical-layout > p {
+			width: 100%;
+		}
 
 	}
 
