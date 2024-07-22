@@ -12,12 +12,14 @@
 					</div> -->
 					<span>
 						<p style="text-align:center">A third-party rating service for legislators</p>
+						<div class="vertical-layout">
 						<ul>
 							<li>Non-Partisan</li>
 							<!-- <li>Non-Profit</li> -->
 							<li>For the People</li>
 							<li>Policy / Issues Based</li>
 						</ul>
+						</div>
 					</span>
 					<ul class="actions">
 						<!-- <li><a href="#" class="button primary icon solid fa-download">Download</a></li>
@@ -25,7 +27,7 @@
 					</ul>
                     <!--<p style="text-align:center; font-size: 1em;">coming soon</p>-->
 				</div>
-				<button routerLink="/legislators" class="button primary icon solid"><span>Show me</span><i class="icon solid fa-solid fa-arrow-right" style="margin-right:-10px; margin-left:10px; color: #81548f !important"></i></button>
+				<button routerLink="/legislators" class="button primary icon solid" style="min-width: 150px;"><span>Show me</span><i class="icon solid fa-solid fa-arrow-right" style="margin-right:-10px; margin-left:10px; color: #81548f !important;"></i></button>
 				<!-- <div class="image phone"><div class="inner"><img src="/images/screen.jpg" alt="" /></div></div> -->
 			</header>
 
@@ -60,7 +62,7 @@
 				<div class="inner alt">
 					<section class="spotlight">
 						<div class="image">
-                            <img src="/images/magnifyingglass.png" alt="" />
+                            <img src="/images/nonprofit.png" alt="" />
                         </div>
 						<div class="content">
 							<h3 class="content-header">A Misson to Serve Voters</h3>
@@ -70,7 +72,7 @@
 
 					<section class="spotlight">
 						<div class="image">
-                            <img src="/images/magnifyingglass.png" alt="" />
+                            <img src="/images/gears.png" alt="" />
                         </div>
 						<div class="content">
 							<h3 class="content-header">Building an AI Judge</h3>
@@ -81,7 +83,7 @@
 
 					<section class="spotlight">
 						<div class="image">
-                            <img src="/images/magnifyingglass.png" alt="" />
+                            <img src="/images/poliscore2.png" alt="" />
                         </div>
 						<div class="content">
 							<h3 class="content-header">Scoring 13,572 Bills</h3>
@@ -91,7 +93,7 @@
 
 					<section class="spotlight">
 						<div class="image">
-                            <img src="/images/magnifyingglass.png" alt="" />
+                            <img src="/images/poliwin2.png" alt="" />
                         </div>
 						<div class="content">
 							<h3 class="content-header">AI is a Liberal?</h3>
@@ -106,7 +108,47 @@
 								<li>Bills promoting deregulation of firearms are scored negatively</li>
 							</ul>
 
-							<p>It would appear that AI is a liberal? It also sure seems to be talking about social equity quite a bit. We wish to challenge this narrative a little bit. Regarding climate change, almost 70% of Americans want to transition to renewable energy. 62% of Americans are in favor of the Roe v Wade decision.. If the majority of the public agrees, is it true that these are really partisan issues? The science on these issues is pretty clear, AI is simply grading them based on the science, and AI has been asked to grade them on what’s best for humanity. Perhaps it’s the case that AI is being non-partisan, and our legislators are simply out of alignment with the will of the people. Have we been tricked into playing a red versus blue game at the expense of humanity?</p>
+							<p>It would appear that AI is a liberal? It also sure seems to be talking about social equity quite a bit. We wish to challenge this narrative a little bit. Regarding climate change, almost <a href="https://www.pewresearch.org/short-reads/2023/08/09/what-the-data-says-about-americans-views-of-climate-change/">70% of Americans want to transition to renewable energy</a>. <a href="https://www.pewresearch.org/politics/2022/07/06/majority-of-public-disapproves-of-supreme-courts-decision-to-overturn-roe-v-wade/">62% of Americans are in favor of the Roe v Wade decision.</a> If the majority of the public agrees, is it true that these are really partisan issues? The science on these issues is pretty clear, AI is simply grading them based on the science, and AI has been asked to grade them on what’s best for humanity. Perhaps it’s the case that AI is being non-partisan, and our legislators are simply out of alignment with the will of the people. Have we been tricked into playing a red versus blue game at the expense of humanity? Maybe the only way our country can heal, is to not ask “is this a left or a right issue”, and to instead ask “is this good for our society?” Maybe that's what it really means to be non-partisan.</p>
+						</div>
+					</section>
+
+					<section class="spotlight">
+						<div class="image">
+                            <img src="/images/dashboard.png" alt="" />
+                        </div>
+						<div class="content">
+							<h3 class="content-header">Specifics on Bill Scoring</h3>
+
+							<p>The current data loaded on this website is all bills (excluding SCONRES, HCONRES, HRES, SRES) of the 118th US congress. Bill status data and legislator data was fetched using the <a href="https://github.com/unitedstates/congress">open source Github USC</a> project.</p>
+
+							<p>Bill text was split into sections and interpreted using Open AI's GPT-4o. The list of policy areas (used in grading) were taken from <a href="https://www.congress.gov/browse/policyarea">congress.gov/browse/policyarea</a>.</p>
+
+							<p style="text-indent: 0;">Bill text was sent to Open AI with the following prompt:</p>
+
+							<div style="background-color: rgba(202, 208, 219, 0.2); padding: 20px; margin-bottom: 10px;">Score the following bill (or bill section) on the estimated impact to society upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Include a concise (single paragraph) report of the bill at the end which references concrete, notable and specific text of the bill where possible. Please format your response as a list in the example format:
+								
+								<br/><br/>
+								Agriculture and Food: &lt;score or N/A&gt;<br/>
+								Education: &lt;score or N/A&gt;<br/>
+								Transportation: &lt;score or N/A&gt;<br/>
+								Economics and Commerce: &lt;score or N/A&gt;<br/>
+								Foreign relations: &lt;score or N/A&gt;<br/>
+								Social equity: &lt;score or N/A&gt;<br/>
+								Government Efficiency and Management: &lt;score or N/A&gt;<br/>
+								Healthcare: &lt;score or N/A&gt;<br/>
+								Housing: &lt;score or N/A&gt;<br/>
+								Energy: &lt;score or N/A&gt;<br/>
+								Technology: &lt;score or N/A&gt;<br/>
+								Immigration: &lt;score or N/A&gt;<br/>
+								National Defense: &lt;score or N/A&gt;<br/>
+								Crime and Law Enforcement: &lt;score or N/A&gt;<br/>
+								Wildlife and Forest Management: &lt;score or N/A&gt;<br/>
+								Public Lands and Natural Resources: &lt;score or N/A&gt;<br/>
+								Environmental Management and climate change: &lt;score or N/A&gt;<br/>
+								Overall benefit to society: &lt;score or N/A&gt;<br/>
+								<br/><br/>
+
+								&lt;brief summary of the predicted impact to society and why&gt;</div>
 						</div>
 					</section>
 				</div>

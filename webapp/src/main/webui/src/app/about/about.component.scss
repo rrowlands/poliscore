@@ -15,6 +15,20 @@ button {
 	width: 180px;
 }
 
+@media screen and (max-width: 550px) {
+	div > header#header {
+		flex-direction: column;
+	}
+
+	header#header .content {
+		margin-bottom: 0;
+	}
+
+	header#header button {
+		margin-bottom: 2em;
+	}
+}
+
 @media screen and (min-width: 735px) {
 	.spotlight-subtitle {
 		margin-right: 100px;
@@ -342,10 +356,10 @@ input, select, textarea {
 		color: #999999;
 	}
 
-	a {
-		color: inherit;
-		border-bottom-color: #d6d6d6;
-	}
+	// a {
+	// 	color: inherit;
+	// 	border-bottom-color: #d6d6d6;
+	// }
 
 		a:hover {
 			color: #81548f;
@@ -3358,7 +3372,7 @@ input, select, textarea {
 	}
 
 	.spotlight .content p {
-		text-indent: 4em;
+		text-indent: 3em;
 	}
 
 	.spotlight .wrapper .inner:nth-child(2n) {
@@ -3694,11 +3708,11 @@ input, select, textarea {
 				color: #d1e5f9;
 			}
 
-			.wrapper.style1 a {
-				color: inherit;
-				border-bottom-color: rgba(255, 255, 255, 0.5);
-				color: #ffffff;
-			}
+			// .wrapper.style1 a {
+			// 	color: inherit;
+			// 	border-bottom-color: rgba(255, 255, 255, 0.5);
+			// 	color: #ffffff;
+			// }
 
 			.wrapper.style1 strong, .wrapper.style1 b {
 				color: #ffffff;
@@ -3905,10 +3919,10 @@ input, select, textarea {
 				color: #999999;
 			}
 
-			.wrapper.style2 a {
-				color: inherit;
-				border-bottom-color: #d6d6d6;
-			}
+			// .wrapper.style2 a {
+			// 	color: inherit;
+			// 	border-bottom-color: #d6d6d6;
+			// }
 
 				.wrapper.style2 a:hover {
 					color: #81548f;
@@ -4119,10 +4133,10 @@ input, select, textarea {
 				color: #999999;
 			}
 
-			.wrapper.style3 a {
-				color: inherit;
-				border-bottom-color: #c6c6c6;
-			}
+			// .wrapper.style3 a {
+			// 	color: inherit;
+			// 	border-bottom-color: #c6c6c6;
+			// }
 
 				.wrapper.style3 a:hover {
 					color: #81548f;
