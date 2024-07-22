@@ -67,9 +67,9 @@ public class Sandbox implements QuarkusApplication
 //		getLegislatorPageData();
 		
 		
-//		String sourceIp = "71.56.241.71";
-//		val location = ipService.locateIp(sourceIp).orElse(null);
-		String location = "CO";
+		String sourceIp = "71.56.241.71";
+		val location = ipService.locateIp(sourceIp).orElse(null);
+//		String location = "CO";
     	val out = getLegislators(10, (location == null ? null : Persistable.OBJECT_BY_LOCATION_INDEX), true, "LEG/us/congress/C001134~`~CO/8", null);
     	
 		

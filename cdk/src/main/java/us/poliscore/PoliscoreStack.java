@@ -107,9 +107,8 @@ class PoliscoreStack extends Stack {
 
         table.grantReadWriteData(fPoliscore);
         
-        
-        Secret dbReadSecret = new Secret(this, "ipstack");
-        dbReadSecret.grantRead(fPoliscore.getRole());
+        Secret dbReadSecret2 = new Secret(this, "ipgeolocation");
+        dbReadSecret2.grantRead(fPoliscore.getRole());
         
         
         
