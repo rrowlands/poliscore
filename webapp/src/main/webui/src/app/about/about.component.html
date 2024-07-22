@@ -148,7 +148,19 @@
 								Overall benefit to society: &lt;score or N/A&gt;<br/>
 								<br/><br/>
 
-								&lt;brief summary of the predicted impact to society and why&gt;</div>
+								&lt;brief summary of the predicted impact to society and why&gt;
+							</div>
+
+							<p>For each legislator, we calculated a weighted average across all their bill interactions. The weights were assigned as follows:</p>
+
+							<ul>
+								<li>Sponsor: 1.0</li>
+								<li>Cosponsor: 0.7</li>
+								<li>Voted For: 0.5</li>
+								<li>Voted Against: -0.5</li>
+							</ul>
+
+							<p>Votes against a bill were assigned a negative weight, which simply means that if the legislator voted against a bill with a negative score then it affected them positively and vise versa.</p>
 						</div>
 					</section>
 				</div>
