@@ -37,6 +37,8 @@ export class BillsComponent implements OnInit {
 
   public isRequestingData: boolean = false;
 
+  private lastDataFetchSequence: number = 0;
+
   public page: Page = {
     index: "ObjectsByDate",
     ascending: false,
@@ -90,6 +92,8 @@ export class BillsComponent implements OnInit {
 
   @HostListener('window:scroll', ['$event'])
   onScroll(e: any) {
+    if (this.isRequestingData) return;
+
     const el = e.target.documentElement;
 
     // console.log("offsetHeight: " + el.offsetHeight + ", scrollTop: " + el.scrollTop + ", scrollHeight: " + el.scrollHeight);
@@ -155,8 +159,12 @@ export class BillsComponent implements OnInit {
     if (!this.hasMoreContent) return;
 
     this.isRequestingData = true;
+    
+    let fetchSeq = ++this.lastDataFetchSequence;
 
     this.service.getBills(this.page).then(bills => {
+      if (fetchSeq != this.lastDataFetchSequence) return;
+
       if (replace) {
         this.bills = bills;
       } else if (bills.length > 0 && this.bills?.findIndex(l => l.id == bills[0].id) == -1) {

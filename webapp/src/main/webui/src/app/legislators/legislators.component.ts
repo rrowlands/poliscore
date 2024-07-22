@@ -38,7 +38,7 @@ export class LegislatorsComponent implements OnInit {
 
   public isRequestingData: boolean = false;
 
-  private lastScrollTop = 0;
+  private lastDataFetchSequence = 0;
 
   public page: Page = {
     index: "ObjectsByLocation",
@@ -81,6 +81,8 @@ export class LegislatorsComponent implements OnInit {
 
   @HostListener('window:scroll', ['$event'])
   onScroll(e: any) {
+    if (this.isRequestingData) return;
+
     const el = e.target.documentElement;
 
     // console.log("offsetHeight: " + el.offsetHeight + ", scrollTop: " + el.scrollTop + ", scrollHeight: " + el.scrollHeight);
@@ -103,7 +105,8 @@ export class LegislatorsComponent implements OnInit {
       } else if (this.page.index === "ObjectsByRating") {
         this.page.exclusiveStartKey = lastLeg.id + sep + getBenefitToSocietyIssue(lastLeg.interpretation!.issueStats)[1];
       } else if (this.page.index === "ObjectsByLocation") {
-        this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.terms[0].state;
+        let lastTerm = lastLeg.terms[lastLeg.terms.length - 1];
+        this.page.exclusiveStartKey = lastLeg.id + sep + lastTerm.state + (lastTerm.district == null ? "" : "/" + lastTerm.district);
       } else {
         console.log("Unknown page index: " + this.page.index);
         return
@@ -150,7 +153,11 @@ export class LegislatorsComponent implements OnInit {
 
     this.isRequestingData = true;
 
+    let fetchSeq = ++this.lastDataFetchSequence;
+
     this.service.getLegislators(this.page).then(legs => {
+      if (fetchSeq != this.lastDataFetchSequence) return;
+
       if (replace) {
         this.legs = legs;
       } else if (legs.length > 0 && this.legs?.findIndex(l => l.id == legs[0].id) == -1) {
