@@ -58,6 +58,12 @@
   
   <dependencies>
 	<dependency>
+		<groupId>us.poliscore</groupId>
+		<artifactId>databuilder</artifactId>
+		<version>${project.version}</version>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
 	    <groupId>org.apache.commons</groupId>
 	    <artifactId>commons-text</artifactId>
 	    <version>1.12.0</version>

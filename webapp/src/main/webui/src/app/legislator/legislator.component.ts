@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { AppService } from '../app.service';
 import convertStateCodeToName, { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade, issueKeyToLabelSmall } from '../model';
 import { HttpHeaders, HttpClient, HttpParams, HttpHandler, HttpClientModule } from '@angular/common/http';
@@ -59,6 +59,10 @@ export class LegislatorComponent implements OnInit {
 
   public loading: boolean = true;
 
+  public isRequestingData: boolean = false;
+
+  private hasMoreData: boolean = true;
+
   public barChartData: ChartConfiguration<'bar'>['data'] = {
     labels: [],
     datasets: []
@@ -108,7 +112,14 @@ export class LegislatorComponent implements OnInit {
 
       if (leg == null) { return; }
 
-      this.billData = leg?.interactions
+      this.refreshBillData();
+
+      this.buildBarChartData();
+    });
+  }
+
+  refreshBillData() {
+    this.billData = this.leg?.interactions
         ?.filter(i => i.issueStats != null)
         .map(i => ({
           billName: i.billName,
@@ -118,9 +129,6 @@ export class LegislatorComponent implements OnInit {
           billId: i.billId
         }))
         .sort((a, b) => b.date.getTime() - a.date.getTime());
-
-      this.buildBarChartData();
-    });
   }
 
   gradeForLegislator(): string { return gradeForStats(this.leg?.interpretation?.issueStats!); }
@@ -239,5 +247,26 @@ export class LegislatorComponent implements OnInit {
       imgElem.onload = () => res(null);
       imgElem.onerror = () => res(null);
     });
+  }
+
+  @HostListener('window:scroll', ['$event'])
+  onScroll(e: any) {
+    if (this.isRequestingData || this.leg == null) return;
+
+    const el = e.target.documentElement;
+
+    // Trigger when scrolled to bottom
+    if (el.offsetHeight + el.scrollTop >= (el.scrollHeight - 200) && this.leg != null) {
+      this.isRequestingData = true;
+
+      this.service.getLegislatorInteractions(this.legId!, this.leg!.interactions!.length - 1).then(page => {
+        console.log(page);
+        this.leg!.interactions!.push(...page.data[0]);
+        this.refreshBillData();
+        this.hasMoreData = page.hasMoreData;
+      }).finally(() => {
+        this.isRequestingData = false;
+      })
+    }
   }
 }

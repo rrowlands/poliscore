@@ -1,5 +1,7 @@
 package us.poliscore.entrypoint;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.jboss.resteasy.reactive.RestQuery;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
@@ -22,6 +25,7 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 import us.poliscore.LegislatorPageData;
+import us.poliscore.Page;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
@@ -30,7 +34,6 @@ import us.poliscore.model.Persistable;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.CachedDynamoDbService;
-import org.apache.commons.text.similarity.LevenshteinDistance;
 
 @Path("")
 @RequestScoped
@@ -63,6 +66,37 @@ public class Lambda {
     	}
     	
     	return op.orElse(null);
+    }
+    
+    @GET
+    @Path("/getLegislatorInteractions")
+    public Page<LegislatorBillInteractionSet> getLegislatorInteractions(@RestQuery("id") String id, @RestQuery("exclusiveStartKey") Integer exclusiveStartKey) {
+    	val pageSize = 20;
+    	
+    	if (exclusiveStartKey == null) exclusiveStartKey = -1;
+
+    	val set = new LegislatorBillInteractionSet();
+    	Page<LegislatorBillInteractionSet> page = new Page<LegislatorBillInteractionSet>();
+    	page.setData(Arrays.asList(set));
+    	page.setExclusiveStartKey(exclusiveStartKey);
+    	
+    	val op = ddb.get(id, Legislator.class);
+    	
+    	if (op.isPresent()) {
+    		val leg = op.get();
+    		
+    		val allInteracts = leg.getInteractions().stream()
+				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
+				.collect(Collectors.toList());
+    		
+			for (int i = exclusiveStartKey + 1; i < Math.min(allInteracts.size(), exclusiveStartKey + 1 + pageSize); ++i) {
+				set.add(allInteracts.get(i));
+			}
+			
+			page.setHasMoreData((set.size() + 1 + exclusiveStartKey) < leg.getInteractions().size());
+    	}
+    	
+    	return page;
     }
     
     @GET

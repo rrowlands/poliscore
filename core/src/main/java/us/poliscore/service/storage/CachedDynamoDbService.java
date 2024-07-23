@@ -3,9 +3,14 @@ package us.poliscore.service.storage;
 import java.util.List;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.SneakyThrows;
+import lombok.val;
+import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Persistable;
 
 @ApplicationScoped
@@ -17,6 +22,9 @@ public class CachedDynamoDbService implements ApplicationDataStoreIF
 	
 	@Inject
 	private DynamoDbPersistenceService dynamodb;
+	
+	@Inject
+	private ObjectMapper mapper;
 
 	@Override
 	public void put(Persistable obj) {
@@ -25,6 +33,7 @@ public class CachedDynamoDbService implements ApplicationDataStoreIF
 	}
 
 	@Override
+	@SneakyThrows
 	public <T extends Persistable> Optional<T> get(String id, Class<T> clazz)
 	{
 		if (memory.exists(id, clazz))
@@ -36,7 +45,7 @@ public class CachedDynamoDbService implements ApplicationDataStoreIF
 		
 		if (result.isPresent())
 		{
-			memory.put(result.get()); // TODO : Clone the object first
+			memory.put(mapper.treeToValue(mapper.valueToTree(result.get()), clazz));
 		}
 		
 		return result;
@@ -54,9 +63,16 @@ public class CachedDynamoDbService implements ApplicationDataStoreIF
 		return dynamodb.query(clazz);
 	}
 	
+	@SneakyThrows
 	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz, int pageSize, String index, Boolean ascending, String exclusiveStartKey, String sortKey)
 	{
-		return dynamodb.query(clazz, pageSize, index, ascending, exclusiveStartKey, sortKey); // TODO : Clone the objects and then store them in memory
+		val list = dynamodb.query(clazz, pageSize, index, ascending, exclusiveStartKey, sortKey);
+		
+		for (T obj : list) {
+			memory.put(mapper.treeToValue(mapper.valueToTree(obj), clazz));
+		}
+		
+		return list;
 	}
 	
 }

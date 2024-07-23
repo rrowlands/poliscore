@@ -2,10 +2,10 @@ package us.poliscore;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -16,13 +16,13 @@ import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.PathParam;
 import lombok.SneakyThrows;
 import lombok.val;
 import us.poliscore.entrypoint.Lambda;
 import us.poliscore.model.Legislator;
-import us.poliscore.model.Persistable;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
+import us.poliscore.model.LegislatorBillInteraction;
+import us.poliscore.model.Persistable;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.service.IpGeolocationService;
@@ -64,13 +64,13 @@ public class Sandbox implements QuarkusApplication
 //		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(leg));
 		
 		
-//		getLegislatorPageData();
+//		val out = getLegislatorPageData();
 		
 		
-		String sourceIp = "71.56.241.71";
-		val location = ipService.locateIp(sourceIp).orElse(null);
-//		String location = "CO";
-    	val out = getLegislators(10, (location == null ? null : Persistable.OBJECT_BY_LOCATION_INDEX), true, "LEG/us/congress/C001134~`~CO/8", null);
+//		String sourceIp = "71.56.241.71";
+//		val location = ipService.locateIp(sourceIp).orElse(null);
+////		String location = "CO";
+//    	val out = getLegislators(10, (location == null ? null : Persistable.OBJECT_BY_LOCATION_INDEX), true, "LEG/us/congress/C001134~`~CO/8", null);
     	
 		
 //		val date = "1980-12-23";
@@ -81,9 +81,39 @@ public class Sandbox implements QuarkusApplication
 		
 //		val out = queryBills("gun");
     	
+    	val out = getLegislatorInteractions(PoliscoreUtil.BERNIE_SANDERS_ID, 19);
     	
     	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));
 	}
+	
+	public Page<LegislatorBillInteractionSet> getLegislatorInteractions(@RestQuery("id") String id, @RestQuery("exclusiveStartKey") Integer exclusiveStartKey) {
+    	val pageSize = 20;
+    	
+    	if (exclusiveStartKey == null) exclusiveStartKey = -1;
+
+    	val set = new LegislatorBillInteractionSet();
+    	Page<LegislatorBillInteractionSet> page = new Page<LegislatorBillInteractionSet>();
+    	page.setData(Arrays.asList(set));
+    	page.setExclusiveStartKey(exclusiveStartKey);
+    	
+    	val op = ddb.get(id, Legislator.class);
+    	
+    	if (op.isPresent()) {
+    		val leg = op.get();
+    		
+    		val allInteracts = leg.getInteractions().stream()
+				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
+				.collect(Collectors.toList());
+    		
+			for (int i = exclusiveStartKey + 1; i < Math.min(allInteracts.size(), exclusiveStartKey + 1 + pageSize); ++i) {
+				set.add(allInteracts.get(i));
+			}
+			
+			page.setHasMoreData((set.size() + 1 + exclusiveStartKey) < leg.getInteractions().size());
+    	}
+    	
+    	return page;
+    }
 	
 	@SneakyThrows
 	public List<List<String>> queryBills(@RestQuery("text") String text) {
@@ -124,11 +154,11 @@ public class Sandbox implements QuarkusApplication
     }
 	
 	@SneakyThrows
-	public void getLegislatorPageData() {
+	public List<List<String>> getLegislatorPageData() {
     	@SuppressWarnings("unchecked")
 		List<List<String>> allLegs = PoliscoreUtil.getObjectMapper().readValue(IOUtils.toString(Lambda.class.getResourceAsStream("/legislators.index"), "UTF-8"), List.class);
     	
-    	System.out.println(PoliscoreUtil.getObjectMapper().writeValueAsString(allLegs));
+    	return allLegs;
     }
 	
 	public static void main(String[] args) {

@@ -2,9 +2,15 @@
 import { Injectable } from '@angular/core';
 import { HttpHeaders, HttpClient, HttpParams } from '@angular/common/http';
 import { backendUrl } from './app.config';
-import { Bill, Legislator, LegislatorPageData, Page } from './model';
+import { Bill, BillInteraction, Legislator, LegislatorPageData, Page } from './model';
 import { firstValueFrom } from 'rxjs/internal/firstValueFrom';
 import { Observable } from 'rxjs';
+
+export class AppDataPage {
+    data!: any[];
+    exclusiveStartKey: any;
+    hasMoreData!: boolean;
+}
 
 @Injectable()
 export class AppService {
@@ -16,6 +22,17 @@ export class AppService {
         params = params.set("id", id);
 
         return firstValueFrom(this.http.get<Legislator>(backendUrl + "/getLegislator", { params: params }));
+    }
+
+    getLegislatorInteractions(id: string, exclusiveStartKey: number | null = null): Promise<AppDataPage> {
+        let params: HttpParams = new HttpParams();
+        params = params.set("id", id);
+
+        if (exclusiveStartKey!= null) {
+            params = params.set("exclusiveStartKey", exclusiveStartKey);
+        }
+
+        return firstValueFrom(this.http.get<AppDataPage>(backendUrl + "/getLegislatorInteractions", { params: params }));
     }
 
     getBills(page: Page): Promise<Bill[]> {
