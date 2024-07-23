@@ -95,7 +95,7 @@ class PoliscoreStack extends Stack {
                 .environment(lambdaEnvMap)
                 .timeout(Duration.minutes(15))
                 .architecture(Architecture.ARM_64) // Required if you're building on MacOSX M* ARM chipset)
-                .memorySize(128)
+                .memorySize(256)
                 .environment(Map.of("DISABLE_SIGNAL_HANDLERS", "true"))
                 .build());
         
