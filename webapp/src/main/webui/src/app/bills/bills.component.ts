@@ -134,7 +134,7 @@ export class BillsComponent implements OnInit {
     //   this.fetchData();
     //   this.myControl.setValue("");
     // } else {
-      this.router.navigate(['/bill', id]);
+      this.router.navigate(['/bill/' + id.replace("BIL/us/congress", "")]);
     // }
   }
 

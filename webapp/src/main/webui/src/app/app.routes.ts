@@ -29,6 +29,7 @@ export const routes: Routes = [
   { path: "", component: LegislatorsComponent, data: { animation: 'legislatorsPage' } },
   { matcher: idPathMatcher('legislator'), component: LegislatorComponent, data: { animation: 'legislatorPage' } },
   { path: 'legislators', component: LegislatorsComponent, data: { animation: 'legislatorsPage' } },
+  { path: 'legislators/:index/:ascending', component: LegislatorsComponent, data: { animation: 'legislatorsPage' } },
   { path: 'bills', component: BillsComponent, data: { animation: 'billsPage' } },
   { matcher: idPathMatcher('bill'), component: BillComponent, data: { animation: 'billPage' } },
   { path: 'about', component: AboutComponent, data: { animation: 'about' } }

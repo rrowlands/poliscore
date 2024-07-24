@@ -51,14 +51,38 @@ export class LegislatorsComponent implements OnInit {
   ngOnInit(): void
   {
     this.isRequestingData = true;
+    let routeParams = false;
+
+    let routeIndex = this.route.snapshot.paramMap.get('index') as string;
+    let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
+    if ( (routeIndex === "bylocation" || routeIndex === "byrating" || routeIndex === "byage") && routeAscending != null) {
+      if (routeIndex === "bylocation") {
+        this.page.index = "ObjectsByLocation";
+      } else if (routeIndex === "byrating") {
+        this.page.index = "ObjectsByRating";
+      } else if (routeIndex === "byage") {
+        this.page.index = "ObjectsByDate";
+      }
+
+      this.page.ascending = routeAscending == "ascending";
+      
+      this.fetchData();
+
+      routeParams = true;
+    }
 
     this.service.getLegislatorPageData().then(data => {
-      this.legs = data.legislators;
+      if (!routeParams) {
+        this.legs = data.legislators;
+      }
+
       this.allLegislators = data.allLegislators;
       this.searchOptions = data.allLegislators.concat(states.map(s => ["STATE/" + s[1], s[0]]));
       this.myLocation = data.location;
     }).finally(() => {
-      this.isRequestingData = false;
+      if (!routeParams) {
+        this.isRequestingData = false;
+      }
     });
 
     this.filteredOptions = this.myControl.valueChanges.pipe(
@@ -127,7 +151,7 @@ export class LegislatorsComponent implements OnInit {
       this.fetchData();
       this.myControl.setValue("");
     } else {
-      this.router.navigate(['/legislator', "LEG/us/congress/" + bioguideId]);
+      this.router.navigate(['/legislator/' + bioguideId]);
     }
   }
 
@@ -144,6 +168,17 @@ export class LegislatorsComponent implements OnInit {
     }
 
     this.legs = [];
+
+    let routeIndex = "bylocation";
+    if (this.page.index === "ObjectsByDate") {
+      routeIndex = "byage";
+    } else if (this.page.index === "ObjectsByRating") {
+      routeIndex = "byrating";
+    } else if (this.page.index === "ObjectsByLocation") {
+      routeIndex = "bylocation";
+    }
+
+    this.router.navigate(['/legislators', routeIndex, this.page.ascending? "ascending" : "descending"]);
 
     this.fetchData();
   }
