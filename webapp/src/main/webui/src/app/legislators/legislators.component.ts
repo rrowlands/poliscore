@@ -66,9 +66,10 @@ export class LegislatorsComponent implements OnInit {
 
       this.page.ascending = routeAscending == "ascending";
       
-      this.fetchData();
-
-      routeParams = true;
+      if (routeIndex !== "bylocation") {
+        this.fetchData();
+        routeParams = true;
+      }
     }
 
     this.service.getLegislatorPageData().then(data => {
