@@ -105,6 +105,9 @@ export class LegislatorComponent implements OnInit {
 
   ngOnInit(): void {
     this.legId = this.route.snapshot.paramMap.get('id') as string;
+    if (!this.legId.startsWith("LEG/us/congress")) {
+      this.legId = "LEG/us/congress/" + this.legId;
+    }
 
     this.service.getLegislator(this.legId).then(leg => {
       this.leg = leg;
@@ -161,7 +164,7 @@ export class LegislatorComponent implements OnInit {
 
   routeToBill(id: string)
   {
-    this.router.navigate(['/bill', id]);
+    this.router.navigate(['/bill/' + id.replace("BIL/us/congress", "")]);
   }
 
   describeAssociation(association: BillInteraction): string {

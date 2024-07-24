@@ -65,6 +65,9 @@ export class BillComponent implements OnInit {
 
   ngOnInit(): void {
     this.billId = this.route.snapshot.paramMap.get('id') as string;
+    if (!this.billId.startsWith("BIL/us/congress")) {
+      this.billId = "BIL/us/congress/" + this.billId;
+    }
 
     this.service.getBill(this.billId).then(bill => {
       this.bill = bill;
@@ -74,7 +77,7 @@ export class BillComponent implements OnInit {
   }
 
   onClickSponsor() {
-    this.router.navigate(['/legislator', "LEG/us/congress/" + this.bill?.sponsor?.bioguide_id]);
+    this.router.navigate(['/legislator/' + this.bill?.sponsor?.bioguide_id]);
   }
 
   getCongressGovBillType() {

@@ -182,7 +182,7 @@ export class BillsComponent implements OnInit {
   routeTo(bill: Bill)
   {
     document.getElementById(bill.id)?.classList.add("tran-div");
-    this.router.navigate(['/bill', bill.id]);
+    this.router.navigate(['/bill/' + bill.id.replace("BIL/us/congress", "")]);
   }
 
   descriptionForBill(bill: Bill): string

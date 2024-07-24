@@ -8,6 +8,16 @@ mat-card {
     border: 1px solid black;
 }
 
+.breadcrumb {
+    position: relative;
+}
+
+.breadcrumb > .float-right {
+    position: absolute;
+    right: 0em;
+    top: -0.3em;
+}
+
 .grade {
     position: absolute;
     top: 15px;
