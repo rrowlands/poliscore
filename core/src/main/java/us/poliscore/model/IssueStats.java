@@ -74,7 +74,7 @@ public class IssueStats {
 		
 		for (TrackedIssue issue : TrackedIssue.values())
 		{
-			Pattern pattern = Pattern.compile("^-? ?" + issue.getName() + ": ([+-]?\\d+.?\\d*|N\\/A)$", Pattern.CASE_INSENSITIVE);
+			Pattern pattern = Pattern.compile("^-? ?\\*?\\*?\\d?\\d?\\.? ?" + issue.getName() + "\\*?\\*?:\\*?\\*? ([+-]?\\d+\\.?\\d*|N\\/A)\\*?\\*?$", Pattern.CASE_INSENSITIVE);
 			Matcher matcher = pattern.matcher(line);
 		    
 		    if (matcher.find()) {

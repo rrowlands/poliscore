@@ -67,7 +67,10 @@ public class Legislator implements Persistable {
 	public void addBillInteraction(LegislatorBillInteraction incoming)
 	{
 		interactions.removeIf(existing -> incoming.supercedes(existing));
-		interactions.add(incoming);
+		
+		if (!interactions.contains(incoming)) {
+			interactions.add(incoming);
+		}
 	}
 	
 	public boolean isMemberOfSession(CongressionalSession session) {

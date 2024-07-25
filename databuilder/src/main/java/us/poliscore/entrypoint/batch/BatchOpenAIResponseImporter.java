@@ -24,10 +24,12 @@ import lombok.val;
 import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIResponse;
+import us.poliscore.model.AISliceInterpretationMetadata;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
 import us.poliscore.model.LegislatorInterpretation;
+import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.bill.Bill;
@@ -52,9 +54,9 @@ import us.poliscore.service.storage.MemoryPersistenceService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-	public static final String INPUT = "/Users/rrowlands/Downloads/batch_V4grdfPKD3szAMfMoP6RHdDH_output.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_EE9hU5FbmkmIfMWfhwRboF1t_output.jsonl";
 	
-//	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
+	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	
 	@Inject
 	private CachedDynamoDbService ddb;
@@ -123,16 +125,21 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		if (erroredLines.size() > 0) {
 			File f = new File(Environment.getDeployedPath(), "unprocessed.jsonl");
 			FileUtils.write(f, String.join("\n", erroredLines), "UTF-8");
-			System.out.println("Printed errored lines to " + f.getAbsolutePath());
+			System.out.println("Encountered errors on " + erroredLines.size() + " lines. Printed them to " + f.getAbsolutePath());
 		}
+		
+		legService.generateLegislatorWebappIndex();
+		billService.generateBillWebappIndex();
 		
 		System.out.println("Program complete.");
 	}
 	
 	private void importLegislator(final BatchOpenAIResponse resp) {
+//		if (!resp.getCustom_id().contains("N000147")) return;
+		
 		val leg = memService.get(resp.getCustom_id().replace(LegislatorInterpretation.ID_CLASS_PREFIX, Legislator.ID_CLASS_PREFIX), Legislator.class).orElseThrow();
 		
-		if (ddb.exists(leg.getId(), Legislator.class)) return;
+//		if (ddb.exists(leg.getId(), Legislator.class)) return;
 		
 		for (val i : legInterp.getInteractionsForInterpretation(leg))
 		{
@@ -173,7 +180,10 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		interp.setHash(legInterp.calculateInterpHashCode(leg));
 		s3.put(interp);
 		
-		leg.setInteractions(interacts);
+		// 1200 seems to be about an upper limit for a single ddb page
+		leg.setInteractions(interacts.stream().sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1200).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
+//		leg.setInteractions(interacts);
+		
 		leg.setInterpretation(interp);
 		
 		ddb.put(leg);
@@ -196,6 +206,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		if (sliceIndex == null)
 		{
 			bi.setMetadata(OpenAIService.metadata());
+			bi.setId(BillInterpretation.generateId(bill.getId(), null));
 		}
 		else
 		{
@@ -205,10 +216,36 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, BillSlicer.MAX_SECTION_LENGTH);
 			
 			bi.setMetadata(OpenAIService.metadata(slices.get(sliceIndex)));
+			bi.setId(BillInterpretation.generateId(billId, sliceIndex));
 		}
 		
-		bi.setIssueStats(IssueStats.parse(resp.getResponse().getBody().getChoices().get(0).getMessage().getContent()));
-		bi.setId(BillInterpretation.generateId(billId, sliceIndex));
+		val respStats = IssueStats.parse(resp.getResponse().getBody().getChoices().get(0).getMessage().getContent());
+		
+		if (!respStats.hasStat(TrackedIssue.OverallBenefitToSociety)) {
+			if (sliceIndex != null) {throw new RuntimeException("Did not find OverallBenefitToSociety stat on interpretation");  }
+			
+			val billText = s3.get(BillText.generateId(bill.getId()), BillText.class).orElseThrow();
+			
+			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, BillSlicer.MAX_SECTION_LENGTH);
+			
+			if (slices.size() <= 1) { throw new RuntimeException("Expected multiple slices on [" + billId + "] since OpenAI did not include benefit to society issue stat"); }
+			
+			IssueStats billStats = new IssueStats();
+			List<BillInterpretation> sliceInterps = new ArrayList<BillInterpretation>();
+			
+			for (int i = 0; i < slices.size(); ++i) {
+				val sliceInterp = s3.get(resp.getCustom_id() + "-" + i, BillInterpretation.class).orElseThrow();
+				
+				billStats = billStats.sum(sliceInterp.getIssueStats());
+				sliceInterps.add(sliceInterp);
+			}
+			
+			bi.setIssueStats(billStats.divideByTotalSummed());
+			bi.setSliceInterpretations(sliceInterps);
+			bi.getIssueStats().setExplanation(resp.getResponse().getBody().getChoices().get(0).getMessage().getContent());
+		} else {
+			bi.setIssueStats(respStats);
+		}
 		
 		s3.put(bi);
 		
