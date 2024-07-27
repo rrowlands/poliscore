@@ -64,6 +64,12 @@ public class IssueStats {
 			}
 		}
 		
+		val summaryHeaders = new String[] { "summary of the predicted impact to society and why", "summary of the predicted impact to society", "summary of the bill and predicted impact to society and why", "summary of the bill and predicted impact to society", "summary of the bill and its predicted impact to society and why", "summary of the bill and its predicted impact to society", "Summary of the bill's predicted impact to society and why", "Summary of the bill's predicted impact to society", "summary of predicted impact to society and why", "summary of predicted impact to society", "summary of the impact to society", "summary of impact to society", "summary report", "summary of the impact", "summary of impact", "summary", "explanation" };
+		val summaryHeaderRegex = " *#*\\** *(" + String.join("|", summaryHeaders) + ") *#*\\** *:? *#*\\** *";
+		if (stats.explanation.matches("(?i)^" + summaryHeaderRegex + ".*$")) {
+			stats.explanation = stats.explanation.replaceFirst("(?i)" + summaryHeaderRegex, "");
+		}
+		
 		return stats;
 	}
 	

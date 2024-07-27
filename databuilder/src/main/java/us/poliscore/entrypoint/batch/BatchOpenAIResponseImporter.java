@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
@@ -47,10 +48,10 @@ import us.poliscore.service.storage.MemoryPersistenceService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_E0jGxaNbBZJcJCDlp6orcooZ_output.jsonl";
+	public static final String INPUT = "/Users/rrowlands/Downloads/batch_7Bgwuc1znzuM7TMCH5u8bNpf_output.jsonl";
 	
 	// All Legislators (July 9th) 
-	public static final String INPUT = "/Users/rrowlands/Downloads/batch_V4grdfPKD3szAMfMoP6RHdDH_output.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_V4grdfPKD3szAMfMoP6RHdDH_output.jsonl";
 	
 //	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	
@@ -174,6 +175,11 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		val interp = new LegislatorInterpretation(OpenAIService.metadata(), leg, stats);
 		interp.setHash(legInterp.calculateInterpHashCode(leg));
+		
+		if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(interp.getIssueStats().getExplanation())) {
+			throw new RuntimeException("Unable to parse valid issue stats for bill " + leg.getId());
+		}
+		
 		s3.put(interp);
 		
 		// 1200 seems to be about an upper limit for a single ddb page
@@ -241,6 +247,10 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			bi.getIssueStats().setExplanation(resp.getResponse().getBody().getChoices().get(0).getMessage().getContent());
 		} else {
 			bi.setIssueStats(respStats);
+		}
+		
+		if (bi.getIssueStats() == null || !bi.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(bi.getIssueStats().getExplanation())) {
+			throw new RuntimeException("Unable to parse valid issue stats for bill " + billId);
 		}
 		
 		s3.put(bi);
