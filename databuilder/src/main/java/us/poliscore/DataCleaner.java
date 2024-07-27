@@ -19,8 +19,8 @@ import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryPersistenceService;
 
-@QuarkusMain(name="DataSandbox")
-public class DataSandbox implements QuarkusApplication {
+@QuarkusMain(name="DataCleaner")
+public class DataCleaner implements QuarkusApplication {
 	
 	@Inject private LegislatorService legService;
 	
@@ -66,17 +66,17 @@ public class DataSandbox implements QuarkusApplication {
 				continue;
 			}
 			
-//			val summaryHeaders = new String[] { "summary of the predicted impact to society and why", "summary of the predicted impact to society", "summary of the bill and predicted impact to society and why", "summary of the bill and predicted impact to society", "summary of the bill and its predicted impact to society and why", "summary of the bill and its predicted impact to society", "Summary of the bill's predicted impact to society and why", "Summary of the bill's predicted impact to society", "summary of predicted impact to society and why", "summary of predicted impact to society", "summary of the impact to society", "summary of impact to society", "summary report", "summary of the impact", "summary of impact", "summary", "explanation" };
-//			val summaryHeaderRegex = " *#*\\** *(" + String.join("|", summaryHeaders) + ") *#*\\** *:? *#*\\** *";
-//			if (interp.getIssueStats().getExplanation().matches("(?i)^" + summaryHeaderRegex + ".*$")) {
+			val summaryHeaders = new String[] { "summary of the predicted impact to society and why", "summary of the predicted impact to society", "summary of the bill and predicted impact to society and why", "summary of the bill and predicted impact to society", "summary of the bill and its predicted impact to society and why", "summary of the bill and its predicted impact to society", "Summary of the bill's predicted impact to society and why", "Summary of the bill's predicted impact to society", "summary of predicted impact to society and why", "summary of predicted impact to society", "summary of the impact to society", "summary of impact to society", "summary report", "summary of the impact", "summary of impact", "summary", "explanation" };
+			val summaryHeaderRegex = " *#*\\** *(" + String.join("|", summaryHeaders) + ") *#*\\** *:? *#*\\** *";
+			if (interp.getIssueStats().getExplanation().matches("(?i)^" + summaryHeaderRegex + ".*$")) {
 //				interp.getIssueStats().setExplanation(interp.getIssueStats().getExplanation().replaceFirst("(?i)" + summaryHeaderRegex, ""));
-//				badExplanations.add(b.getId());
-//				
+				badExplanations.add(b.getId());
+				
 //				s3.put(interp);
 //				
 //				b.setInterpretation(interp);
 //				ddb.put(b);
-//			}
+			}
 		}
 		
 		System.out.println(String.join(", ", badInterps.stream().map(id -> "\"" + id + "\"").toList()));
@@ -91,7 +91,7 @@ public class DataSandbox implements QuarkusApplication {
 	}
 	
 	public static void main(String[] args) {
-		Quarkus.run(DataSandbox.class, args);
+		Quarkus.run(DataCleaner.class, args);
 	}
 	
 	@Override
