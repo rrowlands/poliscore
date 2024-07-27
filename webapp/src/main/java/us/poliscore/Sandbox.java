@@ -5,12 +5,15 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.resteasy.reactive.RestQuery;
 
+import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
@@ -18,6 +21,7 @@ import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.val;
 import us.poliscore.entrypoint.Lambda;
+import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorBillInteraction;
@@ -80,10 +84,58 @@ public class Sandbox implements QuarkusApplication
 		
 //		val out = queryBills("gun");
     	
-    	val out = getLegislatorInteractions(PoliscoreUtil.BERNIE_SANDERS_ID, 19);
+//    	val out = getLegislatorInteractions(PoliscoreUtil.BERNIE_SANDERS_ID, 19);
+		
+		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "H000273"), Legislator.class).orElseThrow();
+		
+		linkInterpBills(leg);
+		
+		val out = leg.getInterpretation().getIssueStats().getExplanation();
     	
-    	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));
+//    	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));
+		System.out.println(out);
 	}
+	
+	private void linkInterpBills(Legislator leg) {
+		try
+		{
+	    	var exp = leg.getInterpretation().getIssueStats().getExplanation();
+	    	var newExp = "";
+	    	
+	    	val regex = "(\\\".*?\\\")";
+	    	Pattern p = Pattern.compile(regex);
+	    	Matcher m = p.matcher(exp);
+	    	
+	    	int lastMatchEnd = 0;
+	    	
+	    	while (m.find()) {
+	    		var matchText = exp.substring(m.start() + 1, m.end() - 1);
+	    		val before = exp.substring(lastMatchEnd, m.start());
+	    		lastMatchEnd = m.end();
+	    		
+	    		val bn = matchText.toLowerCase().replaceAll(",", "");
+	    		val op = leg.getInteractions().stream().filter(b -> b.getBillName().replaceAll(",", "").toLowerCase().equals(bn)).findFirst();
+	    		
+	    		if (op.isPresent()) {
+	    			val bill = op.get();
+	    			
+	    			val url = "/bill" + bill.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace(), "");
+	    			
+	    			newExp += before + "<a href=\"" + url + "\" >\"" + matchText + "\"</a>";
+	    		} else {
+	    			newExp += before + "\"" + matchText + "\"";
+	    		}
+	    	}
+	    	
+	    	if (newExp.length() == 0) { return; }
+	    	
+	    	newExp += exp.substring(lastMatchEnd);
+	    	
+	    	leg.getInterpretation().getIssueStats().setExplanation(newExp);
+		} catch (Throwable t) {
+			Log.error(t);
+		}
+    }
 	
 	public Page<LegislatorBillInteractionSet> getLegislatorInteractions(@RestQuery("id") String id, @RestQuery("exclusiveStartKey") Integer exclusiveStartKey) {
     	val pageSize = 20;

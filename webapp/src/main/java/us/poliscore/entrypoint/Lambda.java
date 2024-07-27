@@ -1,11 +1,12 @@
 package us.poliscore.entrypoint;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -27,6 +28,7 @@ import lombok.val;
 import us.poliscore.LegislatorPageData;
 import us.poliscore.Page;
 import us.poliscore.PoliscoreUtil;
+import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorBillInteraction;
@@ -60,12 +62,56 @@ public class Lambda {
     	
     	if (op.isPresent()) {
     		val leg = op.get();
+    		
+    		linkInterpBills(leg);
+    		
     		leg.setInteractions(leg.getInteractions().stream()
     				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
     				.limit(20).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
     	}
     	
     	return op.orElse(null);
+    }
+    
+    private void linkInterpBills(Legislator leg) {
+		try
+		{
+	    	var exp = leg.getInterpretation().getIssueStats().getExplanation();
+	    	var newExp = "";
+	    	
+	    	val regex = "(\\\".*?\\\")";
+	    	Pattern p = Pattern.compile(regex);
+	    	Matcher m = p.matcher(exp);
+	    	
+	    	int lastMatchEnd = 0;
+	    	
+	    	while (m.find()) {
+	    		var matchText = exp.substring(m.start() + 1, m.end() - 1);
+	    		val before = exp.substring(lastMatchEnd, m.start());
+	    		lastMatchEnd = m.end();
+	    		
+	    		val bn = matchText.toLowerCase().replaceAll(",", "");
+	    		val op = leg.getInteractions().stream().filter(b -> b.getBillName().replaceAll(",", "").toLowerCase().equals(bn)).findFirst();
+	    		
+	    		if (op.isPresent()) {
+	    			val bill = op.get();
+	    			
+	    			val url = "/bill" + bill.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace(), "");
+	    			
+	    			newExp += before + "<a href=\"" + url + "\" >\"" + matchText + "\"</a>";
+	    		} else {
+	    			newExp += before + "\"" + matchText + "\"";
+	    		}
+	    	}
+	    	
+	    	if (newExp.length() == 0) { return; }
+	    	
+	    	newExp += exp.substring(lastMatchEnd);
+	    	
+	    	leg.getInterpretation().getIssueStats().setExplanation(newExp);
+		} catch (Throwable t) {
+			Log.error(t);
+		}
     }
     
     @GET
