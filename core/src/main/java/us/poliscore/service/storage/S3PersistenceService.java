@@ -1,9 +1,12 @@
 package us.poliscore.service.storage;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import org.apache.commons.io.FilenameUtils;
 
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -28,7 +31,7 @@ public class S3PersistenceService implements PersistenceServiceIF
 	
 	private S3Client client;
 	
-	private Set<String> objectsInBucket = null;
+	private static HashMap<String, Set<String>> objectsInBucket = new HashMap<String, Set<String>>();
 	
 	protected String getKey(String id)
 	{
@@ -87,9 +90,11 @@ public class S3PersistenceService implements PersistenceServiceIF
 	}
 	
 	@Override
+	@SneakyThrows
 	public <T extends Persistable> boolean exists(String id, Class<T> clazz)
 	{
-		if (objectsInBucket != null) return objectsInBucket.contains(id);
+		val idClassPrefix = (String) clazz.getField("ID_CLASS_PREFIX").get(null);
+		if (objectsInBucket.containsKey(idClassPrefix)) return objectsInBucket.get(idClassPrefix).contains(id);
 		
 		val key = getKey(id);
 		
@@ -115,8 +120,8 @@ public class S3PersistenceService implements PersistenceServiceIF
 	
 	@SneakyThrows
 	public <T extends Persistable> void optimizeExists(Class<T> clazz) {
-		objectsInBucket = new HashSet<String>();
 		val idClassPrefix = (String) clazz.getField("ID_CLASS_PREFIX").get(null);
+		objectsInBucket.put(idClassPrefix, new HashSet<String>());
 		
 		String continuationToken = null;
 		do {
@@ -129,7 +134,7 @@ public class S3PersistenceService implements PersistenceServiceIF
 			
 			val resp = getClient().listObjectsV2(builder.build());
 			
-			objectsInBucket.addAll(resp.contents().stream().map(o -> o.key()).toList());
+			objectsInBucket.get(idClassPrefix).addAll(resp.contents().stream().map(o -> FilenameUtils.getPath(o.key()) + FilenameUtils.getBaseName(o.key())).toList());
 			
 			continuationToken = resp.nextContinuationToken();
 		}

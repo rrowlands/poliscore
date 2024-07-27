@@ -115,6 +115,7 @@ public class XMLBillSlicer implements BillSlicer {
 		factory.setIgnoringElementContentWhitespace(true);
 		factory.setValidating(false);
 //		factory.setNamespaceAware(true);
+		factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
 		factory.setFeature("http://xml.org/sax/features/namespaces", false);
 		factory.setFeature("http://xml.org/sax/features/validation", false);
 		factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);

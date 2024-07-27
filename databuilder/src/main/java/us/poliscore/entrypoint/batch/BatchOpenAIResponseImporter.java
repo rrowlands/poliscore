@@ -2,10 +2,8 @@ package us.poliscore.entrypoint.batch;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,7 +11,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 
-import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
@@ -24,19 +21,15 @@ import lombok.val;
 import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIResponse;
-import us.poliscore.model.AISliceInterpretationMetadata;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Legislator;
-import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
+import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.TrackedIssue;
-import us.poliscore.model.VoteStatus;
-import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillSlice;
 import us.poliscore.model.bill.BillText;
-import us.poliscore.model.bill.BillType;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillService;
@@ -45,7 +38,7 @@ import us.poliscore.service.LegislatorService;
 import us.poliscore.service.OpenAIService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.CachedDynamoDbService;
-import us.poliscore.service.storage.CachedS3Service;
+import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryPersistenceService;
 
 /**
@@ -54,15 +47,18 @@ import us.poliscore.service.storage.MemoryPersistenceService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_EE9hU5FbmkmIfMWfhwRboF1t_output.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_E0jGxaNbBZJcJCDlp6orcooZ_output.jsonl";
 	
-	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
+	// All Legislators (July 9th) 
+	public static final String INPUT = "/Users/rrowlands/Downloads/batch_V4grdfPKD3szAMfMoP6RHdDH_output.jsonl";
+	
+//	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	
 	@Inject
 	private CachedDynamoDbService ddb;
 	
 	@Inject
-	private CachedS3Service s3;
+	private LocalCachedS3Service s3;
 	
 	@Inject
 	private BillService billService;

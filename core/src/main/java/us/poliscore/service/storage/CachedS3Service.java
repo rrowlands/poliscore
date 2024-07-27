@@ -20,7 +20,7 @@ public class CachedS3Service implements ApplicationDataStoreIF
 	
 	@Inject
 	private S3PersistenceService s3;
-
+	
 	@Override
 	public void put(Persistable obj) {
 		memory.put(obj);

@@ -1,16 +1,13 @@
 package us.poliscore.entrypoint;
 
-import static org.joox.JOOX.$;
-
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +16,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.jsoup.Jsoup;
 
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
@@ -59,14 +57,15 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 	protected void process()
 	{
 		val store = new File(PoliscoreUtil.APP_DATA, "bill-text");
-		FileUtils.deleteQuietly(store);
+//		FileUtils.deleteQuietly(store);
 		store.mkdirs();
+		
+		s3.optimizeExists(BillText.class);
 		
 		for (int congress : PoliscoreUtil.SUPPORTED_CONGRESSES)
 		{
 			val congressStore = new File(store, String.valueOf(congress));
 			congressStore.mkdir();
-			
 			
 			for (String billType : FETCH_BILL_TYPE)
 			{
@@ -82,13 +81,15 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 					
 					val zip = new File(typeStore, congress + "-" + billType + ".zip");
 					
+					if (zip.exists() && new Date().getTime() - zip.lastModified() > 24 * 60 * 60 * 1000) {
+						zip.delete();
+					} else if (zip.exists()) { continue; }
+					
 					Log.info("Downloading " + url + " to " + zip.getAbsolutePath());
 					IOUtils.copy(new URL(url).openStream(), new FileOutputStream(zip));
 					
 					Log.info("Extracting " + zip.getAbsolutePath() + " to " + typeStore.getAbsolutePath());
 					new ZipFile(zip).extractAll(typeStore.getAbsolutePath());
-					
-					FileUtils.delete(zip);
 				}
 				
 				// Upload to S3
@@ -102,10 +103,16 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 					
 					if (!processedBills.contains(billId) && !s3.exists(BillText.generateId(billId), BillText.class))
 					{
-						val date = parseDate(f);
-						
-						BillText bt = new BillText(billId, FileUtils.readFileToString(f, "UTF-8"), date);
-						s3.put(bt);
+						try
+						{
+							val date = parseDate(f);
+							
+							BillText bt = new BillText(billId, FileUtils.readFileToString(f, "UTF-8"), date);
+							s3.put(bt);
+						}
+						catch (Throwable t) {
+							Log.error("Exception encountered processing " + billId, t);			
+						}
 						
 						processedBills.add(billId);
 					}
@@ -119,7 +126,7 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 	@SneakyThrows
 	protected LocalDate parseDate(File f)
 	{
-		val text = $(new InputStreamReader(new FileInputStream(f), "UTF-8")).find("bill dublinCore dc|date").text();
+		val text = Jsoup.parse(f).select("bill dublinCore dc|date").text();
 		
 		if (StringUtils.isBlank(text)) return null;
 		

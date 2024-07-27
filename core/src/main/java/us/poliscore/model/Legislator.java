@@ -78,8 +78,10 @@ public class Legislator implements Persistable {
 		
 		val term = this.terms.last();
 		
-		return (term.getStartDate().isBefore(session.getStartDate()) || term.getStartDate().isEqual(session.getStartDate()))
-				&& (term.getEndDate().isAfter(session.getStartDate()) || term.getEndDate().equals(session.getEndDate()));
+		// (StartA <= EndB) and (EndA >= StartB)
+		
+		return (term.getStartDate().isBefore(session.getEndDate()) || term.getStartDate().isEqual(session.getEndDate()))
+				&& (term.getEndDate().isAfter(session.getStartDate()) || term.getEndDate().equals(session.getStartDate()));
 	}
 	
 	public static String generateId(LegislativeNamespace ns, String bioguideId)

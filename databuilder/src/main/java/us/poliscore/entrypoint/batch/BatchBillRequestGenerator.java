@@ -36,6 +36,7 @@ import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillSlice;
+import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
@@ -46,6 +47,7 @@ import us.poliscore.service.LegislatorService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.CachedS3Service;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
+import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.LocalFilePersistenceService;
 import us.poliscore.service.storage.MemoryPersistenceService;
 import us.poliscore.service.storage.S3PersistenceService;
@@ -62,7 +64,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	private MemoryPersistenceService memService;
 	
 	@Inject
-	private S3PersistenceService s3;
+	private LocalCachedS3Service s3;
 	
 	@Inject
 	private BillService billService;
@@ -90,18 +92,21 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	{
 		legService.importLegislators();
 		billService.importUscBills();
-		rollCallService.importUscVotes();
 		
 		int block = 1;
 		
 		s3.optimizeExists(BillInterpretation.class);
+		s3.optimizeExists(BillText.class);
+		
+//		List<String> specificFetch = Arrays.asList("BIL/us/congress/118/hr/647", "BIL/us/congress/118/hr/2670", "BIL/us/congress/118/hr/2497");
 		
 		for (Bill b : memService.query(Bill.class).stream()
+//				.filter(b -> specificFetch.contains(b.getId()))
 				.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
 				.toList()) {
-			val billText = billService.getBillText(b).orElse(null);
 			
-			if (billText != null && !billInterpreter.isInterpreted(b.getId())) {
+			if (!billInterpreter.isInterpreted(b.getId()) && s3.exists(BillText.generateId(b.getId()), BillText.class)) {
+				val billText = billService.getBillText(b).orElse(null);
 				b.setText(billText);
 				
 				if (billText.getXml().length() >= BillSlicer.MAX_SECTION_LENGTH)
@@ -130,7 +135,11 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		        			Optional<BillInterpretation> sliceInterp = s3.get(BillInterpretation.generateId(b.getId(), i), BillInterpretation.class);
 		        			
 		        			if (sliceInterp.isEmpty()) {
-			        			createRequest(BillInterpretation.generateId(b.getId(), slice.getSliceIndex()), BillInterpretationService.statsPrompt, slice.getText());
+		        				val oid = BillInterpretation.generateId(b.getId(), slice.getSliceIndex());
+		        				
+		        				if (s3.exists(oid, BillInterpretation.class)) { continue; }
+		        				
+			        			createRequest(oid, BillInterpretationService.statsPrompt, slice.getText());
 		        			} else {
 		        				sliceInterps.add(sliceInterp.get());
 		        			}
@@ -146,9 +155,11 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		            		
 		            		billStats = billStats.divideByTotalSummed();
 		            		
-//		            		var bi = getOrCreateAggregateInterpretation(bill, billStats, sliceInterps);
+		            		val oid = BillInterpretation.generateId(b.getId(), null);
 		            		
-			    			createRequest(BillInterpretation.generateId(b.getId(), null), BillInterpretationService.summaryPrompt, billStats.getExplanation());
+		            		if (s3.exists(oid, BillInterpretation.class)) { continue; }
+		            		
+			    			createRequest(oid, BillInterpretationService.summaryPrompt, billStats.getExplanation());
 		        		}
 		    		}
 		    	}

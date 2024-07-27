@@ -194,4 +194,9 @@ public class BillInterpretationService {
 		val id = BillInterpretation.generateId(billId, null);
 		return s3.exists(id, BillInterpretation.class);
 	}
+	
+	public boolean isInterpreted(@NonNull String billId, int sliceIndex) {
+		val id = BillInterpretation.generateId(billId, sliceIndex);
+		return s3.exists(id, BillInterpretation.class);
+	}
 }
