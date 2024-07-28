@@ -86,7 +86,7 @@ public class Sandbox implements QuarkusApplication
     	
 //    	val out = getLegislatorInteractions(PoliscoreUtil.BERNIE_SANDERS_ID, 19);
 		
-		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "H000273"), Legislator.class).orElseThrow();
+		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "B000825"), Legislator.class).orElseThrow();
 		
 		linkInterpBills(leg);
 		
@@ -99,39 +99,23 @@ public class Sandbox implements QuarkusApplication
 	private void linkInterpBills(Legislator leg) {
 		try
 		{
-	    	var exp = leg.getInterpretation().getIssueStats().getExplanation();
-	    	var newExp = "";
-	    	
-	    	val regex = "(\\\".*?\\\")";
-	    	Pattern p = Pattern.compile(regex);
-	    	Matcher m = p.matcher(exp);
-	    	
-	    	int lastMatchEnd = 0;
-	    	
-	    	while (m.find()) {
-	    		var matchText = exp.substring(m.start() + 1, m.end() - 1);
-	    		val before = exp.substring(lastMatchEnd, m.start());
-	    		lastMatchEnd = m.end();
-	    		
-	    		val bn = matchText.toLowerCase().replaceAll(",", "");
-	    		val op = leg.getInteractions().stream().filter(b -> b.getBillName().replaceAll(",", "").toLowerCase().equals(bn)).findFirst();
-	    		
-	    		if (op.isPresent()) {
-	    			val bill = op.get();
-	    			
-	    			val url = "/bill" + bill.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace(), "");
-	    			
-	    			newExp += before + "<a href=\"" + url + "\" >\"" + matchText + "\"</a>";
-	    		} else {
-	    			newExp += before + "\"" + matchText + "\"";
-	    		}
-	    	}
-	    	
-	    	if (newExp.length() == 0) { return; }
-	    	
-	    	newExp += exp.substring(lastMatchEnd);
-	    	
-	    	leg.getInterpretation().getIssueStats().setExplanation(newExp);
+			var exp = leg.getInterpretation().getIssueStats().getExplanation();
+			
+			// Standardize terminology from H.J. Res XXX -> HJRES-XXX
+			exp = exp.replaceAll("H\\.?J\\.? ?Res\\.? ?-?(\\d{1,4})", "HJRES-$1");
+			exp = exp.replaceAll("S\\.?J\\.? ?Res\\.? ?-?(\\d{1,4})", "SJRES-$1");
+			exp = exp.replaceAll("H\\.?R\\.? ?-?(\\d{1,4})", "HR-$1");
+			exp = exp.replaceAll("S\\.? ?-?(\\d{1,4})", "S-$1");
+			
+			
+			// Replace 
+			for (val interact : leg.getInteractions()) {
+				val url = "/bill" + interact.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace(), "");
+				
+				exp = exp.replaceAll("(?i)" + Pattern.quote(interact.getBillName()), "<a href=\"" + url + "\" >" + interact.getBillName() + "</a>");
+			}
+			
+			leg.getInterpretation().getIssueStats().setExplanation(exp);
 		} catch (Throwable t) {
 			Log.error(t);
 		}
