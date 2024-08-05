@@ -102,23 +102,24 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 			    	if (getter.isAnnotationPresent(DdbDataPage.class)) {
 			    		val page = getter.getAnnotation(DdbDataPage.class).value();
 			    		
-			    		val val = ((AttributeConverter<Object>) schema.converterForAttribute(attr)).transformFrom(rawValue);
+			    		// incompatible types: software.amazon.awssdk.enhanced.dynamodb.AttributeConverter<T> cannot be converted to software.amazon.awssdk.enhanced.dynamodb.AttributeConverter<java.lang.Object>
+//			    		val val = ((AttributeConverter<Object>) schema.converterForAttribute(attr)).transformFrom(rawValue);
 			    		
-//			    		AttributeValue val;
-//				    	
-//				    	if (getter.isAnnotationPresent(DynamoDbConvertedBy.class)) {
-//				    		val a2 = getter.getAnnotation(DynamoDbConvertedBy.class);
-//				    		
-//				    		val converter = a2.value().getDeclaredConstructor().newInstance();
-//				    		
-//				    		val = converter.transformFrom(rawValue);
-//				    	} else {
-//				            @SuppressWarnings("unchecked")
-//				            AttributeConverter<Object> converter = (AttributeConverter<Object>) new DefaultAttributeConverterProvider()
-//				                    .converterFor(EnhancedType.of(rawValue.getClass()));
-//
-//				            val = converter.transformFrom(rawValue);
-//				    	}
+			    		AttributeValue val;
+				    	
+				    	if (getter.isAnnotationPresent(DynamoDbConvertedBy.class)) {
+				    		val a2 = getter.getAnnotation(DynamoDbConvertedBy.class);
+				    		
+				    		val converter = a2.value().getDeclaredConstructor().newInstance();
+				    		
+				    		val = converter.transformFrom(rawValue);
+				    	} else {
+				            @SuppressWarnings("unchecked")
+				            AttributeConverter<Object> converter = (AttributeConverter<Object>) new DefaultAttributeConverterProvider()
+				                    .converterFor(EnhancedType.of(rawValue.getClass()));
+
+				            val = converter.transformFrom(rawValue);
+				    	}
 			    		
 				    	
 				    	val values = pages.getOrDefault(page, new HashMap<String, AttributeValue>());

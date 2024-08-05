@@ -51,9 +51,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 //	public static final String INPUT = "/Users/rrowlands/Downloads/batch_NQfaQzu2KATomaekSvYEx1Su_output.jsonl";
 	
 	// All Legislators (Aug 5th) 
-	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
 	
-//	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
+	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	
 	@Inject
 	private CachedDynamoDbService ddb;
@@ -183,8 +183,8 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		s3.put(interp);
 		
-		// 1200 seems to be about an upper limit for a single ddb page
-		leg.setInteractions(interacts.stream().sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1200).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
+		// 1100 seems to be about an upper limit for a single ddb page
+		leg.setInteractions(interacts.stream().sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1100).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
 //		leg.setInteractions(interacts);
 		
 		leg.setInterpretation(interp);

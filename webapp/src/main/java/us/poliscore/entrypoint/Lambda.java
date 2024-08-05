@@ -80,25 +80,25 @@ public class Lambda {
 			var exp = leg.getInterpretation().getIssueStats().getExplanation();
 			
 			// Standardize terminology from H.J. Res XXX -> HJRES-XXX
-			if (leg.getTerms().last().getChamber().equals(CongressionalChamber.SENATE)) {
-				exp = exp.replaceAll("S(\\.|-) ?(\\d{1,4})", "S-$1");
-				exp = exp.replaceAll("S\\.?J\\.? ?(Res)?\\.? ?-?(\\d{1,4})", "SJRES-$2");
-			} else {
-				exp = exp.replaceAll("H\\.?J\\.? ?(Res)?\\.? ?-?(\\d{1,4})", "HJRES-$2");
-				exp = exp.replaceAll("H\\.?R\\.? ?-?(\\d{1,4})", "HR-$1");
-			}
+//			if (leg.getTerms().last().getChamber().equals(CongressionalChamber.SENATE)) {
+//				exp = exp.replaceAll("S(\\.|-) ?(\\d{1,4})", "S-$1");
+//				exp = exp.replaceAll("S\\.?J\\.? ?(Res)?\\.? ?-?(\\d{1,4})", "SJRES-$2");
+//			} else {
+//				exp = exp.replaceAll("H\\.?J\\.? ?(Res)?\\.? ?-?(\\d{1,4})", "HJRES-$2");
+//				exp = exp.replaceAll("H\\.?R\\.? ?-?(\\d{1,4})", "HR-$1");
+//			}
 			
 			
 			// Replace 
 			for (val interact : leg.getInteractions()) {
 				val url = "/bill" + interact.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace(), "");
 				
-				if (interact.getBillName().matches("(?i) of \\d\\d\\d\\d$") && exp.toLowerCase().contains(interact.getBillName().substring(0, interact.getBillName().length() - 8).toLowerCase())) {
-					val shortName = interact.getBillName().substring(0, interact.getBillName().length() - 8);
-					exp = exp.replaceAll("(?i)" + Pattern.quote(shortName), "<a href=\"" + url + "\" >" + shortName + "</a>");
-				} else {
+//				if (interact.getBillName().matches("(?i) of \\d\\d\\d\\d$") && exp.toLowerCase().contains(interact.getBillName().substring(0, interact.getBillName().length() - 8).toLowerCase())) {
+//					val shortName = interact.getBillName().substring(0, interact.getBillName().length() - 8);
+//					exp = exp.replaceAll("(?i)" + Pattern.quote(shortName), "<a href=\"" + url + "\" >" + shortName + "</a>");
+//				} else {
 					exp = exp.replaceAll("(?i)" + Pattern.quote(interact.getBillName()), "<a href=\"" + url + "\" >" + interact.getBillName() + "</a>");
-				}
+//				}
 			}
 			
 			leg.getInterpretation().getIssueStats().setExplanation(exp);
