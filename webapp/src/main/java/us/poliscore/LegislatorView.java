@@ -36,7 +36,7 @@ public class LegislatorView {
 	
 	protected LegislatorBillInteractionSet interactions = new LegislatorBillInteractionSet();
 	
-	protected Map<TrackedIssue, List<LegislatorBillInteraction>> topInteractions = new HashMap<TrackedIssue, List<LegislatorBillInteraction>>();
+//	protected Map<TrackedIssue, List<LegislatorBillInteraction>> topInteractions = new HashMap<TrackedIssue, List<LegislatorBillInteraction>>();
 	
 	public static LegislatorView toView(Legislator leg)
 	{
@@ -47,8 +47,7 @@ public class LegislatorView {
 				leg.getBirthday(),
 				leg.getTerms(),
 				leg.getInterpretation(),
-				leg.getInteractions(),
-				leg.calculateTopInteractions()
+				leg.getInteractions()
 //				leg.getInteractions().stream().map(i -> LegislatorBillInteractionView.toView(i)).collect(Collectors.toCollection(TreeSet::new))
 		);
 	}

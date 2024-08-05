@@ -65,11 +65,13 @@ h1 {
     padding-top: 5px;
 }
 
-p {
+.leg-summary {
     text-indent: 40px;
     padding: 20px;
-    padding-bottom:10px;
+    padding-bottom:20px;
     padding-top: 30px;
+    white-space: pre-wrap;
+    text-indent: 40px;
 }
 
 .leg-img {

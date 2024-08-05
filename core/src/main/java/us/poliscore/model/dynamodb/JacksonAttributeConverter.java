@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.quarkus.logging.Log;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -110,6 +111,7 @@ public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
 	        	return mapper.readValue(bais.readAllBytes(), this.clazz);
 	    	}
 	    	catch (Exception e) {
+	    		Log.error(e);
 	    		return this.clazz.newInstance();
 	    	}
 	    }

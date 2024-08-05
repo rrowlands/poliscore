@@ -40,6 +40,8 @@ public class BatchOpenAIRequest {
 		
 		private int max_tokens = OpenAIService.MAX_TOKENS;
 		
+		private float temperature = 0.0f;
+		
 		public BatchOpenAIBody(List<BatchBillMessage> messages) {
 			this.messages = messages;
 		}

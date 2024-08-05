@@ -50,8 +50,8 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
 //	public static final String INPUT = "/Users/rrowlands/Downloads/batch_NQfaQzu2KATomaekSvYEx1Su_output.jsonl";
 	
-	// All Legislators (July 9th) 
-	public static final String INPUT = "/Users/rrowlands/Downloads/batch_V4grdfPKD3szAMfMoP6RHdDH_output.jsonl";
+	// All Legislators (Aug 5th) 
+	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
 	
 //	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	
@@ -149,7 +149,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 					val bill = memService.get(i.getBillId(), Bill.class).orElseThrow();
 					bill.setInterpretation(interp.get());
 					ddb.put(bill);
-					ddb.put(i);
+//					ddb.put(i); // TODO : This won't work anyway since it's inside the !importedBills if block
 					importedBills.add(bill.getId());
 				}
 			}
@@ -185,7 +185,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		// 1200 seems to be about an upper limit for a single ddb page
 		leg.setInteractions(interacts.stream().sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1200).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
-		leg.setInteractions(interacts);
+//		leg.setInteractions(interacts);
 		
 		leg.setInterpretation(interp);
 		

@@ -3,7 +3,6 @@ package us.poliscore.service.storage;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,15 +17,15 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ListAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -103,7 +102,24 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 			    	if (getter.isAnnotationPresent(DdbDataPage.class)) {
 			    		val page = getter.getAnnotation(DdbDataPage.class).value();
 			    		
-			    		val val = schema.converterForAttribute(attr).transformFrom((T) rawValue);
+			    		val val = ((AttributeConverter<Object>) schema.converterForAttribute(attr)).transformFrom(rawValue);
+			    		
+//			    		AttributeValue val;
+//				    	
+//				    	if (getter.isAnnotationPresent(DynamoDbConvertedBy.class)) {
+//				    		val a2 = getter.getAnnotation(DynamoDbConvertedBy.class);
+//				    		
+//				    		val converter = a2.value().getDeclaredConstructor().newInstance();
+//				    		
+//				    		val = converter.transformFrom(rawValue);
+//				    	} else {
+//				            @SuppressWarnings("unchecked")
+//				            AttributeConverter<Object> converter = (AttributeConverter<Object>) new DefaultAttributeConverterProvider()
+//				                    .converterFor(EnhancedType.of(rawValue.getClass()));
+//
+//				            val = converter.transformFrom(rawValue);
+//				    	}
+			    		
 				    	
 				    	val values = pages.getOrDefault(page, new HashMap<String, AttributeValue>());
 				    	values.put(attr, val);
@@ -145,14 +161,14 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 		@SuppressWarnings("unchecked")
 		Map<String, AttributeValue> objAttrs = new HashMap<String, AttributeValue>(getSchema(clazz).itemToMap(clazz.cast(obj), true));
 		
-		if (!hasSortKey) {
+//		if (!hasSortKey) {
 			objAttrs.put("page", AttributeValue.fromS(HEAD_PAGE));
 			
 			// Remove all page data from head object
 			for (String fieldName : pages.values().stream().map(v -> v.keySet()).reduce(new HashSet<String>(), (a,b) -> { a.addAll(b); return a; })) {
 				objAttrs.remove(fieldName);
 			}
-		}
+//		}
 		
 		// Apply head object
 		ddb.putItem(PutItemRequest.builder()
@@ -160,7 +176,7 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 				.item(objAttrs)
 				.build());
 		
-		if (!hasSortKey) {
+//		if (!hasSortKey) {
 			// Apply all pages
 			for (String page : pages.keySet()) {
 				val pageAttrs = pages.get(page);
@@ -173,7 +189,7 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 						.item(pageAttrs)
 						.build());
 			}
-		}
+//		}
 	}
 	
 	@Override

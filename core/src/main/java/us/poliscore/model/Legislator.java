@@ -1,11 +1,7 @@
 package us.poliscore.model;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.HashSet;
 import java.util.TreeSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -51,11 +47,11 @@ public class Legislator implements Persistable {
 	protected LocalDate birthday;
 	
 	@NonNull
-	@Getter(onMethod = @__({ @DynamoDbConvertedBy(LegislatorLegislativeTermSortedSetConverter.class)}))
+	@Getter(onMethod = @__({ @DynamoDbConvertedBy(LegislatorLegislativeTermSortedSetConverter.class) }))
 	protected LegislatorLegislativeTermSortedSet terms;
 	
 	@NonNull
-	@Getter(onMethod = @__({ @DynamoDbConvertedBy(CompressedLegislatorBillInteractionSetConverter.class), @DdbDataPage}))
+	@Getter(onMethod = @__({ @DynamoDbConvertedBy(CompressedLegislatorBillInteractionSetConverter.class), @DdbDataPage }))
 	protected LegislatorBillInteractionSet interactions = new LegislatorBillInteractionSet();
 	
 	@DynamoDbPartitionKey
@@ -154,7 +150,7 @@ public class Legislator implements Persistable {
 	}
 	
 	@DynamoDbBean(converterProviders = LegislatorBillInteractionSetConverterProvider.class)
-	public static class LegislatorBillInteractionSet extends TreeSet<LegislatorBillInteraction> {}
+	public static class LegislatorBillInteractionSet extends HashSet<LegislatorBillInteraction> {}
 	
 	@DynamoDbBean
 	public static class LegislatorLegislativeTermSortedSet extends TreeSet<LegislativeTerm> {}

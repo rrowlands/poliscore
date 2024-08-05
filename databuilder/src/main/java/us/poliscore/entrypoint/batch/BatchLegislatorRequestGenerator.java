@@ -85,14 +85,12 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		for (Legislator l : memService.query(Legislator.class).stream()
 				.filter(l -> 
 					l.getInteractions().size() > 0
-					&& l.getBioguideId().equals("B001297")
+//					&& (l.getBioguideId().equals("F000476") || l.getBioguideId().equals("O000172"))
 //					&& !s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class)
 				)
 				.sorted(Comparator.comparing(Legislator::getDate).reversed())
-				.limit(1)
+//				.limit(2)
 				.toList()) {
-			legInterp.populateInteractionStats(l);
-			
 			interpret(l);
 			
 			if (tokenLen >= TOKEN_BLOCK_SIZE) {

@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
@@ -41,6 +42,7 @@ import us.poliscore.model.dynamodb.DdbKeyProvider;
 @NoArgsConstructor
 @RegisterForReflection
 @EqualsAndHashCode
+@DynamoDbBean
 public abstract class LegislatorBillInteraction implements Comparable<LegislatorBillInteraction>, Persistable {
 	
 	public static final String ID_CLASS_PREFIX = "LBI";
@@ -93,9 +95,9 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	}
 	
 	public static String generateSortKey(LocalDate date, String billId) {
-		return date.format(DateTimeFormatter.ofPattern("yyyymmdd"))
+		return date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 				+ "/"
-				+ billId.replace(Bill.ID_CLASS_PREFIX, "").replace(LegislativeNamespace.US_CONGRESS.getNamespace(), "");
+				+ billId.replace(Bill.ID_CLASS_PREFIX + "/", "").replace(LegislativeNamespace.US_CONGRESS.getNamespace() + "/", "");
 	}
 	
 	@DdbKeyProvider
@@ -137,6 +139,7 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	@RegisterForReflection
 	@AllArgsConstructor
 	@NoArgsConstructor
+	@DynamoDbBean
 	public static class LegislatorBillVote extends LegislatorBillInteraction {
 		
 		@NonNull
@@ -154,6 +157,7 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	@EqualsAndHashCode(callSuper=true)
 	@RegisterForReflection
 	@NoArgsConstructor
+	@DynamoDbBean
 	public static class LegislatorBillSponsor extends LegislatorBillInteraction {
 		
 		@DynamoDbIgnore
@@ -168,6 +172,7 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	@EqualsAndHashCode(callSuper=true)
 	@RegisterForReflection
 	@NoArgsConstructor
+	@DynamoDbBean
 	public static class LegislatorBillCosponsor extends LegislatorBillInteraction {
 		
 		@DynamoDbIgnore

@@ -109,6 +109,7 @@ public class RollCallService {
 		}
 		
 		LegislatorBillVote interaction = new LegislatorBillVote(vs);
+		interaction.setLegId(leg.getId());
 		interaction.setBillId(bill.getId());
 		interaction.setDate(rollCall.getDate().toLocalDate());
 		interaction.setBillName(bill.getName());

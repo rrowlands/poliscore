@@ -40,7 +40,7 @@
 
                 <section *ngIf="leg != null">
                     <!-- <h2>Interpretation</h2> -->
-                    <p [innerHTML]="leg?.interpretation?.issueStats?.explanation"></p>
+                    <div class="leg-summary"><p *ngFor="let paragraph of leg?.interpretation?.issueStats?.explanation?.split('\n')" [innerHTML]="paragraph"></p></div>
 
                     <h2>Bill History</h2>
                     <table mat-table [dataSource]="billData" class="bill-history-table mat-elevation-z8">

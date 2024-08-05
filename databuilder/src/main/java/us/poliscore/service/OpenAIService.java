@@ -33,7 +33,7 @@ public class OpenAIService {
 	
 	public static final int PROMPT_VERSION = 0;
 	
-	public static final int MAX_TOKENS = 1000;
+	public static final int MAX_TOKENS = 3000;
 	
 	public static final int WAIT_BETWEEN_CALLS = 60; // in seconds
 	

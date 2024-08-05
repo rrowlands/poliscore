@@ -100,6 +100,7 @@ public class BillService {
 			
 			if (leg.isPresent()) {
 				LegislatorBillSponsor interaction = new LegislatorBillSponsor();
+				interaction.setLegId(leg.get().getId());
 				interaction.setBillId(bill.getId());
 				interaction.setDate(view.getIntroduced_at());
 				interaction.setBillName(bill.getName());
@@ -115,6 +116,7 @@ public class BillService {
 				
 	    		if (leg.isPresent()) {
 					LegislatorBillCosponsor interaction = new LegislatorBillCosponsor();
+					interaction.setLegId(leg.get().getId());
 					interaction.setBillId(bill.getId());
 					interaction.setDate(view.getIntroduced_at());
 					interaction.setBillName(bill.getName());

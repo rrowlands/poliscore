@@ -95,6 +95,7 @@ public class IssueStats {
 		return null;
 	}
 	
+	@JsonIgnore
 	public String getLetterGrade() {
 		int credit = this.getRating();
 		

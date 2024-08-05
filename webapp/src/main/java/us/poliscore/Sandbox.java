@@ -86,9 +86,11 @@ public class Sandbox implements QuarkusApplication
     	
 //    	val out = getLegislatorInteractions(PoliscoreUtil.BERNIE_SANDERS_ID, 19);
 		
-		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "B000825"), Legislator.class).orElseThrow();
+		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "F000476"), Legislator.class).orElseThrow();
 		
-		val out = leg.calculateTopInteractions();
+		val out = leg.getInteractions();
+		
+//		val out = leg.calculateTopInteractions();
 		
 //		linkInterpBills(leg);
 		
