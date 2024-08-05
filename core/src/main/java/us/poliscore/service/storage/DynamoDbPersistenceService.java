@@ -2,6 +2,8 @@ package us.poliscore.service.storage;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,23 +18,25 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ListAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
-import us.poliscore.model.DdbDataPage;
 import us.poliscore.model.Persistable;
+import us.poliscore.model.dynamodb.DdbDataPage;
+import us.poliscore.model.dynamodb.DdbKeyProvider;
+import us.poliscore.model.dynamodb.DdbListPage;
 
 @ApplicationScoped
 public class DynamoDbPersistenceService implements PersistenceServiceIF
@@ -82,38 +86,57 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 //		val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, getSchema(obj.getClass())));
 		
 		Map<String, Map<String, AttributeValue>> pages = new HashMap<String, Map<String, AttributeValue>>();
+		val schema = (BeanTableSchema<T>) getSchema(obj.getClass());
 		
-		for (Method getter : obj.getClass().getDeclaredMethods())
-		{
-		    if (getter.isAnnotationPresent(DdbDataPage.class))
-	        {
-		    	val a = getter.getAnnotation(DdbDataPage.class);
-		    	
-		    	getter.setAccessible(true);
-		    	
-		    	Object rawValue = getter.invoke(obj);
-		    	
-		    	AttributeValue val;
-		    	
-		    	if (getter.isAnnotationPresent(DynamoDbConvertedBy.class)) {
-		    		val a2 = getter.getAnnotation(DynamoDbConvertedBy.class);
-		    		
-		    		val converter = a2.value().getDeclaredConstructor().newInstance();
-		    		
-		    		val = converter.transformFrom(rawValue);
-		    	} else {
-		            @SuppressWarnings("unchecked")
-		            AttributeConverter<Object> converter = (AttributeConverter<Object>) new DefaultAttributeConverterProvider()
-		                    .converterFor(EnhancedType.of(rawValue.getClass()));
-
-		            val = converter.transformFrom(rawValue);
-		    	}
-		    	
-		    	val values = pages.getOrDefault(a.value(), new HashMap<String, AttributeValue>());
-		    	val fieldName = StringUtils.uncapitalize(getter.getName().replace("get", ""));
-		    	values.put(fieldName, val);
-		    	pages.put(a.value(), values);
-	        }
+		var hasSortKey = schema.tableMetadata().primarySortKey().isPresent();
+		
+		if (!hasSortKey) {
+			for (Method getter : obj.getClass().getDeclaredMethods())
+			{
+			    if (getter.isAnnotationPresent(DdbDataPage.class) || getter.isAnnotationPresent(DdbListPage.class))
+		        {
+			    	val attr = StringUtils.uncapitalize(getter.getName().replace("get", ""));
+			    	
+	//		    	getter.setAccessible(true); // TODO : Necessary? Not sure.
+			    	Object rawValue = getter.invoke(obj);
+			    	
+			    	if (getter.isAnnotationPresent(DdbDataPage.class)) {
+			    		val page = getter.getAnnotation(DdbDataPage.class).value();
+			    		
+			    		val val = schema.converterForAttribute(attr).transformFrom((T) rawValue);
+				    	
+				    	val values = pages.getOrDefault(page, new HashMap<String, AttributeValue>());
+				    	values.put(attr, val);
+				    	pages.put(page, values);
+			    	} else {
+			    		throw new UnsupportedOperationException();
+			    		
+	//		    		val limit = getter.getAnnotation(DdbListPage.class).value();
+	//		    		val all = (Collection<?>) rawValue;
+	//		    		
+	//		    		val it = all.iterator();
+	//		    		var page = new ArrayList<Object>();
+	//		    		int i = 0;
+	//		    		int pnum = 1;
+	//		    		while (it.hasNext()) {
+	//		    			if (i >= limit) {
+	////		    				pages.put(String.valueOf(pnum), page);
+	////		    				val val = schema.converterForAttribute(attr).transformFrom((T) rawValue);
+	//		    				
+	//					    	val values = pages.getOrDefault(page, new HashMap<String, AttributeValue>());
+	//					    	values.put(attr, val);
+	//					    	pages.put(page, values);
+	//		    				
+	//		    				i = 0;
+	//		    				page = new ArrayList<Object>();
+	//		    				pnum++;
+	//		    			}
+	//		    			page.add(it.next());
+	//		    			i++;
+	//		    		}
+			    	}
+		        }
+			}
 		}
 		
 		@SuppressWarnings("rawtypes")
@@ -121,27 +144,35 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 		
 		@SuppressWarnings("unchecked")
 		Map<String, AttributeValue> objAttrs = new HashMap<String, AttributeValue>(getSchema(clazz).itemToMap(clazz.cast(obj), true));
-		objAttrs.put("page", AttributeValue.fromS(HEAD_PAGE));
 		
-		for (String fieldName : pages.values().stream().map(v -> v.keySet()).reduce(new HashSet<String>(), (a,b) -> { a.addAll(b); return a; })) {
-			objAttrs.remove(fieldName);
+		if (!hasSortKey) {
+			objAttrs.put("page", AttributeValue.fromS(HEAD_PAGE));
+			
+			// Remove all page data from head object
+			for (String fieldName : pages.values().stream().map(v -> v.keySet()).reduce(new HashSet<String>(), (a,b) -> { a.addAll(b); return a; })) {
+				objAttrs.remove(fieldName);
+			}
 		}
 		
+		// Apply head object
 		ddb.putItem(PutItemRequest.builder()
 				.tableName(TABLE_NAME)
 				.item(objAttrs)
 				.build());
 		
-		for (String page : pages.keySet()) {
-			val pageAttrs = pages.get(page);
-			
-			pageAttrs.put("id", AttributeValue.fromS(obj.getId()));
-			pageAttrs.put("page", AttributeValue.fromS(page));
-			
-			ddb.putItem(PutItemRequest.builder()
-					.tableName(TABLE_NAME)
-					.item(pageAttrs)
-					.build());
+		if (!hasSortKey) {
+			// Apply all pages
+			for (String page : pages.keySet()) {
+				val pageAttrs = pages.get(page);
+				
+				pageAttrs.put("id", AttributeValue.fromS(obj.getId()));
+				pageAttrs.put("page", AttributeValue.fromS(page));
+				
+				ddb.putItem(PutItemRequest.builder()
+						.tableName(TABLE_NAME)
+						.item(pageAttrs)
+						.build());
+			}
 		}
 	}
 	
@@ -155,58 +186,47 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 	@SneakyThrows
 	public <T extends Persistable> Optional<T> get(@NonNull String id, @NonNull Class<T> clazz, @NonNull DdbPage page)
 	{
-//		if (page.equals(DdbPage.HEAD)) {
-//			val builder = Key.builder().partitionValue(id).sortValue(HEAD_PAGE);
-//			
-//			@SuppressWarnings("unchecked")
-//			val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, getSchema(clazz)));
-//			
-//			return Optional.ofNullable(table.getItem(builder.build()));
-//		} else {
-			val schema = getSchema(clazz);
+		val schema = getSchema(clazz);
+		var hasSortKey = schema.tableMetadata().primarySortKey().isPresent();
+		
+		if (hasSortKey) {
+			val key = (Key) Arrays.asList(clazz.getDeclaredMethods()).stream().filter(m -> m.isAnnotationPresent(DdbKeyProvider.class)).findFirst().orElseThrow().invoke(null, id);
 			
-			var keyExpression = "id=:id";
-			val eav = new HashMap<String,AttributeValue>(Map.of(":id", AttributeValue.fromS(id)));
+			@SuppressWarnings("unchecked")
+			val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, getSchema(clazz)));
 			
-			if (!page.equals(DdbPage.ALL)) {
-				keyExpression += " AND page=:page";
-				eav.put(":page", AttributeValue.fromS(page.getPage()));
-			}
+			return Optional.ofNullable(table.getItem(key));
+		}
+		
+		var keyExpression = "id=:id";
+		val eav = new HashMap<String,AttributeValue>(Map.of(":id", AttributeValue.fromS(id)));
+		
+		if (!page.equals(DdbPage.ALL)) {
+			keyExpression += " AND page=:page";
+			eav.put(":page", AttributeValue.fromS(page.getPage()));
+		}
+		
+		val results = ddb.query(QueryRequest.builder()
+				.tableName(TABLE_NAME)
+				.keyConditionExpression(keyExpression)
+				.expressionAttributeValues(eav)
+				.build()).items().iterator();
+		
+		if (!results.hasNext()) return Optional.empty();
+		
+		T head = schema.mapToItem(results.next());
+		
+		while (results.hasNext()) {
+			val next = results.next();
 			
-			val results = ddb.query(QueryRequest.builder()
-					.tableName(TABLE_NAME)
-					.keyConditionExpression(keyExpression)
-					.expressionAttributeValues(eav)
-					.build()).items().iterator();
-			
-			if (!results.hasNext()) return Optional.empty();
-			
-//			T head = clazz.getConstructor().newInstance();
-			
-//			results.next().forEach((k,rawValue) -> {
-//				copyFields(clazz, head, k, rawValue);
-//			});
-			
-			T head = schema.mapToItem(results.next());
-			
-//			val annoPairs = Arrays.asList(clazz.getDeclaredMethods()).stream()
-//					.filter(m -> m.isAnnotationPresent(DdbDataPage.class))
-//					.map(m -> Pair.of(m, m.getAnnotation(DdbDataPage.class)))
-//					.sorted((a,b) -> a.getLeft().getName().compareTo(b.getLeft().getName()))
-//					.toList().iterator();
-			
-			while (results.hasNext()) {
-				val next = results.next();
-				
-				for (val attr : next.keySet()) {
-					if (!attr.equals("page") && !attr.equals("id")) {
-						copyFields(clazz, schema, head, attr, next.get(attr));
-					}
+			for (val attr : next.keySet()) {
+				if (!attr.equals("page") && !attr.equals("id")) {
+					copyFields(clazz, schema, head, attr, next.get(attr));
 				}
 			}
-			
-			return Optional.of(head);
-//		}
+		}
+		
+		return Optional.of(head);
 	}
 
 	@SneakyThrows
@@ -215,32 +235,10 @@ public class DynamoDbPersistenceService implements PersistenceServiceIF
 		
 		Object convertedVal;
 		
-//		if (getter.isAnnotationPresent(DynamoDbConvertedBy.class)) {
-//			val a2 = getter.getAnnotation(DynamoDbConvertedBy.class);
-//			
-//			val converter = a2.value().getDeclaredConstructor().newInstance();
-//			
-//			convertedVal = converter.transformTo(rawValue);
-//		} else {
-//			
-//			
-//		    AttributeConverter<Object> converter = (AttributeConverter<Object>) new DefaultAttributeConverterProvider()
-//		            .converterFor(EnhancedType.of(getter.getReturnType()));
-//
-//		    convertedVal = converter.transformTo(rawValue);
-//		}
-		
 		convertedVal = tableSchema.converterForAttribute(attr).transformTo(rawValue);
 		
-//		try {
-			val setter = clazz.getMethod("set" + StringUtils.capitalize(attr), getter.getReturnType());
-			setter.invoke(head, convertedVal);
-//		}
-//		catch (NoSuchMethodException ex) {
-//			val f = clazz.getField(attr);
-//			f.setAccessible(true);
-//			f.set(head, convertedVal);
-//		}
+		val setter = clazz.getMethod("set" + StringUtils.capitalize(attr), getter.getReturnType());
+		setter.invoke(head, convertedVal);
 	}
 	
 	@Override

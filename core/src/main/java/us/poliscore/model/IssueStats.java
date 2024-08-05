@@ -95,6 +95,17 @@ public class IssueStats {
 		return null;
 	}
 	
+	public String getLetterGrade() {
+		int credit = this.getRating();
+		
+		if (credit >= 50) return "A";
+		else if (credit >= 30 && credit < 50) return "B";
+		else if (credit >= 10 && credit < 30) return "C";
+		else if (credit >= 0 && credit < 10) return "D";
+		else if (credit < 0) return "F";
+		else return "?";
+	}
+	
 //	@DynamoDbConvertedBy(EnumMapAttributeConverter.class)
 //	@DynamoDbIgnore
 	@DynamoDbConvertedBy(IssueStatsMapAttributeConverter.class)
@@ -228,13 +239,20 @@ public class IssueStats {
 	@Override
 	public String toString()
 	{
+		return toString(true);
+	}
+	
+	public String toString(boolean includeExplanation)
+	{
 		StringBuilder sb = new StringBuilder();
 		
 	    sb.append(String.join("\n", stats.keySet().stream().map(issue ->"-" + issue.getName() + ": " + formatStatValue(getStat(issue))).toList()));
 		
-		sb.append("\n\n");
-		
-		sb.append(explanation);
+	    if (includeExplanation) {
+			sb.append("\n\n");
+			
+			sb.append(explanation);
+	    }
 		
 		return sb.toString();
 	}

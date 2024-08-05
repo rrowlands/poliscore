@@ -155,66 +155,66 @@ public class DatabaseBuilder implements QuarkusApplication
 	/**
 	 * Interprets and loads a set of legislators
 	 */
-	private void interpretLegislators() {
-////		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
-////			for (String legId : memService.query(Legislator.class).stream().limit(10).map(l -> l.getId()).toList())
-//			String legId = memService.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "B000825"), Legislator.class).get().getId();
-//		{
-//			interpretLegislator(legId);
-//		}
-		
-		memService.query(Legislator.class).stream()
-			.filter(l -> l.getBirthday() != null && l.getInteractions().size() > 0) //  && l.getTerms().last().getState().equals("CO")
-			.sorted(Comparator.comparing(Legislator::getBirthday).reversed())
-	//		.limit(400)
-	//		.filter(l -> l.getInteractions().stream().anyMatch(i -> billInterpreter.isInterpreted(i.getBillId())))
-//			.limit(200)
-			.forEach(l -> {
-			interpretLegislator(l.getId());
-		});
-	}
+//	private void interpretLegislators() {
+//////		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
+//////			for (String legId : memService.query(Legislator.class).stream().limit(10).map(l -> l.getId()).toList())
+////			String legId = memService.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "B000825"), Legislator.class).get().getId();
+////		{
+////			interpretLegislator(legId);
+////		}
+//		
+//		memService.query(Legislator.class).stream()
+//			.filter(l -> l.getBirthday() != null && l.getInteractions().size() > 0) //  && l.getTerms().last().getState().equals("CO")
+//			.sorted(Comparator.comparing(Legislator::getBirthday).reversed())
+//	//		.limit(400)
+//	//		.filter(l -> l.getInteractions().stream().anyMatch(i -> billInterpreter.isInterpreted(i.getBillId())))
+////			.limit(200)
+//			.forEach(l -> {
+//			interpretLegislator(l.getId());
+//		});
+//	}
 	
-	private void interpretLegislator(String legId) {
-		val interp = legInterp.getOrCreate(legId);
-		interp.getIssueStats().setExplanation(interp.getIssueStats().getExplanation());
-		
-		val legislator = memService.get(legId, Legislator.class).orElseThrow();
-		legislator.setInterpretation(interp);
-		
-		val interacts = new LegislatorBillInteractionSet();
-		for (val interact : legislator.getInteractions().stream()
-				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
-//				.limit(100)
-				.filter(i -> billInterpreter.isInterpreted(i.getBillId()))
-				.collect(Collectors.toList()))
-		{
-			try
-			{
-				val billInterp = billInterpreter.getByBillId(interact.getBillId()).get();
-				interact.setIssueStats(billInterp.getIssueStats());
-				
-				val bill = billService.getById(interact.getBillId()).get();
-				bill.setInterpretation(billInterp);
-				
-				ddb.put(bill);
-				interacts.add(interact);
-			}
-			catch (NoSuchElementException e)
-			{
-				Log.error("Could not find interpretation for bill " + interact.getBillId());
-			}
-			catch (MissingBillTextException ex)
-			{
-				// TODO
-				Log.error("Could not find text for bill " + interact.getBillId());
-			}
-		}
-		
-		if (interacts.size() > 0) {
-			legislator.setInteractions(interacts);
-			ddb.put(legislator);
-		}
-	}
+//	private void interpretLegislator(String legId) {
+//		val interp = legInterp.getOrCreate(legId);
+//		interp.getIssueStats().setExplanation(interp.getIssueStats().getExplanation());
+//		
+//		val legislator = memService.get(legId, Legislator.class).orElseThrow();
+//		legislator.setInterpretation(interp);
+//		
+//		val interacts = new LegislatorBillInteractionSet();
+//		for (val interact : legislator.getInteractions().stream()
+//				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
+////				.limit(100)
+//				.filter(i -> billInterpreter.isInterpreted(i.getBillId()))
+//				.collect(Collectors.toList()))
+//		{
+//			try
+//			{
+//				val billInterp = billInterpreter.getByBillId(interact.getBillId()).get();
+//				interact.setIssueStats(billInterp.getIssueStats());
+//				
+//				val bill = billService.getById(interact.getBillId()).get();
+//				bill.setInterpretation(billInterp);
+//				
+//				ddb.put(bill);
+//				interacts.add(interact);
+//			}
+//			catch (NoSuchElementException e)
+//			{
+//				Log.error("Could not find interpretation for bill " + interact.getBillId());
+//			}
+//			catch (MissingBillTextException ex)
+//			{
+//				// TODO
+//				Log.error("Could not find text for bill " + interact.getBillId());
+//			}
+//		}
+//		
+//		if (interacts.size() > 0) {
+//			legislator.setInteractions(interacts);
+//			ddb.put(legislator);
+//		}
+//	}
 	
 	@Override
     public int run(String... args) throws Exception {

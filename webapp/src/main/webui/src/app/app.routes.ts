@@ -31,6 +31,7 @@ export const routes: Routes = [
   { path: 'legislators', component: LegislatorsComponent, data: { animation: 'legislatorsPage' } },
   { path: 'legislators/:index/:ascending', component: LegislatorsComponent, data: { animation: 'legislatorsPage' } },
   { path: 'bills', component: BillsComponent, data: { animation: 'billsPage' } },
+  { path: 'bills/:index/:ascending', component: BillsComponent, data: { animation: 'billsPage' } },
   { matcher: idPathMatcher('bill'), component: BillComponent, data: { animation: 'billPage' } },
   { path: 'about', component: AboutComponent, data: { animation: 'about' } }
 ];

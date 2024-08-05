@@ -88,9 +88,11 @@ public class Sandbox implements QuarkusApplication
 		
 		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "B000825"), Legislator.class).orElseThrow();
 		
-		linkInterpBills(leg);
+		val out = leg.calculateTopInteractions();
 		
-		val out = leg.getInterpretation().getIssueStats().getExplanation();
+//		linkInterpBills(leg);
+		
+//		val out = leg.getInterpretation().getIssueStats().getExplanation();
     	
 //    	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));
 		System.out.println(out);

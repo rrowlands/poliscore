@@ -1,7 +1,11 @@
 package us.poliscore.model;
 
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.TreeSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,6 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.CompressedLegislatorBillInteractionSetConverter;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverterProvider;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorLegislativeTermSortedSetConverter;
+import us.poliscore.model.dynamodb.DdbDataPage;
 
 @Data
 @DynamoDbBean
@@ -149,7 +154,7 @@ public class Legislator implements Persistable {
 	}
 	
 	@DynamoDbBean(converterProviders = LegislatorBillInteractionSetConverterProvider.class)
-	public static class LegislatorBillInteractionSet extends HashSet<LegislatorBillInteraction> {}
+	public static class LegislatorBillInteractionSet extends TreeSet<LegislatorBillInteraction> {}
 	
 	@DynamoDbBean
 	public static class LegislatorLegislativeTermSortedSet extends TreeSet<LegislativeTerm> {}

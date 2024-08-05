@@ -1,4 +1,4 @@
-package us.poliscore.model;
+package us.poliscore.model.dynamodb;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,8 +7,8 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface DdbDataPage {
+public @interface DdbListPage {
 
-	String value() default "1";
+	int value() default 600;
 
 }

@@ -16,6 +16,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeNamespace;
+import us.poliscore.model.Legislator;
 import us.poliscore.model.Persistable;
 
 @Data
@@ -106,6 +107,10 @@ public class Bill implements Persistable {
 		protected String bioguide_id;
 		
 		protected String name;
+		
+		public String getId() {
+			return Legislator.generateId(LegislativeNamespace.US_CONGRESS, bioguide_id);
+		}
 		
 	}
 }

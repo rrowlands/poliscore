@@ -4,7 +4,10 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -16,11 +19,13 @@ import lombok.val;
 import us.poliscore.MissingBillTextException;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Legislator;
+import us.poliscore.model.Legislator.CongressionalChamber;
 import us.poliscore.model.LegislatorBillInteraction;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillCosponsor;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillSponsor;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
 import us.poliscore.model.LegislatorInterpretation;
+import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.parsing.BillSlicer;
@@ -33,7 +38,18 @@ public class LegislatorInterpretationService
 	// Ensure that the x most recent bills are interpreted
 	public static final int LIMIT_BILLS = 999999;
 	
-	private static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) critique of this history, evaluating the performance, highlighting any specific accomplishments or alarming behaviour and pointing out major focuses and priorities of the legislator. In your critique, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
+//	private static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) critique of this history, evaluating the performance, highlighting any specific accomplishments or alarming behaviour and pointing out major focuses and priorities of the legislator. In your critique, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
+	
+	private static final String PROMPT_TEMPLATE = """
+The United States {{politicianType}} {{fullName}} has been evaluated by Poliscore based on recent legislative performance and has received the following policy area grades (scores range from -100 to 100):
+
+{{stats}}
+
+Based on these scores, this legislator has received the overall letter grade: {{letterGrade}}. You will be given bill interaction summaries of this politician’s recent legislative history, sorted by their impact to the relevant policy area grades. Please generate a layman's, concise, three paragraph, {{analysisType}}, highlighting any {{behavior}}, identifying trends, referencing specific bill titles (in quotes), and pointing out major focuses and priorities of the legislator. Focus on the policy areas with the largest score magnitudes (either positive or negative). Do not include policy area grade scores in your summary.
+			""";
+	// Adding "non-partisan" to this prompt was considered, however it was found that adding it causes Chat GPT to add a "both sides" paragraph at the end, even on legislators with a very poor score. For that reason, it was removed, as our goal here is to help inform voters, not confuse them with "both sides" type rhetoric.
+	// Adding "for the voters" was found to sometimes add a nonsense sentence at the end, i.e. "voters should consider positives and negatives... bla bla bla". It's possible Chat GPT gets scared and over-thinks things if it knows it's informing voters.
+	
 	
 	@Inject
 	private LocalCachedS3Service s3;
@@ -53,24 +69,24 @@ public class LegislatorInterpretationService
 	@Inject
 	private OpenAIService ai;
 	
-	public LegislatorInterpretation getOrCreate(String legislatorId)
-	{
-		val cached = s3.get(legislatorId.replaceFirst(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
-		
-		val leg = legService.getById(legislatorId).orElseThrow();
-		populateInteractionStats(leg);
-		
-		if (cached.isPresent()) //  && calculateInterpHashCode(leg) == cached.get().getHash()
-		{
-			return cached.get();
-		}
-		else
-		{
-			val interp = interpret(leg);
-			
-			return interp;
-		}
-	}
+//	public LegislatorInterpretation getOrCreate(String legislatorId)
+//	{
+//		val cached = s3.get(legislatorId.replaceFirst(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
+//		
+//		val leg = legService.getById(legislatorId).orElseThrow();
+//		populateInteractionStats(leg);
+//		
+//		if (cached.isPresent()) //  && calculateInterpHashCode(leg) == cached.get().getHash()
+//		{
+//			return cached.get();
+//		}
+//		else
+//		{
+//			val interp = interpret(leg);
+//			
+//			return interp;
+//		}
+//	}
 	
 	public int calculateInterpHashCode(Legislator leg)
 	{
@@ -142,60 +158,116 @@ public class LegislatorInterpretationService
 		}
 	}
 	
-	protected LegislatorInterpretation interpret(Legislator leg)
-	{
-		interpretMostRecentInteractions(leg);
-		
-		populateInteractionStats(leg);
-		
+	public IssueStats calculateAgregateInteractionStats(Legislator leg) {
 		IssueStats stats = new IssueStats();
-		
-		LocalDate periodStart = null;
-		val periodEnd = LocalDate.now();
-		List<String> billMsgs = new ArrayList<String>();
 		
 		for (val interact : getInteractionsForInterpretation(leg))
 		{
 			if (interact.getIssueStats() != null)
 			{
-				if (interact instanceof LegislatorBillVote
-						&& (((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.NOT_VOTING) || ((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.PRESENT)))
-					continue;
-				
 				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
 				stats = stats.sum(weightedStats, Math.abs(interact.getJudgementWeight()));
-				
-				val billMsg = interact.describe() + ": " + interact.getIssueStats().getExplanation();
-				if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
-					billMsgs.add(billMsg);
-					periodStart = (periodStart == null) ? interact.getDate() : (periodStart.isAfter(interact.getDate()) ? interact.getDate() : periodStart);
-				}
 			}
 		}
 		
 		stats = stats.divideByTotalSummed();
-		
-		val prompt = getAiPrompt(leg, periodStart, periodEnd);
-		System.out.println(prompt);
-		System.out.println(String.join("\n", billMsgs));
-		val interpText = ai.chat(prompt, String.join("\n", billMsgs));
-		stats.setExplanation(interpText);
-		
-		val interp = new LegislatorInterpretation(OpenAIService.metadata(), leg, stats);
-		interp.setHash(calculateInterpHashCode(leg));
-		s3.put(interp);
-		
-		leg.setInterpretation(interp);
-		
-		memService.put(leg);
-		
-		return interp;
+		return stats;
 	}
 	
-	public static String getAiPrompt(Legislator leg, LocalDate periodStart, LocalDate periodEnd) {
+	public Map<TrackedIssue, List<LegislatorBillInteraction>> calculateTopInteractions(Legislator leg) {
+		val result = new HashMap<TrackedIssue, List<LegislatorBillInteraction>>();
+		
+		val heaps = new HashMap<TrackedIssue, PriorityQueue<LegislatorBillInteraction>>();
+		
+		for (LegislatorBillInteraction interact : getInteractionsForInterpretation(leg)) {
+			if (interact.getIssueStats() != null) {
+				for (TrackedIssue issue : interact.getIssueStats().getStats().keySet()) {
+					val heap = heaps.getOrDefault(issue, new PriorityQueue<LegislatorBillInteraction>((a,b) -> Math.round(Math.abs(b.getIssueStats().getRating() * b.getJudgementWeight()) - Math.abs(a.getIssueStats().getRating() * a.getJudgementWeight()))));
+					
+					heap.add(interact);
+					
+					heaps.put(issue, heap);
+				}
+			}
+		}
+		
+		for (val issue : TrackedIssue.values()) {
+			val list = new ArrayList<LegislatorBillInteraction>();
+			
+			if (heaps.containsKey(issue)) {
+				for (int i = 0; i < 100; ++i) {
+					val heap = heaps.get(issue);
+					
+					if (!heap.isEmpty()) {
+						list.add(heap.poll());
+					}
+				}
+			}
+			
+			result.put(issue, list);
+		}
+		
+		return result;
+	}
+	
+//	protected LegislatorInterpretation interpret(Legislator leg)
+//	{
+//		interpretMostRecentInteractions(leg);
+//		
+//		populateInteractionStats(leg);
+//		
+//		IssueStats stats = new IssueStats();
+//		
+//		LocalDate periodStart = null;
+//		val periodEnd = LocalDate.now();
+//		List<String> billMsgs = new ArrayList<String>();
+//		
+//		for (val interact : getInteractionsForInterpretation(leg))
+//		{
+//			if (interact.getIssueStats() != null)
+//			{
+//				if (interact instanceof LegislatorBillVote
+//						&& (((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.NOT_VOTING) || ((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.PRESENT)))
+//					continue;
+//				
+//				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
+//				stats = stats.sum(weightedStats, Math.abs(interact.getJudgementWeight()));
+//				
+//				val billMsg = interact.describe() + ": " + interact.getIssueStats().getExplanation();
+//				if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+//					billMsgs.add(billMsg);
+//					periodStart = (periodStart == null) ? interact.getDate() : (periodStart.isAfter(interact.getDate()) ? interact.getDate() : periodStart);
+//				}
+//			}
+//		}
+//		
+//		stats = stats.divideByTotalSummed();
+//		
+//		val prompt = getAiPrompt(leg, periodStart, periodEnd);
+//		System.out.println(prompt);
+//		System.out.println(String.join("\n", billMsgs));
+//		val interpText = ai.chat(prompt, String.join("\n", billMsgs));
+//		stats.setExplanation(interpText);
+//		
+//		val interp = new LegislatorInterpretation(OpenAIService.metadata(), leg, stats);
+//		interp.setHash(calculateInterpHashCode(leg));
+//		s3.put(interp);
+//		
+//		leg.setInterpretation(interp);
+//		
+//		memService.put(leg);
+//		
+//		return interp;
+//	}
+	
+	public static String getAiPrompt(Legislator leg, IssueStats stats) {
 		return PROMPT_TEMPLATE
-		.replace("{{full_name}}", leg.getName().getOfficial_full())
-		.replace("{{time_period}}", describeTimePeriod(periodStart, periodEnd));
+				.replace("{{letterGrade}}", stats.getLetterGrade())
+				.replace("{{politicianType}}", leg.getTerms().last().getChamber() == CongressionalChamber.SENATE ? "Senator" : "House Representative")
+				.replace("{{fullName}}", leg.getName().getOfficial_full())
+				.replace("{{stats}}", stats.toString(false))
+				.replace("{{analysisType}}", stats.getRating() >= 30 ? "endorsement" : (stats.getRating() >= 0 && stats.getRating() < 30 ? "mixed analysis" : "harsh critique"))
+				.replace("{{behavior}}", stats.getRating() >= 30 ? "specific accomplishments" : (stats.getRating() >= 0 && stats.getRating() < 30 ? "specific accomplishments or alarming behaviour" : "alarming behaviour"));
 	}
 	
 	public static String describeTimePeriod(LocalDate periodStart, LocalDate periodEnd)

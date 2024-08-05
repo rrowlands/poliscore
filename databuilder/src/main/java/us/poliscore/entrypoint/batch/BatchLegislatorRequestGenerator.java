@@ -1,56 +1,38 @@
 package us.poliscore.entrypoint.batch;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.val;
 import us.poliscore.Environment;
-import us.poliscore.MissingBillTextException;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIRequest;
-import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
-import us.poliscore.model.AISliceInterpretationMetadata;
+import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Legislator;
-import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
-import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
-import us.poliscore.model.LegislatorBillInteraction;
 import us.poliscore.model.LegislatorInterpretation;
-import us.poliscore.model.VoteStatus;
-import us.poliscore.model.bill.Bill;
-import us.poliscore.model.bill.BillInterpretation;
-import us.poliscore.model.bill.BillSlice;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.parsing.BillSlicer;
-import us.poliscore.parsing.XMLBillSlicer;
-import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
-import us.poliscore.service.OpenAIService;
 import us.poliscore.service.RollCallService;
-import us.poliscore.service.storage.CachedS3Service;
-import us.poliscore.service.storage.DynamoDbPersistenceService;
-import us.poliscore.service.storage.LocalFilePersistenceService;
 import us.poliscore.service.storage.MemoryPersistenceService;
 import us.poliscore.service.storage.S3PersistenceService;
 
@@ -98,13 +80,16 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		
 		int block = 1;
 		
-		s3.optimizeExists(LegislatorInterpretation.class);
+//		s3.optimizeExists(LegislatorInterpretation.class);
 		
 		for (Legislator l : memService.query(Legislator.class).stream()
 				.filter(l -> 
 					l.getInteractions().size() > 0
-					&& !s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
+					&& l.getBioguideId().equals("B001297")
+//					&& !s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class)
+				)
 				.sorted(Comparator.comparing(Legislator::getDate).reversed())
+				.limit(1)
 				.toList()) {
 			legInterp.populateInteractionStats(l);
 			
@@ -127,36 +112,30 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 	{
 		legInterp.populateInteractionStats(leg);
 		
-		IssueStats stats = new IssueStats();
+		IssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
 		
-		LocalDate periodStart = null;
-		val periodEnd = LocalDate.now();
+		val topInteractions = legInterp.calculateTopInteractions(leg);
+		
 		List<String> billMsgs = new ArrayList<String>();
-		
-		for (val interact : legInterp.getInteractionsForInterpretation(leg))
-		{
-			if (interact.getIssueStats() != null)
-			{
-				if (interact instanceof LegislatorBillVote
-						&& (((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.NOT_VOTING) || ((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.PRESENT)))
-					continue;
-				
-				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
-				stats = stats.sum(weightedStats, Math.abs(interact.getJudgementWeight()));
-				
-				val billMsg = interact.describe() + ": " + interact.getIssueStats().getExplanation();
-				if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
-					billMsgs.add(billMsg);
-					periodStart = (periodStart == null) ? interact.getDate() : (periodStart.isAfter(interact.getDate()) ? interact.getDate() : periodStart);
+		Set<String> includedBills = new HashSet<String>();
+		for (int i = 0; i < 100; ++i) {
+			for (val issue : topInteractions.keySet()) {
+				if (topInteractions.get(issue).size() > i && !includedBills.contains(topInteractions.get(issue).get(i).getBillId())) {
+					val interact = topInteractions.get(issue).get(i);
+					val billMsg = interact.describe() + " \"" + interact.getBillName() + "\": " + interact.getIssueStats().getExplanation();
+					if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+						billMsgs.add(billMsg);
+						includedBills.add(interact.getBillId());
+					} else {
+						break;
+					}
 				}
 			}
 		}
 		
-		stats = stats.divideByTotalSummed();
-		
-		createRequest(LegislatorInterpretation.generateId(leg.getId()), LegislatorInterpretationService.getAiPrompt(leg, periodStart, periodEnd), String.join("\n", billMsgs));
+		createRequest(LegislatorInterpretation.generateId(leg.getId()), LegislatorInterpretationService.getAiPrompt(leg, stats), String.join("\n", billMsgs));
 	}
-	
+
 	private void createRequest(String oid, String sysMsg, String userMsg) {
 		List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();
 		messages.add(new BatchBillMessage("system", sysMsg));

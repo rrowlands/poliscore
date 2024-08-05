@@ -51,21 +51,21 @@ export class BillsComponent implements OnInit {
   {
     this.isRequestingData = true;
 
-    // this.service.getLegislatorPageData().then(data => {
-    //   this.bills = data.legislators;
-    //   this.allLegislators = data.allLegislators;
-    //   this.searchOptions = data.allLegislators.concat(states.map(s => ["STATE/" + s[1], s[0]]));
-    //   this.myLocation = data.location;
-    // }).finally(() => {
-    //   this.isRequestingData = false;
-    // });
+    let routeIndex = this.route.snapshot.paramMap.get('index') as string;
+    let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
+    if ( (routeIndex === "bylocation" || routeIndex === "byrating" || routeIndex === "bydate") && routeAscending != null) {
+      if (routeIndex === "bylocation") {
+        this.page.index = "ObjectsByLocation";
+      } else if (routeIndex === "byrating") {
+        this.page.index = "ObjectsByRating";
+      } else if (routeIndex === "bydate") {
+        this.page.index = "ObjectsByDate";
+      }
+
+      this.page.ascending = routeAscending == "ascending";
+    }
 
     this.fetchData();
-
-    // this.filteredOptions = this.myControl.valueChanges.pipe(
-    //   startWith(''),
-    //   map(value => this._filter(value || '')),
-    // );
 
     this.filteredOptions = this.myControl.valueChanges
         .pipe(
@@ -151,6 +151,17 @@ export class BillsComponent implements OnInit {
     }
 
     this.bills= [];
+
+    let routeIndex = "bylocation";
+    if (this.page.index === "ObjectsByDate") {
+      routeIndex = "bydate";
+    } else if (this.page.index === "ObjectsByRating") {
+      routeIndex = "byrating";
+    } else if (this.page.index === "ObjectsByLocation") {
+      routeIndex = "bylocation";
+    }
+
+    this.router.navigate(['/bills', routeIndex, this.page.ascending? "ascending" : "descending"]);
 
     this.fetchData();
   }

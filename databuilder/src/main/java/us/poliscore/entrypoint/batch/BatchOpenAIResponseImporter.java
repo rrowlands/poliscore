@@ -149,6 +149,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 					val bill = memService.get(i.getBillId(), Bill.class).orElseThrow();
 					bill.setInterpretation(interp.get());
 					ddb.put(bill);
+					ddb.put(i);
 					importedBills.add(bill.getId());
 				}
 			}
@@ -184,7 +185,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		// 1200 seems to be about an upper limit for a single ddb page
 		leg.setInteractions(interacts.stream().sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1200).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
-//		leg.setInteractions(interacts);
+		leg.setInteractions(interacts);
 		
 		leg.setInterpretation(interp);
 		
