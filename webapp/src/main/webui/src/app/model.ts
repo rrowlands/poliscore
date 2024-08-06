@@ -42,7 +42,7 @@ export class Legislator {
     terms!: [{
       chamber: string,
       startDate: string,
-      endEnd: string,
+      endDate: string,
       state: string,
       district: number,
       party: string,

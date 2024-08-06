@@ -121,6 +121,10 @@ export class LegislatorComponent implements OnInit {
     });
   }
 
+  upForReelection() {
+    return this.leg && this.leg!.terms![this.leg!.terms!.length - 1].endDate === (new Date().getFullYear() + 1) + '-01-03';
+  }
+
   refreshBillData() {
     this.billData = this.leg?.interactions
         ?.filter(i => i.issueStats != null)

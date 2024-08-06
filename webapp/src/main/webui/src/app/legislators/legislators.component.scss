@@ -30,6 +30,10 @@
     grid-template-columns: minmax(100px, 260px) 1fr;
 }
 
+.reelection {
+    color: #7a5600;
+}
+
 .breadcrumb > * {
     flex: 1;
     height:100%;
@@ -108,10 +112,23 @@ mat-card-content {
     grid-row: 1;
 }
 
+mat-card .right {
+    display: grid;
+}
+
 mat-card img {
     height: auto;
     margin-bottom: -5px;
     width: 150px;
+}
+
+mat-card-footer {
+    padding: 0 16px;
+}
+
+mat-card-footer p {
+    margin: 5px 0;
+    font-size: 0.9em;
 }
 
 .loading {

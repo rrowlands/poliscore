@@ -55,10 +55,8 @@ export class LegislatorsComponent implements OnInit {
 
     let routeIndex = this.route.snapshot.paramMap.get('index') as string;
     let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
-    if ( (routeIndex === "bylocation" || routeIndex === "byrating" || routeIndex === "byage") && routeAscending != null) {
-      if (routeIndex === "bylocation") {
-        this.page.index = "ObjectsByLocation";
-      } else if (routeIndex === "byrating") {
+    if ( (routeIndex === "byrating" || routeIndex === "byage") && routeAscending != null) {
+      if (routeIndex === "byrating") {
         this.page.index = "ObjectsByRating";
       } else if (routeIndex === "byage") {
         this.page.index = "ObjectsByDate";
@@ -66,25 +64,11 @@ export class LegislatorsComponent implements OnInit {
 
       this.page.ascending = routeAscending == "ascending";
       
-      if (routeIndex !== "bylocation") {
-        this.fetchData();
-        routeParams = true;
-      }
+      this.fetchData();
+      routeParams = true;
     }
 
-    this.service.getLegislatorPageData().then(data => {
-      if (!routeParams) {
-        this.legs = data.legislators;
-      }
-
-      this.allLegislators = data.allLegislators;
-      this.searchOptions = data.allLegislators.concat(states.map(s => ["STATE/" + s[1], s[0]]));
-      this.myLocation = data.location;
-    }).finally(() => {
-      if (!routeParams) {
-        this.isRequestingData = false;
-      }
-    });
+    this.fetchLegislatorPageData(routeParams);
 
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
@@ -161,27 +145,25 @@ export class LegislatorsComponent implements OnInit {
     this.page.index = index;
     this.page.exclusiveStartKey = undefined;
     this.hasMoreContent = true;
-
-    if (index === "ObjectsByLocation") {
-      this.page.sortKey = this.myLocation;
-    } else {
-      this.page.sortKey = undefined;
-    }
+    this.page.sortKey = undefined;
 
     this.legs = [];
 
-    let routeIndex = "bylocation";
+    let routeIndex = "";
     if (this.page.index === "ObjectsByDate") {
       routeIndex = "byage";
     } else if (this.page.index === "ObjectsByRating") {
       routeIndex = "byrating";
-    } else if (this.page.index === "ObjectsByLocation") {
-      routeIndex = "bylocation";
     }
 
-    this.router.navigate(['/legislators', routeIndex, this.page.ascending? "ascending" : "descending"]);
-
-    this.fetchData();
+    if (this.page.index === "ObjectsByLocation") {
+      this.page.ascending = true;
+      this.router.navigate(['/legislators']);
+      this.fetchLegislatorPageData();
+    } else {
+      this.router.navigate(['/legislators', routeIndex, this.page.ascending? "ascending" : "descending"]);
+      this.fetchData();
+    }
   }
 
   fetchData(replace: boolean = true) {
@@ -208,6 +190,22 @@ export class LegislatorsComponent implements OnInit {
     });
   }
 
+  fetchLegislatorPageData(routeParams: boolean = false) {
+    this.service.getLegislatorPageData().then(data => {
+      if (!routeParams) {
+        this.legs = data.legislators;
+      }
+
+      this.allLegislators = data.allLegislators;
+      this.searchOptions = data.allLegislators.concat(states.map(s => ["STATE/" + s[1], s[0]]));
+      this.myLocation = data.location;
+    }).finally(() => {
+      if (!routeParams) {
+        this.isRequestingData = false;
+      }
+    });
+  }
+
   routeTo(leg: Legislator)
   {
     document.getElementById(leg.id)?.classList.add("tran-div");
@@ -230,6 +228,10 @@ export class LegislatorsComponent implements OnInit {
     issueStats = issueStats.slice(0, Math.min(3, issueStats.length));
 
     return "Focuses on " + issueStats.join(", ");
+  }
+
+  upForReelection(leg: Legislator) {
+    return leg && leg!.terms![leg!.terms!.length - 1].endDate === (new Date().getFullYear() + 1) + '-01-03';
   }
 
   gradeForLegislator(leg: Legislator): string

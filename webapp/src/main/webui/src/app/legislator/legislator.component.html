@@ -30,12 +30,17 @@
                         
                         <img class="leg-img img-fluid rounded-start" *ngIf="!leg?.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg?.id + '.jpg'" (error)="legPhotoError(leg)" >
                         <img class="leg-img img-fluid rounded-start" style="max-height:360px;" *ngIf="leg && leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>
+
+                        <p class="reelection" *ngIf="upForReelection()">Up for reelection in November</p>
                     </div>
                     <div class="col-right">
                         <div class="card-body chart-container">
                             <canvas #barChart id="barChart"></canvas>
                         </div>
                     </div>
+                </div>
+                <div class="row">
+                    
                 </div>
 
                 <section *ngIf="leg != null">
