@@ -13,11 +13,11 @@
 <!---->
     <div class="vertical-layout">
         <div class="breadcrumb">
-            <a href="#" routerLink="/">Home</a>
+            <a href="/" routerLink="/">Home</a>
             /
-            <a href="#" routerLink="/legislators">Legislators</a>
+            <a href="/legislators" routerLink="/legislators">Legislators</a>
 
-            <a class="float-right" href="#" routerLink="/about">About</a>
+            <a class="float-right" href="/about" routerLink="/about">About</a>
         </div>
 
         <mat-card class="tran-div">
@@ -55,7 +55,12 @@
 
                         <ng-container matColumnDef="billName">
                             <th mat-header-cell *matHeaderCellDef>Bill Name</th>
-                            <td mat-cell *matCellDef="let element"> {{element.billName}} </td>
+                            <td mat-cell *matCellDef="let element">
+                                {{element.billName}}
+
+                                <!-- SEO Trick as described https://stackoverflow.com/questions/53764059/angular-material-7-link-for-whole-row -->
+                                <a fxFlexFill [href]="'/bill/' + element.billId.replace('BIL/us/congress', '')" [routerLink]="'/bill/' + element.billId.replace('BIL/us/congress', '')" class="mat-row-link"></a>
+                            </td>
                         </ng-container>
 
                         <ng-container matColumnDef="billGrade">
@@ -74,7 +79,7 @@
                         </ng-container>
 
                         <tr mat-header-row *matHeaderRowDef="getDisplayedColumns()"></tr>
-                        <tr mat-row *matRowDef="let row; columns: getDisplayedColumns();" (click)="routeToBill(row.billId)"></tr>
+                        <tr mat-row *matRowDef="let row; columns: getDisplayedColumns();" class="mat-row"></tr>
                     </table>
                 </section>
             </mat-card-content>

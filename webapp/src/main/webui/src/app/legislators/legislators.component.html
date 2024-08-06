@@ -46,26 +46,28 @@
                 </mat-autocomplete>
             </div>
             
-            <mat-card *ngFor="let leg of legs" (click)="routeTo(leg)" class="example-card" appearance="outlined">
-                <div class="left">
-                    <img *ngIf="!leg.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" (error)="leg.photoError = true;" >
-                    <img *ngIf="leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>
-                </div>
-                <div class="right">
-                    <mat-card-header>
-                        <mat-card-title-group>
-                            <mat-card-title>{{leg.name.official_full}}</mat-card-title>
-                            <h1 class="col-2 g-0"><p class="text-end" style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForLegislator(leg))}">{{gradeForLegislator(leg)}}</p></h1>
-                            <mat-card-subtitle>{{subtitleForLegislator(leg)}}</mat-card-subtitle>
-                        </mat-card-title-group>
-                    </mat-card-header>
-                    <mat-card-content>
-                        <span><p>{{descriptionForLegislator(leg)}}</p></span>
-                    </mat-card-content>
-                    <mat-card-footer class="horizontal-layout">
-                        <p class="reelection" *ngIf="upForReelection(leg)">Up for reelection in Nov</p>
-                    </mat-card-footer>
-                </div>
+            <mat-card *ngFor="let leg of legs" class="example-card" appearance="outlined">
+                <a [href]="'/legislator/' + leg.id.replace('LEG/us/congress', '')" [routerLink]="'/legislator/' + leg.id.replace('LEG/us/congress', '')">
+                    <div class="left">
+                        <img *ngIf="!leg.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" (error)="leg.photoError = true;" >
+                        <img *ngIf="leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>
+                    </div>
+                    <div class="right">
+                        <mat-card-header>
+                            <mat-card-title-group>
+                                <mat-card-title>{{leg.name.official_full}}</mat-card-title>
+                                <h1 class="col-2 g-0"><p class="text-end" style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForLegislator(leg))}">{{gradeForLegislator(leg)}}</p></h1>
+                                <mat-card-subtitle>{{subtitleForLegislator(leg)}}</mat-card-subtitle>
+                            </mat-card-title-group>
+                        </mat-card-header>
+                        <mat-card-content>
+                            <span><p>{{descriptionForLegislator(leg)}}</p></span>
+                        </mat-card-content>
+                        <mat-card-footer class="horizontal-layout">
+                            <p class="reelection" *ngIf="upForReelection(leg)">Up for reelection in Nov</p>
+                        </mat-card-footer>
+                    </div>
+                </a>
             </mat-card>
 
             <mat-card *ngIf="hasMoreContent && isRequestingData" class="loading-card vertical-layout" appearance="outlined">

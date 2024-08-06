@@ -46,18 +46,20 @@
                 </mat-autocomplete>
             </div>
             
-            <mat-card *ngFor="let bill of bills" (click)="routeTo(bill)" class="example-card" appearance="outlined">
-                <mat-card-header>
-                    <mat-card-title-group>
-                        <h4 class="title-date"><p style="padding-left:12px;">{{bill.introducedDate}}</p></h4>
-                        <mat-card-title>{{bill.name}}</mat-card-title>
-                        <h1 class="title-grade"><p style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForBill(bill))}">{{gradeForBill(bill)}}</p></h1>
-                        <mat-card-subtitle>{{subtitleForBill(bill)}}</mat-card-subtitle>
-                    </mat-card-title-group>
-                </mat-card-header>
-                <mat-card-content>
-                    <span><p>{{descriptionForBill(bill)}}</p></span>
-                </mat-card-content>
+            <mat-card *ngFor="let bill of bills" class="example-card" appearance="outlined">
+                <a [href]="'/bill/' + bill.id.replace('BIL/us/congress', '')" [routerLink]="'/bill/' + bill.id.replace('BIL/us/congress', '')">
+                    <mat-card-header>
+                        <mat-card-title-group>
+                            <h4 class="title-date"><p style="padding-left:12px;">{{bill.introducedDate}}</p></h4>
+                            <mat-card-title>{{bill.name}}</mat-card-title>
+                            <h1 class="title-grade"><p style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForBill(bill))}">{{gradeForBill(bill)}}</p></h1>
+                            <mat-card-subtitle>{{subtitleForBill(bill)}}</mat-card-subtitle>
+                        </mat-card-title-group>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <span><p>{{descriptionForBill(bill)}}</p></span>
+                    </mat-card-content>
+                </a>
             </mat-card>
 
             <mat-card *ngIf="hasMoreContent && isRequestingData" class="loading-card vertical-layout" appearance="outlined">
