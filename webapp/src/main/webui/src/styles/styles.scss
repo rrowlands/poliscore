@@ -2,6 +2,14 @@
 
 /* Custom CSS Specific to Poliscore */
 
+a.unstyled :link {
+    text-decoration: none;
+}
+a.unstyled, a.unstyled:visited, a.unstyled:hover, a.unstyled:active {
+	text-decoration: none;
+    color: inherit;
+}
+
 .stripedbg {
 	background-color: #81548f;
 	color: #d1e5f9;
