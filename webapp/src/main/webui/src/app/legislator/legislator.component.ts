@@ -41,11 +41,7 @@ export const CHART_COLORS = {
 @Component({
   selector: 'app-legislator',
   standalone: true,
-  imports: [
-// TODO: `HttpClientModule` should not be imported into a component directly.
-// Please refactor the code to add `provideHttpClient()` call to the provider list in the
-// application bootstrap logic and remove the `HttpClientModule` import from this component.
-HttpClientModule, KeyValuePipe, CommonModule, BaseChartDirective, MatCardModule, MatTableModule, DatePipe, RouterModule],
+  imports: [KeyValuePipe, CommonModule, BaseChartDirective, MatCardModule, MatTableModule, DatePipe, RouterModule],
   providers: [AppService, HttpClient],
   templateUrl: './legislator.component.html',
   styleUrl: './legislator.component.scss'

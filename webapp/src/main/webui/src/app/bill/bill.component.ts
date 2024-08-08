@@ -10,11 +10,7 @@ import { Chart, ChartConfiguration } from 'chart.js';
 @Component({
   selector: 'app-bill',
   standalone: true,
-  imports: [MatCardModule, CommonModule, 
-// TODO: `HttpClientModule` should not be imported into a component directly.
-// Please refactor the code to add `provideHttpClient()` call to the provider list in the
-// application bootstrap logic and remove the `HttpClientModule` import from this component.
-HttpClientModule, CommonModule, RouterModule],
+  imports: [MatCardModule, CommonModule, CommonModule, RouterModule],
   providers: [AppService, HttpClient],
   templateUrl: './bill.component.html',
   styleUrl: './bill.component.scss'

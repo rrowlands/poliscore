@@ -15,11 +15,7 @@ import { Observable, map, startWith } from 'rxjs';
 @Component({
   selector: 'legislators',
   standalone: true,
-  imports: [
-// TODO: `HttpClientModule` should not be imported into a component directly.
-// Please refactor the code to add `provideHttpClient()` call to the provider list in the
-// application bootstrap logic and remove the `HttpClientModule` import from this component.
-HttpClientModule, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule, MatAutocompleteModule, ReactiveFormsModule, MatButtonModule],
+  imports: [KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule, MatAutocompleteModule, ReactiveFormsModule, MatButtonModule],
   providers: [AppService, HttpClient],
   templateUrl: './legislators.component.html',
   styleUrl: './legislators.component.scss'

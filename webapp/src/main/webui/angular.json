@@ -39,7 +39,9 @@
             ],
             "scripts": [],
             "server": "src/main.server.ts",
-            "prerender": true,
+            "prerender": {
+            	"discoverRoutes": false
+            },
             "ssr": {
               "entry": "server.ts"
             }
