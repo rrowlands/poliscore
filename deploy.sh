@@ -26,9 +26,11 @@ if [ "$1" != "view" ]; then
   cd ..
 fi
 
-cd webapp/src/main/webui
-ng build
-cd ../../../../
+if [ "$1" != "backend" ]; then
+  cd webapp/src/main/webui
+  ng build
+  cd ../../../../
 
-aws s3 rm s3://$BUCKET_NAME --recursive
-aws s3 cp webapp/src/main/webui/dist/poliscore/browser s3://$BUCKET_NAME --recursive
+  aws s3 rm s3://$BUCKET_NAME --recursive
+  aws s3 cp webapp/src/main/webui/dist/poliscore/browser s3://$BUCKET_NAME --recursive
+fi

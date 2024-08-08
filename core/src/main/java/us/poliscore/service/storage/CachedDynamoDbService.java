@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.quarkus.arc.DefaultBean;
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
@@ -45,7 +46,11 @@ public class CachedDynamoDbService implements ApplicationDataStoreIF
 		
 		if (result.isPresent())
 		{
-			memory.put(mapper.treeToValue(mapper.valueToTree(result.get()), clazz));
+			try {
+				memory.put(mapper.treeToValue(mapper.valueToTree(result.get()), clazz));
+			} catch(Throwable t) {
+				Log.error(t);
+			}
 		}
 		
 		return result;

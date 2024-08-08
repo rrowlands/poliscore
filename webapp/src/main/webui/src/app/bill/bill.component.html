@@ -15,15 +15,15 @@
 
             <mat-card *ngIf="bill != null" class="tran-div">
                 <mat-card-content class="vertical-layout">
-                    <h1 class="card-title" style="text-align:center;"><a [href]="'https://www.congress.gov/bill/' + bill?.congress + '-congress/' + getCongressGovBillType() + '/' + bill?.number">{{bill?.name}}</a></h1>
+                    <h1 class="card-title" style="text-align:center;"><a [href]="'https://www.congress.gov/bill/' + bill.congress + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
                     <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForBill())}">{{gradeForBill()}}</p></h1>
-                    <h3 class="date"><p >{{ bill?.introducedDate }}</p></h3>
-                    <h3 class="card-subtitle">Sponsor: <a [href]="'/legislator/' + bill?.sponsor?.bioguide_id" [routerLink]="'/legislator/' + this.bill?.sponsor?.bioguide_id">{{bill?.sponsor?.name}}</a></h3>
+                    <h3 class="date"><p >{{ bill.introducedDate }}</p></h3>
+                    <h3 class="card-subtitle">Sponsor: <a [href]="'/legislator/' + bill.sponsor.bioguide_id" [routerLink]="'/legislator/' + this.bill.sponsor.bioguide_id">{{bill.sponsor.name}}</a></h3>
                     <div class="chart-container">
                         <canvas id="barChart"></canvas>
                     </div>
 
-                    <p class="interp-text">{{bill?.interpretation?.issueStats?.explanation}}</p>
+                    <p class="interp-text">{{bill.interpretation.issueStats.explanation}}</p>
                 </mat-card-content>
             </mat-card>
         </div>

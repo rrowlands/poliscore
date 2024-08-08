@@ -1,8 +1,8 @@
-import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostListener, Inject, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { AppService } from '../app.service';
 import convertStateCodeToName, { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade, issueKeyToLabelSmall } from '../model';
 import { HttpHeaders, HttpClient, HttpParams, HttpHandler } from '@angular/common/http';
-import { CommonModule, DatePipe, KeyValuePipe } from '@angular/common';
+import { CommonModule, DatePipe, KeyValuePipe, isPlatformBrowser } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement} from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -46,7 +46,7 @@ export const CHART_COLORS = {
   templateUrl: './legislator.component.html',
   styleUrl: './legislator.component.scss'
 })
-export class LegislatorComponent implements OnInit {
+export class LegislatorComponent implements OnInit, AfterViewInit {
 
   @ViewChild("barChart") barChart!: HTMLCanvasElement;
 
@@ -101,7 +101,7 @@ export class LegislatorComponent implements OnInit {
     }
   };
 
-  constructor(private service: AppService, private route: ActivatedRoute, private router: Router) { }
+  constructor(private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object) { }
 
   ngOnInit(): void {
     this.legId = this.route.snapshot.paramMap.get('id') as string;
@@ -119,6 +119,18 @@ export class LegislatorComponent implements OnInit {
 
       this.buildBarChartData();
     });
+
+    // if (isPlatformBrowser(this._platformId)) {
+    //   // this.refreshBillData();
+
+    //   this.buildBarChartData();
+    // }
+  }
+
+  ngAfterViewInit() {
+    if (isPlatformBrowser(this._platformId)) {
+      this.buildBarChartData();
+    }
   }
 
   upForReelection() {
@@ -159,7 +171,7 @@ export class LegislatorComponent implements OnInit {
   }
 
   getDisplayedColumns(): string[] {
-    if (window.innerWidth < 480) {
+    if (isPlatformBrowser(this._platformId) && window.innerWidth < 480) {
       return ['billName', 'billGrade', "association"];
     } else {
       return this.displayedColumns;
@@ -180,6 +192,8 @@ export class LegislatorComponent implements OnInit {
   }
 
   async buildBarChartData() {
+    if (this.leg == null) return;
+
     let data: number[] = [];
     let labels: string[] = [];
 
@@ -194,7 +208,7 @@ export class LegislatorComponent implements OnInit {
       labels.push(key);
     }
 
-    if (window.innerWidth < 480) {
+    if (isPlatformBrowser(this._platformId) && window.innerWidth < 480) {
       labels = labels.map(l => issueKeyToLabelSmall(l));
     } else {
       labels = labels.map(l => issueKeyToLabel(l));
@@ -231,19 +245,22 @@ export class LegislatorComponent implements OnInit {
       borderWidth: 1
     }];
 
-    await this.waitForImage(document.querySelector('img'));
+    if (isPlatformBrowser(this._platformId)) {
+      await this.waitForImage(document.querySelector('img'));
+      window.setTimeout(() => { this.renderBarChart(); }, 10);
+    }
+  }
 
-    window.setTimeout(() => {
-      new Chart(
-        document.getElementById('barChart') as any,
-        {
-          type: 'bar',
-          data: this.barChartData,
-          options: this.barChartOptions
-          // plugins: [ChartDataLabels, floatingLabelsPlugin],
-        }
-      );
-    }, 10);
+  renderBarChart() {
+    new Chart(
+      (this.barChart as any).nativeElement,
+      {
+        type: 'bar',
+        data: this.barChartData,
+        options: this.barChartOptions
+        // plugins: [ChartDataLabels, floatingLabelsPlugin],
+      }
+    );
   }
 
   waitForImage(imgElem: any) {
@@ -267,7 +284,6 @@ export class LegislatorComponent implements OnInit {
       this.isRequestingData = true;
 
       this.service.getLegislatorInteractions(this.legId!, this.leg!.interactions!.length - 1).then(page => {
-        console.log(page);
         this.leg!.interactions!.push(...page.data[0]);
         this.refreshBillData();
         this.hasMoreData = page.hasMoreData;

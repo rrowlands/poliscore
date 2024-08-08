@@ -91,7 +91,7 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	
 	public static String generatePartitionKey(String legId) {
 		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/"
-				+ legId.replace(Legislator.ID_CLASS_PREFIX, "").replace(LegislativeNamespace.US_CONGRESS.getNamespace(), "");
+				+ legId.replace(Legislator.ID_CLASS_PREFIX + "/", "").replace(LegislativeNamespace.US_CONGRESS.getNamespace() + "/", "");
 	}
 	
 	public static String generateSortKey(LocalDate date, String billId) {
@@ -121,7 +121,7 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	}
 	public void setSortKey(String key) { }
 	
-	
+	@JsonIgnore
 	public String getId()
 	{
 		return generateId(legId, date, billId);

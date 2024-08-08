@@ -1,7 +1,7 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { AfterViewInit, Component, HostListener, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { AppService } from '../app.service';
 import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue } from '../model';
-import { CommonModule, KeyValuePipe } from '@angular/common';
+import { CommonModule, KeyValuePipe, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {MatCardModule} from '@angular/material/card'; 
@@ -46,34 +46,36 @@ export class LegislatorsComponent implements OnInit {
     pageSize: 25
   };
 
-  constructor(private service: AppService, private router: Router, private route: ActivatedRoute) {}
+  constructor(private service: AppService, private router: Router, private route: ActivatedRoute, @Inject(PLATFORM_ID) private _platformId: Object) {}
 
   ngOnInit(): void
   {
-    this.isRequestingData = true;
-    let routeParams = false;
+    if (isPlatformBrowser(this._platformId)) { // This is here at the moment because we want to always force the request so that it's personalized by location
+      this.isRequestingData = true;
+      let routeParams = false;
 
-    let routeIndex = this.route.snapshot.paramMap.get('index') as string;
-    let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
-    if ( (routeIndex === "byrating" || routeIndex === "byage") && routeAscending != null) {
-      if (routeIndex === "byrating") {
-        this.page.index = "ObjectsByRating";
-      } else if (routeIndex === "byage") {
-        this.page.index = "ObjectsByDate";
+      let routeIndex = this.route.snapshot.paramMap.get('index') as string;
+      let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
+      if ( (routeIndex === "byrating" || routeIndex === "byage") && routeAscending != null) {
+        if (routeIndex === "byrating") {
+          this.page.index = "ObjectsByRating";
+        } else if (routeIndex === "byage") {
+          this.page.index = "ObjectsByDate";
+        }
+
+        this.page.ascending = routeAscending == "ascending";
+        
+        this.fetchData();
+        routeParams = true;
       }
 
-      this.page.ascending = routeAscending == "ascending";
-      
-      this.fetchData();
-      routeParams = true;
+      this.fetchLegislatorPageData(routeParams);
+
+      this.filteredOptions = this.myControl.valueChanges.pipe(
+        startWith(''),
+        map(value => this._filter(value || '')),
+      );
     }
-
-    this.fetchLegislatorPageData(routeParams);
-
-    this.filteredOptions = this.myControl.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filter(value || '')),
-    );
   }
 
   private _filter(value: string): [string, string][] {
@@ -219,7 +221,7 @@ export class LegislatorsComponent implements OnInit {
       .sort((a,b) => Math.abs(b[1] as number) - Math.abs(a[1] as number))
       // .map(kv => issueKeyToLabel(kv[0]));
 
-    if (window.innerWidth < 480) {
+    if (window && window.innerWidth < 480) {
       issueStats = issueStats.map((kv: any) => issueKeyToLabelSmall(kv[0]));
     } else {
       issueStats = issueStats.map((kv: any) => issueKeyToLabel(kv[0]));

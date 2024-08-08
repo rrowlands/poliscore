@@ -51,9 +51,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 //	public static final String INPUT = "/Users/rrowlands/Downloads/batch_NQfaQzu2KATomaekSvYEx1Su_output.jsonl";
 	
 	// All Legislators (Aug 5th) 
-//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
+	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
 	
-	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	
 	@Inject
 	private CachedDynamoDbService ddb;
@@ -132,7 +132,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	}
 	
 	private void importLegislator(final BatchOpenAIResponse resp) {
-//		if (!resp.getCustom_id().contains("N000147")) return;
+		if (!resp.getCustom_id().contains("K000402")) return;
 		
 		val leg = memService.get(resp.getCustom_id().replace(LegislatorInterpretation.ID_CLASS_PREFIX, Legislator.ID_CLASS_PREFIX), Legislator.class).orElseThrow();
 		

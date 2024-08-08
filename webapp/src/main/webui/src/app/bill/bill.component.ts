@@ -117,7 +117,7 @@ export class BillComponent implements OnInit {
       labels.push(key);
     }
     
-    if (window.innerWidth < 480) {
+    if (window && window.innerWidth < 480) {
       labels = labels.map(l => issueKeyToLabelSmall(l));
     } else {
       labels = labels.map(l => issueKeyToLabel(l));
@@ -152,16 +152,18 @@ export class BillComponent implements OnInit {
       borderWidth: 1
     }];
 
-    window.setTimeout(() => {
-      new Chart(
-        document.getElementById('barChart') as any,
-        {
-          type: 'bar',
-          data: this.barChartData,
-          options: this.barChartOptions
-        }
-      );
-    }, 10);
+    if (window) {
+      window.setTimeout(() => {
+        new Chart(
+          document.getElementById('barChart') as any,
+          {
+            type: 'bar',
+            data: this.barChartData,
+            options: this.barChartOptions
+          }
+        );
+      }, 10);
+    }
   }
 
 }

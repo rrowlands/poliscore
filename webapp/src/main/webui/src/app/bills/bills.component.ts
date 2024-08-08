@@ -49,8 +49,6 @@ export class BillsComponent implements OnInit {
 
   ngOnInit(): void
   {
-    this.isRequestingData = true;
-
     let routeIndex = this.route.snapshot.paramMap.get('index') as string;
     let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
     if ( (routeIndex === "bylocation" || routeIndex === "byrating" || routeIndex === "bydate") && routeAscending != null) {
