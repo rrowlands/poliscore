@@ -138,13 +138,17 @@ export class LegislatorsComponent implements OnInit {
   onSelectAutocomplete(bioguideId: string) {
     if (bioguideId.startsWith("STATE/")) {
       this.page.index = "ObjectsByLocation";
-      this.page.sortKey = bioguideId.substring(6);
+      // this.page.sortKey = bioguideId.substring(6);
       this.page.ascending = true;
       this.hasMoreContent = true;
       this.legs = [];
       this.page.exclusiveStartKey = undefined;
-      this.fetchData();
       this.myControl.setValue("");
+
+      this.myLocation = bioguideId.substring(6);
+      this.router.navigate(['/legislators/state/' + this.myLocation.toLowerCase()]);
+
+      this.fetchLegislatorPageData(false, this.myLocation);
     } else {
       this.router.navigate(['/legislator/' + bioguideId]);
     }
