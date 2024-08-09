@@ -50,7 +50,9 @@ public class WebappDataGenerator implements QuarkusApplication
 	@Inject
 	private RollCallService rollCallService;
 	
-	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
+	public static final String[] states = new String[] {
+		"KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "MP", "AL", "AK", "AZ", "AR", "AS", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "GU", "HI", "ID", "IL", "IN", "IA", "KS", "OH", "OK", "OR", "PA", "PR", "RI", "SC", "SD", "TN", "TX", "TT", "UT", "VT", "VA", "VI", "WA", "WV", "WI", "WY" 
+	};
 	
 	public static void main(String[] args) {
 		Quarkus.run(WebappDataGenerator.class, args);
@@ -74,10 +76,15 @@ public class WebappDataGenerator implements QuarkusApplication
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/webui/routes.txt");
 		val routes = new ArrayList<String>();
 		
+		// All states
+		Arrays.asList(states).stream().forEach(s -> routes.add("/legislators/state/" + s));
+		
+		// All legislator routes
 		memService.query(Legislator.class).stream()
 			.filter(l -> l.isMemberOfSession(CongressionalSession.S118))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 			.forEach(l -> routes.add("/legislator/" + l.getBioguideId()));
+		
 		
 		FileUtils.write(out, String.join("\n", routes), "UTF-8");
 	}

@@ -164,15 +164,19 @@ public class Lambda {
     @GET
     @SneakyThrows
     @Path("/getLegislatorPageData")
-    public LegislatorPageData getLegislatorPageData(@Context APIGatewayV2HTTPEvent event) {
+    public LegislatorPageData getLegislatorPageData(@Context APIGatewayV2HTTPEvent event, @RestQuery("state") String state) {
     	String location = null;
     	
-    	try {
-	    	val sourceIp = event.getRequestContext().getHttp().getSourceIp();
-	    	location = ipService.locateIp(sourceIp).orElse(null);
-    	}
-    	catch(Exception e) {
-    		Log.error(e);
+    	if (StringUtils.isNotBlank(state)) {
+    		location = state.toUpperCase();
+    	} else {
+	    	try {
+		    	val sourceIp = event.getRequestContext().getHttp().getSourceIp();
+		    	location = ipService.locateIp(sourceIp).orElse(null);
+	    	}
+	    	catch(Exception e) {
+	    		Log.error(e);
+	    	}
     	}
     	
     	String index = (location == null ? null : Persistable.OBJECT_BY_LOCATION_INDEX);

@@ -94,8 +94,14 @@ export class AppService {
         return firstValueFrom(this.http.get<Legislator[]>(backendUrl + "/getLegislators", { params: params }));
     }
 
-    getLegislatorPageData(): Promise<LegislatorPageData> {
-        return firstValueFrom(this.http.get<LegislatorPageData>(backendUrl + "/getLegislatorPageData"));
+    getLegislatorPageData(state: string | null = null): Promise<LegislatorPageData> {
+        let params: HttpParams = new HttpParams();
+
+        if (state != null) {
+            params = params.set("state", state);
+        }
+
+        return firstValueFrom(this.http.get<LegislatorPageData>(backendUrl + "/getLegislatorPageData", { params: params }));
     }
 
     getBill(billId: string) {

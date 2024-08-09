@@ -50,32 +50,40 @@ export class LegislatorsComponent implements OnInit {
 
   ngOnInit(): void
   {
-    if (isPlatformBrowser(this._platformId)) { // This is here at the moment because we want to always force the request so that it's personalized by location
-      this.isRequestingData = true;
-      let routeParams = false;
+    let routeIndex = this.route.snapshot.paramMap.get('index') as string;
+    let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
 
-      let routeIndex = this.route.snapshot.paramMap.get('index') as string;
-      let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
-      if ( (routeIndex === "byrating" || routeIndex === "byage") && routeAscending != null) {
-        if (routeIndex === "byrating") {
-          this.page.index = "ObjectsByRating";
-        } else if (routeIndex === "byage") {
-          this.page.index = "ObjectsByDate";
+    if (routeIndex === "state") {
+      this.page.index = "ObjectsByLocation";
+      this.page.ascending = true;
+      this.myLocation = routeAscending;
+      this.fetchLegislatorPageData(false, this.myLocation);
+    } else {
+      if (isPlatformBrowser(this._platformId)) { // This is here at the moment because we want to always force the request so that it's personalized by location
+        this.isRequestingData = true;
+        let routeParams = false;
+  
+        if ( (routeIndex === "byrating" || routeIndex === "byage") && routeAscending != null) {
+          if (routeIndex === "byrating") {
+            this.page.index = "ObjectsByRating";
+          } else if (routeIndex === "byage") {
+            this.page.index = "ObjectsByDate";
+          }
+  
+          this.page.ascending = routeAscending == "ascending";
+          
+          this.fetchData();
+          routeParams = true;
         }
-
-        this.page.ascending = routeAscending == "ascending";
-        
-        this.fetchData();
-        routeParams = true;
+  
+        this.fetchLegislatorPageData(routeParams);
       }
-
-      this.fetchLegislatorPageData(routeParams);
-
-      this.filteredOptions = this.myControl.valueChanges.pipe(
-        startWith(''),
-        map(value => this._filter(value || '')),
-      );
     }
+
+    this.filteredOptions = this.myControl.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value || '')),
+    );
   }
 
   private _filter(value: string): [string, string][] {
@@ -192,8 +200,8 @@ export class LegislatorsComponent implements OnInit {
     });
   }
 
-  fetchLegislatorPageData(routeParams: boolean = false) {
-    this.service.getLegislatorPageData().then(data => {
+  fetchLegislatorPageData(routeParams: boolean = false, state: string | null = null) {
+    this.service.getLegislatorPageData(state).then(data => {
       if (!routeParams) {
         this.legs = data.legislators;
       }
@@ -201,6 +209,10 @@ export class LegislatorsComponent implements OnInit {
       this.allLegislators = data.allLegislators;
       this.searchOptions = data.allLegislators.concat(states.map(s => ["STATE/" + s[1], s[0]]));
       this.myLocation = data.location;
+
+      if (state == null && !routeParams) {
+        this.router.navigate(['/legislators/state/' + data.location.toLowerCase()]);
+      }
     }).finally(() => {
       if (!routeParams) {
         this.isRequestingData = false;
@@ -221,7 +233,7 @@ export class LegislatorsComponent implements OnInit {
       .sort((a,b) => Math.abs(b[1] as number) - Math.abs(a[1] as number))
       // .map(kv => issueKeyToLabel(kv[0]));
 
-    if (window && window.innerWidth < 480) {
+    if (isPlatformBrowser(this._platformId) && window.innerWidth < 480) {
       issueStats = issueStats.map((kv: any) => issueKeyToLabelSmall(kv[0]));
     } else {
       issueStats = issueStats.map((kv: any) => issueKeyToLabel(kv[0]));
