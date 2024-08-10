@@ -3,7 +3,7 @@ import { AppService } from '../app.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Bill, colorForGrade, getBenefitToSocietyIssue, gradeForStats, issueKeyToLabel, issueKeyToLabelSmall } from '../model';
 import { MatCardModule } from '@angular/material/card';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser, isPlatformServer } from '@angular/common';
 import { HttpClient, HttpHandler } from '@angular/common/http';
 import { Chart, ChartConfiguration } from 'chart.js';
 

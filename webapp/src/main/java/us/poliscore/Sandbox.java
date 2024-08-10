@@ -26,6 +26,7 @@ import us.poliscore.model.Legislator;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorBillInteraction;
 import us.poliscore.model.Persistable;
+import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.service.IpGeolocationService;
@@ -86,7 +87,7 @@ public class Sandbox implements QuarkusApplication
     	
 //    	val out = getLegislatorInteractions(PoliscoreUtil.BERNIE_SANDERS_ID, 19);
 		
-		val out = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "K000402"), Legislator.class).orElseThrow();
+//		val out = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "K000402"), Legislator.class).orElseThrow();
 		
 //		val out = leg.getInteractions();
 		
@@ -95,9 +96,19 @@ public class Sandbox implements QuarkusApplication
 //		linkInterpBills(leg);
 		
 //		val out = leg.getInterpretation().getIssueStats().getExplanation();
+		
+		
+		
+		val out = memService.query(Bill.class).stream()
+			.filter(b -> b.getInterpretation() == null || b.getInterpretation().getIssueStats() == null || !b.getInterpretation().getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety))
+			.map(b -> b.getId())
+			.toList();		
+		
     	
     	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));
 //		System.out.println(out);
+		
+		
 	}
 	
 	private void linkInterpBills(Legislator leg) {
