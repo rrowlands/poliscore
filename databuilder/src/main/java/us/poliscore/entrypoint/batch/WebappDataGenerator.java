@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 
@@ -18,7 +16,7 @@ import lombok.val;
 import us.poliscore.Environment;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.Legislator;
-import us.poliscore.model.bill.BillType;
+import us.poliscore.model.bill.Bill;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorService;
@@ -67,6 +65,7 @@ public class WebappDataGenerator implements QuarkusApplication
 		billService.generateBillWebappIndex();
 		
 		generateRoutes();
+		generateSiteMap();
 		
 		System.out.println("Program complete.");
 	}
@@ -80,10 +79,45 @@ public class WebappDataGenerator implements QuarkusApplication
 		Arrays.asList(states).stream().forEach(s -> routes.add("/legislators/state/" + s));
 		
 		// All legislator routes
+		routes.add("/legislators");
 		memService.query(Legislator.class).stream()
 			.filter(l -> l.isMemberOfSession(CongressionalSession.S118))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 			.forEach(l -> routes.add("/legislator/" + l.getBioguideId()));
+		
+		// All bills
+		routes.add("/bills");
+		memService.query(Bill.class).stream()
+			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118))
+			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
+			.forEach(b -> routes.add("/bill/" + b.getCongress() + "/" + b.getType().getName().toLowerCase() + "/" + b.getNumber()));
+		
+		
+		FileUtils.write(out, String.join("\n", routes), "UTF-8");
+	}
+	
+	@SneakyThrows
+	private void generateSiteMap() {
+		final String url = "https://poliscore.us";
+		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/webui/src/assets/sitemap.txt");
+		val routes = new ArrayList<String>();
+		
+		// All states
+		Arrays.asList(states).stream().forEach(s -> routes.add(url + "/legislators/state/" + s));
+		
+		// All legislator routes
+		routes.add(url + "/legislators");
+		memService.query(Legislator.class).stream()
+			.filter(l -> l.isMemberOfSession(CongressionalSession.S118))
+			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
+			.forEach(l -> routes.add(url + "/legislator/" + l.getBioguideId()));
+		
+		// All bills
+		routes.add(url + "/bills");
+		memService.query(Bill.class).stream()
+			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118))
+			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
+			.forEach(b -> routes.add(url + "/bill/" + b.getCongress() + "/" + b.getType().getName().toLowerCase() + "/" + b.getNumber()));
 		
 		
 		FileUtils.write(out, String.join("\n", routes), "UTF-8");

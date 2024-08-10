@@ -2,7 +2,7 @@
     <span class="purplebg"></span> <!-- There's a bug on Moible Chrome browsers where when the nav bar hides, it reveals the white bg. -->
 <div class="stripedbg">
     <div *ngIf="loading" class="loader"></div>
-    <h1 *ngIf="!loading && leg == null" class="object-not-found"><a routerLink="/legislators">Legislator not found!</a></h1>
+    <h1 *ngIf="!loading && leg == null" class="object-not-found"><a href="/legislators">Legislator not found!</a></h1>
 
     <!--
     <div style="width:800px; height:800px">
@@ -58,8 +58,7 @@
                             <td mat-cell *matCellDef="let element">
                                 {{element.billName}}
 
-                                <!-- SEO Trick as described https://stackoverflow.com/questions/53764059/angular-material-7-link-for-whole-row -->
-                                <a fxFlexFill [href]="'/bill/' + element.billId.replace('BIL/us/congress', '')" [routerLink]="'/bill/' + element.billId.replace('BIL/us/congress', '')" class="mat-row-link"></a>
+                                <a fxFlexFill [href]="'/bill/' + element.billId.replace('BIL/us/congress/', '')" class="mat-row-link"></a>
                             </td>
                         </ng-container>
 

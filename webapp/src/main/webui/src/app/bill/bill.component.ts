@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { AppService } from '../app.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Bill, colorForGrade, getBenefitToSocietyIssue, gradeForStats, issueKeyToLabel, issueKeyToLabelSmall } from '../model';
 import { MatCardModule } from '@angular/material/card';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHandler } from '@angular/common/http';
 import { Chart, ChartConfiguration } from 'chart.js';
 
@@ -61,7 +61,7 @@ export class BillComponent implements OnInit {
     }
   };
 
-  constructor(private service: AppService, private route: ActivatedRoute, private router: Router) { }
+  constructor(private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object) { }
 
   ngOnInit(): void {
     this.billId = this.route.snapshot.paramMap.get('id') as string;
@@ -117,7 +117,7 @@ export class BillComponent implements OnInit {
       labels.push(key);
     }
     
-    if (window && window.innerWidth < 480) {
+    if (isPlatformBrowser(this._platformId) && window.innerWidth < 480) {
       labels = labels.map(l => issueKeyToLabelSmall(l));
     } else {
       labels = labels.map(l => issueKeyToLabel(l));
@@ -152,7 +152,7 @@ export class BillComponent implements OnInit {
       borderWidth: 1
     }];
 
-    if (window) {
+    if (isPlatformBrowser(this._platformId)) {
       window.setTimeout(() => {
         new Chart(
           document.getElementById('barChart') as any,
