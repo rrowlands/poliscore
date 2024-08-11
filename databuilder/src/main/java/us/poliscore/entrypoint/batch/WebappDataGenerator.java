@@ -16,7 +16,9 @@ import lombok.val;
 import us.poliscore.Environment;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.Legislator;
+import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.bill.Bill;
+import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorService;
@@ -61,8 +63,12 @@ public class WebappDataGenerator implements QuarkusApplication
 		legService.importLegislators();
 		billService.importUscBills();
 		
+		s3.optimizeExists(BillInterpretation.class);
+		s3.optimizeExists(LegislatorInterpretation.class);
+		
 		legService.generateLegislatorWebappIndex();
 		billService.generateBillWebappIndex();
+//		billService.dumbAllBills();
 		
 		generateRoutes();
 		generateSiteMap();
@@ -81,14 +87,14 @@ public class WebappDataGenerator implements QuarkusApplication
 		// All legislator routes
 		routes.add("/legislators");
 		memService.query(Legislator.class).stream()
-			.filter(l -> l.isMemberOfSession(CongressionalSession.S118))
+			.filter(l -> l.isMemberOfSession(CongressionalSession.S118) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 			.forEach(l -> routes.add("/legislator/" + l.getBioguideId()));
 		
 		// All bills
 		routes.add("/bills");
 		memService.query(Bill.class).stream()
-			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118))
+			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 			.forEach(b -> routes.add("/bill/" + b.getCongress() + "/" + b.getType().getName().toLowerCase() + "/" + b.getNumber()));
 		
@@ -108,14 +114,14 @@ public class WebappDataGenerator implements QuarkusApplication
 		// All legislator routes
 		routes.add(url + "/legislators");
 		memService.query(Legislator.class).stream()
-			.filter(l -> l.isMemberOfSession(CongressionalSession.S118))
+			.filter(l -> l.isMemberOfSession(CongressionalSession.S118) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 			.forEach(l -> routes.add(url + "/legislator/" + l.getBioguideId()));
 		
 		// All bills
 		routes.add(url + "/bills");
 		memService.query(Bill.class).stream()
-			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118))
+			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 			.forEach(b -> routes.add(url + "/bill/" + b.getCongress() + "/" + b.getType().getName().toLowerCase() + "/" + b.getNumber()));
 		

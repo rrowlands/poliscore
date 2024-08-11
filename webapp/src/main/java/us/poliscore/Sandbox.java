@@ -99,10 +99,14 @@ public class Sandbox implements QuarkusApplication
 		
 		
 		
-		val out = memService.query(Bill.class).stream()
-			.filter(b -> b.getInterpretation() == null || b.getInterpretation().getIssueStats() == null || !b.getInterpretation().getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety))
-			.map(b -> b.getId())
-			.toList();		
+//		val out = memService.query(Bill.class).stream()
+//			.filter(b -> b.getInterpretation() == null || b.getInterpretation().getIssueStats() == null || !b.getInterpretation().getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety))
+//			.map(b -> b.getId())
+//			.toList();		
+		
+		
+		val out = getBills(25, Lambda.TRACKED_ISSUE_INDEX + TrackedIssue.NationalDefense.name(), false, null, null);
+		
 		
     	
     	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));
@@ -176,16 +180,21 @@ public class Sandbox implements QuarkusApplication
     }
 	
 	public List<Bill> getBills(@RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") String _exclusiveStartKey, @RestQuery String sortKey) {
-    	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
+		val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
     	val startKey = _exclusiveStartKey;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
     	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
     	
-    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25 && StringUtils.isBlank(sortKey);
-    	val cacheKey = index + "-" + ascending.toString();
-    	System.out.println("cacheable? " + cacheable + "; cacheKey= " + cacheKey);
-    	
-    	val bills = ddb.query(Bill.class, pageSize, index, ascending, startKey, sortKey);
+    	List<Bill> bills;
+//    	if (index.startsWith(Lambda.TRACKED_ISSUE_INDEX)) {
+//    		val issue = TrackedIssue.valueOf(index.replace(Lambda.TRACKED_ISSUE_INDEX, ""));
+//    		bills = Lambda.getBillsDump().stream()
+//    				.filter(b -> b.getInterpretation().getIssueStats().hasStat(issue))
+//    				.sorted((a,b) -> Integer.valueOf(b.getInterpretation().getIssueStats().getStat(issue)).compareTo(a.getInterpretation().getIssueStats().getStat(issue)))
+//    				.toList();
+//    	} else {
+    		bills = ddb.query(Bill.class, pageSize, index, ascending, startKey, sortKey);
+//    	}
     	
     	return bills;
     }

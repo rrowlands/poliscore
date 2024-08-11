@@ -25,8 +25,10 @@ import us.poliscore.model.Legislator;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillCosponsor;
 import us.poliscore.model.LegislatorBillInteraction.LegislatorBillSponsor;
 import us.poliscore.model.bill.Bill;
+import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
+import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryPersistenceService;
 import us.poliscore.service.storage.S3PersistenceService;
 import us.poliscore.view.USCBillView;
@@ -36,7 +38,7 @@ import us.poliscore.view.USCBillView;
 public class BillService {
 	
 	@Inject
-	private S3PersistenceService s3;
+	private LocalCachedS3Service s3;
 	
 	@Inject
 	private MemoryPersistenceService memService;
@@ -135,12 +137,30 @@ public class BillService {
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/resources/bills.index");
 		
 		val data = memService.query(Bill.class).stream()
-			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118))
+			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.map(b -> Arrays.asList(b.getId(), b.getName()))
 			.sorted((a,b) -> a.get(1).compareTo(b.get(1)))
 			.toList();
 		
 		Log.info("Generated a bill 'index' of size " + data.size());
+		
+		FileUtils.write(out, PoliscoreUtil.getObjectMapper().writeValueAsString(data), "UTF-8");
+	}
+	
+	@SneakyThrows
+	public void dumbAllBills() {
+		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/resources/allbills.dump");
+		
+		val data = memService.query(Bill.class).stream()
+			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
+			.sorted((a,b) -> a.getName().compareTo(b.getName()))
+			.toList();
+		
+		data.forEach(b -> {
+			val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
+			interp.getIssueStats().setExplanation(interp.getIssueStats().getExplanation().substring(0, Math.min(600, interp.getIssueStats().getExplanation().length())));
+			b.setInterpretation(interp);
+		});
 		
 		FileUtils.write(out, PoliscoreUtil.getObjectMapper().writeValueAsString(data), "UTF-8");
 	}

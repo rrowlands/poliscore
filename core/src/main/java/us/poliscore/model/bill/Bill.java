@@ -18,6 +18,7 @@ import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.Persistable;
+import us.poliscore.model.TrackedIssue;
 
 @Data
 @DynamoDbBean
@@ -67,6 +68,7 @@ public class Bill implements Persistable {
 		return generateId(congress, type, number);
 	}
 	
+	@JsonIgnore
 	public String getUSCId()
 	{
 		return type.getName().toLowerCase() + number + "-" + congress;
@@ -108,6 +110,7 @@ public class Bill implements Persistable {
 		
 		protected String name;
 		
+		@JsonIgnore
 		public String getId() {
 			return Legislator.generateId(LegislativeNamespace.US_CONGRESS, bioguide_id);
 		}

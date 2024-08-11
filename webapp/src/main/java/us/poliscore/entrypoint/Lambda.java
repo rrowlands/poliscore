@@ -1,11 +1,11 @@
 package us.poliscore.entrypoint;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -15,6 +15,10 @@ import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.jboss.resteasy.reactive.RestQuery;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.RequestScoped;
@@ -30,10 +34,10 @@ import us.poliscore.Page;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Legislator;
-import us.poliscore.model.Legislator.CongressionalChamber;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorBillInteraction;
 import us.poliscore.model.Persistable;
+import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.CachedDynamoDbService;
@@ -41,6 +45,8 @@ import us.poliscore.service.storage.CachedDynamoDbService;
 @Path("")
 @RequestScoped
 public class Lambda {
+	
+	public static final String TRACKED_ISSUE_INDEX = "~ti~";
 
     @Inject
     CachedDynamoDbService ddb;
@@ -48,14 +54,19 @@ public class Lambda {
     @Inject
     IpGeolocationService ipService;
     
+    @Inject
+    ObjectMapper mapper;
+    
     private static List<List<String>> cachedAllLegs;
     
     private static Map<String, List<Legislator>> cachedLegislators = new HashMap<String, List<Legislator>>();
     
     private static Map<String, List<Bill>> cachedBills = new HashMap<String, List<Bill>>();
     
-    private static List<List<String>> cachedAllBills;
-
+    private static List<Bill> allBillsDump;
+    
+    private static List<List<String>> allBillsIndex;
+    
     @GET
     @Path("getLegislator")
     public Legislator getLegislator(@NonNull @RestQuery String id) {
@@ -205,17 +216,28 @@ public class Lambda {
     
     @GET
     @Path("/getBills")
+    @SneakyThrows
     public List<Bill> getBills(@RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") String _exclusiveStartKey, @RestQuery String sortKey) {
     	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
     	val startKey = _exclusiveStartKey;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
     	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
     	
-    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25 && StringUtils.isBlank(sortKey);
+    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25 && StringUtils.isBlank(sortKey) && !index.startsWith(TRACKED_ISSUE_INDEX);
     	val cacheKey = index + "-" + ascending.toString();
     	if (cacheable && cachedBills.containsKey(cacheKey)) return cachedBills.get(cacheKey);
     	
-    	val bills = ddb.query(Bill.class, pageSize, index, ascending, startKey, sortKey);
+    	List<Bill> bills;
+    	if (index.startsWith(TRACKED_ISSUE_INDEX)) {
+    		val issue = TrackedIssue.valueOf(index.replace(TRACKED_ISSUE_INDEX, ""));
+    		bills = getBillsDump().stream()
+    				.filter(b -> b.getInterpretation().getIssueStats().hasStat(issue))
+    				.sorted((a,b) -> Integer.valueOf(b.getInterpretation().getIssueStats().getStat(issue)).compareTo(a.getInterpretation().getIssueStats().getStat(issue)))
+    				.limit(pageSize)
+    				.toList();
+    	} else {
+    		bills = ddb.query(Bill.class, pageSize, index, ascending, startKey, sortKey);
+    	}
     	
     	if (cacheable) {
     		cachedBills.put(cacheKey, bills);
@@ -226,18 +248,32 @@ public class Lambda {
     
     @SuppressWarnings("unchecked")
     @SneakyThrows
-    private List<List<String>> getAllBills() {
-    	if (cachedAllBills == null) {
-    		cachedAllBills = PoliscoreUtil.getObjectMapper().readValue(IOUtils.toString(Lambda.class.getResourceAsStream("/bills.index"), "UTF-8"), List.class);
+    public List<Bill> getBillsDump() {
+    	if (allBillsDump == null) {
+    		allBillsDump = mapper.readValue(IOUtils.toString(Lambda.class.getResourceAsStream("/allbills.dump"), "UTF-8"), new TypeReference<List<Bill>>() {});
     	}
     	
-    	return cachedAllBills;
+    	return allBillsDump;
+    }
+    
+    @SuppressWarnings("unchecked")
+    @SneakyThrows
+    public List<List<String>> getBillsIndex() {
+    	if (allBillsIndex == null) {
+    		allBillsIndex = mapper.readValue(IOUtils.toString(Lambda.class.getResourceAsStream("/bills.index"), "UTF-8"), List.class);
+    	}
+    	
+    	return allBillsIndex;
     }
     
     @GET
     @Path("/queryBills")
     public List<List<String>> queryBills(@RestQuery("text") String text) {
-    	return getAllBills().stream()
+    	val bills = new ArrayList<List<String>>(getBillsIndex());
+    	
+//    	bills.addAll(Arrays.asList(TrackedIssue.values()).stream().map(i -> Arrays.asList(TRACKED_ISSUE_INDEX + i.name(), i.getName() + " (issue)")).toList());
+    	
+    	return bills.stream()
     			.filter(b -> b.get(1).toLowerCase().contains(text.toLowerCase()) || b.get(0).toLowerCase().contains(text.toLowerCase()))
     			.sorted((a,b) -> LevenshteinDistance.getDefaultInstance().apply(a.get(1), text) - LevenshteinDistance.getDefaultInstance().apply(b.get(1), text))
     			.limit(30)

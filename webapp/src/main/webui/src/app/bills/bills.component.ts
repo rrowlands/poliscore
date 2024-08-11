@@ -125,15 +125,15 @@ export class BillsComponent implements OnInit {
   }
 
   onSelectAutocomplete(id: string) {
-    // if (id.startsWith("STATE/")) {
-    //   this.page.index = "ObjectsByLocation";
-    //   this.page.sortKey = bioguideId.substring(6);
-    //   this.page.ascending = true;
-    //   this.fetchData();
-    //   this.myControl.setValue("");
-    // } else {
+    if (id.startsWith("~ti~")) {
+      this.page.index = id as any;
+      this.page.sortKey = undefined;
+      this.page.ascending = true;
+      this.fetchData();
+      this.myControl.setValue("");
+    } else {
       this.router.navigate(['/bill/' + id.replace("BIL/us/congress", "")]);
-    // }
+    }
   }
 
   togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByLocation") {
