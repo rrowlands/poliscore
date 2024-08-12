@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -21,16 +20,18 @@ import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.val;
 import us.poliscore.entrypoint.Lambda;
+import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Legislator;
 import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.LegislatorBillInteraction;
 import us.poliscore.model.Persistable;
-import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
+import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
+import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.LocalFilePersistenceService;
 import us.poliscore.service.storage.MemoryPersistenceService;
 
@@ -45,6 +46,9 @@ public class Sandbox implements QuarkusApplication
 	
 	@Inject
 	private DynamoDbPersistenceService ddb;
+	
+	@Inject
+	private LocalCachedS3Service s3;
 	
 	@Inject
     IpGeolocationService ipService;
@@ -105,7 +109,13 @@ public class Sandbox implements QuarkusApplication
 //			.toList();		
 		
 		
-		val out = getBills(25, Lambda.TRACKED_ISSUE_INDEX + TrackedIssue.NationalDefense.name(), false, null, null);
+//		val out = getBills(25, Lambda.TRACKED_ISSUE_INDEX + TrackedIssue.NationalDefense.name(), false, null, null);
+		
+		s3.optimizeExists(BillInterpretation.class);
+		
+		val out = memService.query(Bill.class).stream()
+				.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
+				.toList().size();
 		
 		
     	

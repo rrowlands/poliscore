@@ -4,9 +4,11 @@
 
 a.unstyled :link {
     text-decoration: none;
+	text-decoration-line: none;
 }
 a.unstyled, a.unstyled:visited, a.unstyled:hover, a.unstyled:active {
 	text-decoration: none;
+	text-decoration-line: none;
     color: inherit;
 }
 
