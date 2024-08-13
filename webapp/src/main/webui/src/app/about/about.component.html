@@ -125,7 +125,7 @@
 
 							<p style="text-indent: 0;">Bill text was sent to Open AI with the following prompt:</p>
 
-							<div style="background-color: rgba(202, 208, 219, 0.2); padding: 20px; margin-bottom: 10px;">Score the following bill (or bill section) on the estimated impact to society upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Include a concise (single paragraph) report of the bill at the end which references concrete, notable and specific text of the bill where possible. Please format your response as a list in the example format:
+							<div class="prompt">Score the following bill (or bill section) on the estimated impact to society upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Include a concise (single paragraph) report of the bill at the end which references concrete, notable and specific text of the bill where possible. Please format your response as a list in the example format:
 								
 								<br/><br/>
 								Agriculture and Food: &lt;score or N/A&gt;<br/>
@@ -150,8 +150,17 @@
 
 								&lt;brief summary of the predicted impact to society and why&gt;
 							</div>
+						</div>
+					</section>
 
-							<p>For each legislator, we calculated a weighted average across all their bill interactions. The weights were assigned as follows:</p>
+					<section class="spotlight">
+						<div class="image">
+                            <img src="/images/legislator-scoring.png" alt="" />
+                        </div>
+						<div class="content">
+							<h3 class="content-header">Specifics on Legislator Scoring</h3>
+
+							<p>To calculate legislator statistics, we calculated a weighted average across all each legislator's bill interactions. The weights were assigned as follows:</p>
 
 							<ul>
 								<li>Sponsor: 1.0</li>
@@ -161,6 +170,62 @@
 							</ul>
 
 							<p>Votes against a bill were assigned a negative weight, which simply means that if the legislator voted against a bill with a negative score then it affected them positively and vise versa.</p>
+						</div>
+					</section>
+
+					<section class="spotlight">
+						<div class="image">
+                            <img src="/images/lettergrades.png" alt="" />
+                        </div>
+						<div class="content">
+							<h3 class="content-header">Legislator and Bill Letter Grades</h3>
+
+							<p>Letter grades for both bills and legislators are calculated with the same, simple algorithm. The grades are derived entirely from the 'Overall Benefit to Society' statistic and are assigned as follows:</p>
+
+							<ul>
+								<li>A: greater than or equal to 50</li>
+								<li>B: greater than or equal to 30 and less than 50</li>
+								<li>C: greater than or equal to 10 and less than 30</li>
+								<li>D: greater than or equal to 0 and less than 10</li>
+								<li>F: less than zero</li>
+							</ul>
+						</div>
+					</section>
+
+					<section class="spotlight">
+						<div class="image">
+                            <img src="/images/legislator-prompt.png" alt="" />
+                        </div>
+						<div class="content">
+							<h3 class="content-header">Parameterized Legislator Summaries</h3>
+
+							<p>Legislator summaries are calculated using a parameterized prompt which includes information from the previously mentioned aggregate scoring algorithm. The prompt is as follows:</p>
+
+							<div class="prompt" ngNonBindable>The United States {{politicianType}} {{fullName}} has been evaluated based on recent legislative performance and has received the following policy area grades (scores range from -100 to 100):
+								<br/><br/>
+
+{{stats}}
+
+<br/><br/>
+
+Based on these scores, this legislator has received the overall letter grade: {{letterGrade}}. You will be given bill interaction summaries of this politician’s recent legislative history, sorted by their impact to the relevant policy area grades. Please generate a layman's, concise, three paragraph, {{analysisType}}, highlighting any {{behavior}}, identifying trends, referencing specific bill titles (in quotes), and pointing out major focuses and priorities of the legislator. Focus on the policy areas with the largest score magnitudes (either positive or negative). Do not include the legislator's policy area grade scores and do not mention their letter grade in your summary.
+								
+								<br/><br/>
+
+								{{billInteractions}}
+							</div>
+
+							<p style="text-indent: 0;">The parameters are replaced as follows:</p>
+
+							<ul ngNonBindable>
+								<li>politicianType: Either 'Senator' or 'House Representative', depending on the chamber of their legislative term.</li>
+								<li>fullName: The legislator's full first and last name.</li>
+								<li>stats: The previously calculated legislator's policy score statistics, written as text.</li>
+								<li>letterGrade: The calculated letter grade for the legislator, as described in 'Legislator and Bill Letter Grades'</li>
+								<li>analysisType: One of 'endorsement', 'mixed analysis' or 'harsh critique', dependent upon the legislator's previosuly calculated letter grade. A's and B's are assigned as 'endorsement'. C's and D's are assigned as 'mixed analysis'. F's are assigned as 'harsh critique'.</li>
+								<li>behavior: One of 'specific accomplishments', 'specific accomplishments or alarming behaviour', or 'alarming behaviour', dependent upon the legislator's previously calculated letter grade. A's and B's are assigned as 'specific accomplishments'. C's and D's are assigned as 'specific accomplishments or alarming behaviour'. F's are assigned as 'alarming behaviour'.</li>
+								<li>billInteractions: A list of previously calculated bill summaries of the legislator's bill interactions. The bill interactions are first grouped by the policy areas, and then they are sorted by the absolute value of the score magnitude multiplied by the interaction weight. We then rotate through the policy areas, including the top bills for each policy area until we run out of token space in the prompt.</li>
+							</ul>
 						</div>
 					</section>
 				</div>
