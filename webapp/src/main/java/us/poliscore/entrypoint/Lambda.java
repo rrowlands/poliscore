@@ -104,11 +104,15 @@ public class Lambda {
 			for (val interact : leg.getInteractions()) {
 				val url = "/bill" + interact.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace(), "");
 				
+				var billName = interact.getBillName();
+				if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);
+				billName = billName.strip();
+				
 //				if (interact.getBillName().matches("(?i) of \\d\\d\\d\\d$") && exp.toLowerCase().contains(interact.getBillName().substring(0, interact.getBillName().length() - 8).toLowerCase())) {
 //					val shortName = interact.getBillName().substring(0, interact.getBillName().length() - 8);
 //					exp = exp.replaceAll("(?i)" + Pattern.quote(shortName), "<a href=\"" + url + "\" >" + shortName + "</a>");
 //				} else {
-					exp = exp.replaceAll("(?i)" + Pattern.quote(interact.getBillName()), "<a href=\"" + url + "\" >" + interact.getBillName() + "</a>");
+					exp = exp.replaceAll("(?i)\\s*" + Pattern.quote(billName) + "\\.?\\s*", "<a href=\"" + url + "\" >" + billName + "</a>");
 //				}
 			}
 			
