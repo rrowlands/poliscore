@@ -44,12 +44,30 @@ public class BillInterpretationService {
 	// 2. Could consider changing it to three paragraphs
 	// 3. If the bill has a name like "HJRES-95", and no official title, get AI to create one on the fly.
 	
+	
+	// Score the following bill (or bill section) on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Please include the bill title in the section labeled 'Bill Title', but not the reports. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content. After the title, include two different reports at the end. The first report is a concise, single paragraph report which gives a brief summary of the bill and it's expected impact to society. The second report is a concise report of the bill which references concrete, notable and specific text of the bill where possible. This second report should be between one and seven paragraphs long, depending on the complexity of the bill and the topics it covers. In the long form report, make sure to explain: an overall, concise summary of the bill; the high level goals the bill is attempting to achieve, and how it plans to achieve those goals; the impact to society the bill would have, if enacted. If the bill touches on controversial topics such as trans issues or guns rights, please include in the long form report the advocating logic by proponents and also the advocating logic of the opposition. If the bill touches on topics which require advanced or expert knowledge to understand, please attempt to include in the long form report clarifying knowledge. Where relevant, cite scientific studies or the opinions of authoritative knowledge sources to provide more context. Keep in mind that we're trying to figure out how to spend U.S. taxpayer dollars: budgetary concerns are important, not an afterthought. Do not include any formatting text, such as stars or dashes. If you are at all uncertain how a bill should be scored or interpreted, please respond with 'I am uncertain how to grade this'. Please format your response as a list in the example format:
+	// Bill Title:
+	// <bill title>
+	//
+	// Short Form:
+	// <Single paragraph concise report of the expected impact to society. Do not include proponents and opponents "both sides" logic.>
+	//
+	// Long Form:
+	// <Report between one and seven paragraphs long, covering the topics mentioned above. Keep it concise and do not repeat yourself>
+	
 	public static final String statsPromptTemplate = """
-			Score the following bill (or bill section) on the estimated impact to society upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Include a concise (single paragraph) report of the bill at the end which references concrete, notable and specific text of the bill where possible. Please format your response as a list in the example format:
+			Score the following bill (or bill section) on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Please include the bill title in the section labeled 'Bill Title', but not the reports. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content. After the title, include two different reports at the end. The first report is a concise, single paragraph report which gives a brief summary of the bill and it's expected impact to society, briefly explaining why it received various scores. The second report is a concise report of the bill which references concrete, notable and specific text of the bill where possible. This second report should be between one and seven paragraphs long, depending on the complexity of the bill and the topics it covers. In the long form report, make sure to explain: an overall, concise summary of the bill; the high level goals the bill is attempting to achieve, and how it plans to achieve those goals; the impact to society the bill would have, if enacted. If the bill touches on controversial topics such as trans issues or guns rights, please include the advocating logic by proponents and also the advocating logic of the opposition. If the bill touches on topics which require advanced or expert knowledge to understand, please attempt to include clarifying knowledge. Where relevant, cite scientific studies or the opinions of authoritative knowledge sources to provide more context. Keep in mind that we're trying to figure out how to spend U.S. taxpayer dollars: budgetary concerns are important, not an afterthought. If you are at all uncertain how a bill should be scored or interpreted, please respond with 'I am uncertain how to grade this'. Please format your response as a list in the example format:
 
             {issuesList}
 			
-			<brief summary of the predicted impact to society and why>
+			Bill Title:
+			<bill title>
+			
+			Short Form:
+			<single paragraph concise report of the expected impact to society>
+			
+			Long Form:
+			<report between one and seven paragraphs long, covering the topics mentioned above>
 			""";
 	
 	public static final String statsPrompt;
@@ -58,7 +76,9 @@ public class BillInterpretationService {
     	statsPrompt = statsPromptTemplate.replaceFirst("\\{issuesList\\}", issues);
 	}
 	
-	public static final String summaryPrompt = "Evaluate the impact to society of the following summarized bill text in a concise (single paragraph) report. In your report, please attempt to reference concrete, notable and specific text of the summarized bill where possible.";
+	public static final String slicePrompt = "Score the following bill (or bill section) on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Please include the bill title in the section labeled 'Bill Title', but not the reports. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content. After the title, include two different reports at the end. The first report is a concise, single paragraph report which gives a brief summary of the bill and it's expected impact to society, briefly explaining why it received various scores. The second report is a concise report of the bill which references concrete, notable and specific text of the bill where possible. This second report should be between one and seven paragraphs long, depending on the complexity of the bill and the topics it covers. In the long form report, make sure to explain: an overall, concise summary of the bill; the high level goals the bill is attempting to achieve, and how it plans to achieve those goals; the impact to society the bill would have, if enacted. If the bill touches on controversial topics such as trans issues or guns rights, please include the advocating logic by proponents and also the advocating logic of the opposition. If the bill touches on topics which require advanced or expert knowledge to understand, please attempt to include clarifying knowledge. Where relevant, cite scientific studies or the opinions of authoritative knowledge sources to provide more context. Keep in mind that we're trying to figure out how to spend U.S. taxpayer dollars: budgetary concerns are important, not an afterthought. If you are at all uncertain how a bill should be scored or interpreted, please respond with 'I am uncertain how to grade this'. Please format your response as a list in the example format:";
+	
+	public static final String aggregatePrompt = "Evaluate the impact to society of the following summarized bill text in a concise (single paragraph) report. In your report, please attempt to reference concrete, notable and specific text of the summarized bill where possible.";
 	
 	@Inject
 	protected OpenAIService ai;

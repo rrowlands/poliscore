@@ -9,6 +9,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card'; 
 import { MatTableModule } from '@angular/material/table';
+import { Title } from '@angular/platform-browser';
 
 /*
 const floatingLabelsPlugin = {
@@ -101,7 +102,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
     }
   };
 
-  constructor(private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object) { }
+  constructor(private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
 
   ngOnInit(): void {
     this.legId = this.route.snapshot.paramMap.get('id') as string;
@@ -114,6 +115,8 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
       this.loading = false;
 
       if (leg == null) { return; }
+
+      this.titleService.setTitle(leg.name.official_full + " - PoliScore: non-partisan political rating service");
 
       this.refreshBillData();
 

@@ -11,6 +11,7 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Observable, map, startWith } from 'rxjs';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'legislators',
@@ -46,7 +47,7 @@ export class LegislatorsComponent implements OnInit {
     pageSize: 25
   };
 
-  constructor(private service: AppService, private router: Router, private route: ActivatedRoute, @Inject(PLATFORM_ID) private _platformId: Object) {}
+  constructor(private service: AppService, private router: Router, private route: ActivatedRoute, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) {}
 
   ngOnInit(): void
   {
@@ -57,8 +58,10 @@ export class LegislatorsComponent implements OnInit {
       this.page.index = "ObjectsByLocation";
       this.page.ascending = true;
       this.myLocation = routeAscending;
+      this.titleService.setTitle(convertStateCodeToName(this.myLocation) + " Legislators - PoliScore: non-partisan political rating service");
       this.fetchLegislatorPageData(false, this.myLocation);
     } else {
+      this.titleService.setTitle("Legislators - PoliScore: non-partisan political rating service");
       if (isPlatformBrowser(this._platformId)) { // This is here at the moment because we want to always force the request so that it's personalized by location
         this.isRequestingData = true;
         let routeParams = false;
@@ -162,6 +165,8 @@ export class LegislatorsComponent implements OnInit {
     this.page.sortKey = undefined;
 
     this.legs = [];
+
+    this.titleService.setTitle("Legislators - PoliScore: non-partisan political rating service");
 
     let routeIndex = "";
     if (this.page.index === "ObjectsByDate") {

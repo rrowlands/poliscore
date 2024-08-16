@@ -130,9 +130,7 @@
 
 							<p>The current data loaded on this website is all bills (excluding SCONRES, HCONRES, HRES, SRES) of the 118th US congress. Bill status data and legislator data was fetched using the <a href="https://github.com/unitedstates/congress">open source Github USC</a> project.</p>
 
-							<p>Bill text was split into sections and interpreted using Open AI's GPT-4o. The list of policy areas (used in grading) were taken from <a href="https://www.congress.gov/browse/policyarea">congress.gov/browse/policyarea</a>.</p>
-
-							<p style="text-indent: 0;">Bill text was sent to Open AI with the following prompt:</p>
+							<p style="text-indent: 0;">Bill text was split into sections and interpreted using Open AI's GPT-4o with the following prompt:</p>
 
 							<div class="prompt">Score the following bill (or bill section) on the estimated impact to society upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Include a concise (single paragraph) report of the bill at the end which references concrete, notable and specific text of the bill where possible. Please format your response as a list in the example format:
 								
@@ -256,7 +254,7 @@ Based on these scores, this legislator has received the overall letter grade: {{
 						</svg></div>
 					</a></li>
 					<li><a (click)="captureEmailForm()" class="button primary icon solid fa-envelope" style="">Subscribe</a></li>
-					<li><a href="mailto:l2.rowlands@gmail.com" class="button primary icon solid fa-envelope" style="">Contact</a></li>
+					<li><a href="mailto:contact@poliscore.us" class="button primary icon solid fa-envelope" style="">Contact</a></li>
 					<!-- <li><a href="#" class="button primary icon solid fa-envelope">Donate</a></li> -->
 
 					<li><a class="dbox-donation-page-button" href="https://donorbox.org/poliscore?default_interval=o" class="button primary icon solid"><img src="https://donorbox.org/images/white_logo.svg" style="margin-right: 8px;">Donate</a></li>

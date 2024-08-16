@@ -2,6 +2,11 @@
 
 /* Custom CSS Specific to Poliscore */
 
+a.unstyled {
+	margin: 0;
+	padding: 0;
+}
+
 a.unstyled :link {
     text-decoration: none;
 	text-decoration-line: none;
@@ -125,7 +130,7 @@ html {
     padding-bottom: 5px;
 }
 
-.breadcrumb a {
+.breadcrumb a:not(.unstyled) {
     padding: 10px;
 }
 

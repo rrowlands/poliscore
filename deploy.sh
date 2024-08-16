@@ -28,7 +28,7 @@ fi
 
 if [ "$1" != "backend" ]; then
   cd webapp/src/main/webui
-  ng build
+  #ng build
   cd ../../../../
 
   aws s3 rm s3://$BUCKET_NAME --recursive

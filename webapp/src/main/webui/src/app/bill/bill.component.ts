@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { CommonModule, isPlatformBrowser, isPlatformServer } from '@angular/common';
 import { HttpClient, HttpHandler } from '@angular/common/http';
 import { Chart, ChartConfiguration } from 'chart.js';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-bill',
@@ -61,7 +62,7 @@ export class BillComponent implements OnInit {
     }
   };
 
-  constructor(private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object) { }
+  constructor(private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
 
   ngOnInit(): void {
     this.billId = this.route.snapshot.paramMap.get('id') as string;
@@ -72,6 +73,7 @@ export class BillComponent implements OnInit {
     this.service.getBill(this.billId).then(bill => {
       this.bill = bill;
       this.loading = false;
+      this.titleService.setTitle(bill.name + " - Bill - PoliScore: non-partisan political rating service");
       this.buildBarChartData();
     });
   }

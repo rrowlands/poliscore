@@ -12,6 +12,7 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Observable, debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs';
 import { BillComponent } from '../bill/bill.component';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'bills',
@@ -45,10 +46,12 @@ export class BillsComponent implements OnInit {
     pageSize: 25
   };
 
-  constructor(private service: AppService, private router: Router, private route: ActivatedRoute) {}
+  constructor(private service: AppService, private router: Router, private route: ActivatedRoute, private titleService: Title) {}
 
   ngOnInit(): void
   {
+    this.titleService.setTitle("Bills - PoliScore: non-partisan political rating service");
+
     let routeIndex = this.route.snapshot.paramMap.get('index') as string;
     let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
     if ( (routeIndex === "bylocation" || routeIndex === "byrating" || routeIndex === "bydate") && routeAscending != null) {
