@@ -139,7 +139,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		        				
 		        				if (s3.exists(oid, BillInterpretation.class)) { continue; }
 		        				
-			        			createRequest(oid, BillInterpretationService.statsPrompt, slice.getText());
+			        			createRequest(oid, BillInterpretationService.slicePrompt, slice.getText());
 		        			} else {
 		        				sliceInterps.add(sliceInterp.get());
 		        			}
@@ -159,7 +159,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		            		
 		            		if (s3.exists(oid, BillInterpretation.class)) { continue; }
 		            		
-			    			createRequest(oid, BillInterpretationService.summaryPrompt, billStats.getExplanation());
+			    			createRequest(oid, BillInterpretationService.aggregatePrompt, billStats.getExplanation());
 		        		}
 		    		}
 		    	}
