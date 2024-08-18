@@ -32,7 +32,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import us.poliscore.model.Legislator;
+import us.poliscore.model.legislator.Legislator;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.storage.MemoryPersistenceService;

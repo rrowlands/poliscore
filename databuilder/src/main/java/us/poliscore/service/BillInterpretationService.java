@@ -16,6 +16,7 @@ import us.poliscore.model.IssueStats;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
+import us.poliscore.model.bill.BillInterpretationParser;
 import us.poliscore.model.bill.BillSlice;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
@@ -85,6 +86,7 @@ public class BillInterpretationService {
 			Stats:
 			{issuesList}
 			
+			Short Form:
 			<single paragraph concise report of the expected impact to society>
 			""";
 	
@@ -164,6 +166,7 @@ public class BillInterpretationService {
     			bill.getText().setXml(slices.get(0).getText()); // TODO : Hackity hack. This achieves our goal of treating it as the bill text but it's not actually xml
     		} else {
     			IssueStats billStats = new IssueStats();
+    			List<String> aggregateExplain = new ArrayList<String>();
         		
         		for (int i = 0; i < slices.size(); ++i)
         		{
@@ -175,11 +178,12 @@ public class BillInterpretationService {
         			sliceMetadata.add((AISliceInterpretationMetadata) sliceInterp.getMetadata());
         			
         			sliceInterps.add(sliceInterp);
+        			aggregateExplain.add(sliceInterp.getShortExplain());
         		}
         		
         		billStats = billStats.divideByTotalSummed();
         		
-        		var bi = getOrCreateAggregateInterpretation(bill, billStats, sliceInterps);
+        		var bi = getOrCreateAggregateInterpretation(bill, billStats, String.join("\n", aggregateExplain), sliceInterps);
         		
         		return bi;
     		}
@@ -190,7 +194,7 @@ public class BillInterpretationService {
     	return bi;
 	}
 	
-	protected BillInterpretation getOrCreateAggregateInterpretation(Bill bill, IssueStats aggregateStats, List<BillInterpretation> sliceInterps)
+	protected BillInterpretation getOrCreateAggregateInterpretation(Bill bill, IssueStats aggregateStats, String aggregateExplain, List<BillInterpretation> sliceInterps)
 	{
 		BillInterpretation bi = new BillInterpretation();
 		bi.setBill(bill);
@@ -198,7 +202,8 @@ public class BillInterpretationService {
 		bi.setMetadata(OpenAIService.metadata());
 		bi.setSliceInterpretations(sliceInterps);
 		
-		aggregateStats.setExplanation(ai.chat(aggregatePrompt, aggregateStats.getExplanation()));
+		String aiOut = ai.chat(aggregatePrompt, aggregateExplain);
+		new BillInterpretationParser(bi).parse(aiOut);
 		
 		bi.setIssueStats(aggregateStats);
 		bi.setId(BillInterpretation.generateId(bill.getId(), null));
@@ -234,7 +239,7 @@ public class BillInterpretationService {
 				bi.setMetadata(OpenAIService.metadata(slice));
 			}
 			
-			bi.setIssueStats(IssueStats.parse(interpText));
+			new BillInterpretationParser(bi).parse(interpText);
 			bi.setId(id);
 			
 			archive(bi);

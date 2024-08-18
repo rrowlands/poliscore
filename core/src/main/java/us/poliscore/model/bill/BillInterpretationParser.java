@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.Scanner;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
-import lombok.val;
-import software.amazon.awssdk.utils.Pair;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.TrackedIssue;
 
@@ -43,11 +42,10 @@ public class BillInterpretationParser {
 	}
 	
 	public void parse(String text) {
-		interp.shortExplain = "";
-		interp.longExplain = "";
+		interp.setShortExplain("");
+		interp.setLongExplain("");
 		interp.setRiders(new ArrayList<String>());
-		
-		IssueStats stats = new IssueStats();
+		interp.setIssueStats(new IssueStats());
 		
 		try (final Scanner scanner = new Scanner(text))
 		{
@@ -71,6 +69,7 @@ public class BillInterpretationParser {
 			}
 		}
 		
+		
 		// TODO : Clean?
 	}
 	
@@ -85,9 +84,9 @@ public class BillInterpretationParser {
 	private void processStat(String line) {
 		Pair<TrackedIssue, Integer> stat = IssueStats.parseStat(line);
 		  
-		if (stat != null && stat.right() != IssueStats.NA)
+		if (stat != null && stat.getRight() != IssueStats.NA)
 		{
-			interp.getIssueStats().setStat(stat.left(), stat.right());
+			interp.getIssueStats().setStat(stat.getLeft(), stat.getRight());
 		}
 	}
 	

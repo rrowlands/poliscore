@@ -33,12 +33,12 @@ import us.poliscore.LegislatorPageData;
 import us.poliscore.Page;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.LegislativeNamespace;
-import us.poliscore.model.Legislator;
-import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
-import us.poliscore.model.LegislatorBillInteraction;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
+import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.legislator.LegislatorBillInteraction;
+import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.CachedDynamoDbService;
 

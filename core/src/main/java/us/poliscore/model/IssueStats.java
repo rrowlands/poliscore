@@ -1,13 +1,12 @@
 package us.poliscore.model;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -18,7 +17,6 @@ import lombok.val;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
-import software.amazon.awssdk.utils.Pair;
 
 @Data
 @DynamoDbBean
@@ -154,8 +152,6 @@ public class IssueStats {
 			result.setStat(issue, getStat(issue) + incoming.getStat(issue));
 		}
 		
-		result.explanation = explanation + "\n" + incoming.explanation;
-		
 		result.totalSummed = sumWeightMap(incoming.asWeightMap(weight));
 		
 		return result;
@@ -169,8 +165,6 @@ public class IssueStats {
 		{
 			result.setStat(issue, (int) Math.round((double)getStat(issue) / divisor));
 		}
-		
-		result.explanation = explanation;
 		
 		return result;
 	}
@@ -186,8 +180,6 @@ public class IssueStats {
 			result.setStat(issue, (int) Math.round((double)getStat(issue) / totalSummed.get(issue)));
 		}
 		
-		result.explanation = explanation;
-		
 		return result;
 	}
 	
@@ -199,8 +191,6 @@ public class IssueStats {
 		{
 			result.setStat(issue, (int) Math.round((double)getStat(issue) * multiplier));
 		}
-		
-		result.explanation = explanation;
 		
 		return result;
 	}
@@ -232,24 +222,13 @@ public class IssueStats {
 		
 		return result;
 	}
-	
+
 	@Override
 	public String toString()
-	{
-		return toString(true);
-	}
-	
-	public String toString(boolean includeExplanation)
 	{
 		StringBuilder sb = new StringBuilder();
 		
 	    sb.append(String.join("\n", stats.keySet().stream().map(issue ->"-" + issue.getName() + ": " + formatStatValue(getStat(issue))).toList()));
-		
-	    if (includeExplanation) {
-			sb.append("\n\n");
-			
-			sb.append(explanation);
-	    }
 		
 		return sb.toString();
 	}

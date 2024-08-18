@@ -1,4 +1,4 @@
-package us.poliscore.model;
+package us.poliscore.model.legislator;
 
 import java.time.LocalDate;
 
@@ -12,6 +12,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
+import us.poliscore.model.AIInterpretationMetadata;
+import us.poliscore.model.IssueStats;
+import us.poliscore.model.Persistable;
 
 @Data
 @DynamoDbBean
@@ -31,6 +34,8 @@ public class LegislatorInterpretation implements Persistable
 	protected AIInterpretationMetadata metadata;
 	
 	protected int hash;
+	
+	protected String longExplain;
 	
 	public LegislatorInterpretation()
 	{

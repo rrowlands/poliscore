@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import us.poliscore.model.IssueStats;
-import us.poliscore.model.LegislatorBillInteraction;
+import us.poliscore.model.legislator.LegislatorBillInteraction;
 
 @Data
 @AllArgsConstructor

@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import us.poliscore.model.LegislativeNamespace;
-import us.poliscore.model.Legislator;
+import us.poliscore.model.legislator.Legislator;
 
 public class PoliscoreUtil {
 	

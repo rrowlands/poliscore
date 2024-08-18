@@ -21,8 +21,8 @@ import lombok.val;
 import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.CongressionalSession;
-import us.poliscore.model.Legislator;
-import us.poliscore.model.Legislator.LegislatorLegislativeTermSortedSet;
+import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.legislator.Legislator.LegislatorLegislativeTermSortedSet;
 import us.poliscore.service.storage.MemoryPersistenceService;
 import us.poliscore.view.USCLegislatorView;
 

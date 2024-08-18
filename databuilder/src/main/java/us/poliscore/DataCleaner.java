@@ -68,7 +68,7 @@ public class DataCleaner implements QuarkusApplication {
 			
 			val summaryHeaders = new String[] { "summary of the predicted impact to society and why", "summary of the predicted impact to society", "summary of the bill and predicted impact to society and why", "summary of the bill and predicted impact to society", "summary of the bill and its predicted impact to society and why", "summary of the bill and its predicted impact to society", "Summary of the bill's predicted impact to society and why", "Summary of the bill's predicted impact to society", "summary of predicted impact to society and why", "summary of predicted impact to society", "summary of the impact to society", "summary of impact to society", "summary report", "summary of the impact", "summary of impact", "summary", "explanation" };
 			val summaryHeaderRegex = " *#*\\** *(" + String.join("|", summaryHeaders) + ") *#*\\** *:? *#*\\** *";
-			if (interp.getIssueStats().getExplanation().matches("(?i)^" + summaryHeaderRegex + ".*$")) {
+			if (interp.getLongExplain().matches("(?i)^" + summaryHeaderRegex + ".*$")) {
 //				interp.getIssueStats().setExplanation(interp.getIssueStats().getExplanation().replaceFirst("(?i)" + summaryHeaderRegex, ""));
 				badExplanations.add(b.getId());
 				

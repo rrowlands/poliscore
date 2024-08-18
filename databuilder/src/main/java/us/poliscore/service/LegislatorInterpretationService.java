@@ -18,16 +18,16 @@ import jakarta.inject.Inject;
 import lombok.val;
 import us.poliscore.MissingBillTextException;
 import us.poliscore.model.IssueStats;
-import us.poliscore.model.Legislator;
-import us.poliscore.model.Legislator.CongressionalChamber;
-import us.poliscore.model.LegislatorBillInteraction;
-import us.poliscore.model.LegislatorBillInteraction.LegislatorBillCosponsor;
-import us.poliscore.model.LegislatorBillInteraction.LegislatorBillSponsor;
-import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
-import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.BillInterpretation;
+import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.legislator.LegislatorBillInteraction;
+import us.poliscore.model.legislator.LegislatorInterpretation;
+import us.poliscore.model.legislator.Legislator.CongressionalChamber;
+import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCosponsor;
+import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor;
+import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillVote;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryPersistenceService;
@@ -155,6 +155,7 @@ Based on these scores, this legislator has received the overall letter grade: {{
 			
 			if (interp.isPresent()) {
 				i.setIssueStats(interp.get().getIssueStats());
+				i.setShortExplain(interp.get().getShortExplain());
 			}
 		}
 	}
@@ -266,7 +267,7 @@ Based on these scores, this legislator has received the overall letter grade: {{
 				.replace("{{letterGrade}}", stats.getLetterGrade())
 				.replace("{{politicianType}}", leg.getTerms().last().getChamber() == CongressionalChamber.SENATE ? "Senator" : "House Representative")
 				.replace("{{fullName}}", leg.getName().getOfficial_full())
-				.replace("{{stats}}", stats.toString(false))
+				.replace("{{stats}}", stats.toString())
 				.replace("{{analysisType}}", stats.getRating() >= 30 ? "endorsement" : (stats.getRating() >= 0 && stats.getRating() < 30 ? "mixed analysis" : "harsh critique"))
 				.replace("{{behavior}}", stats.getRating() >= 30 ? "specific accomplishments" : (stats.getRating() >= 0 && stats.getRating() < 30 ? "specific accomplishments or alarming behaviour" : "alarming behaviour"));
 	}

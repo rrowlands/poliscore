@@ -23,14 +23,16 @@ import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIResponse;
 import us.poliscore.model.IssueStats;
-import us.poliscore.model.Legislator;
-import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
-import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
+import us.poliscore.model.bill.BillInterpretationParser;
 import us.poliscore.model.bill.BillSlice;
 import us.poliscore.model.bill.BillText;
+import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
+import us.poliscore.model.legislator.LegislatorInterpretation;
+import us.poliscore.model.legislator.LegislatorInterpretationParser;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillService;
@@ -171,13 +173,13 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		stats = stats.divideByTotalSummed();
 		
-		val interpText = resp.getResponse().getBody().getChoices().get(0).getMessage().getContent();
-		stats.setExplanation(interpText);
-		
 		val interp = new LegislatorInterpretation(OpenAIService.metadata(), leg, stats);
 		interp.setHash(legInterp.calculateInterpHashCode(leg));
 		
-		if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(interp.getIssueStats().getExplanation())) {
+		val interpText = resp.getResponse().getBody().getChoices().get(0).getMessage().getContent();
+		new LegislatorInterpretationParser(interp).parse(interpText);
+		
+		if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(interp.getLongExplain())) {
 			throw new RuntimeException("Unable to parse valid issue stats for bill " + leg.getId());
 		}
 		
@@ -222,11 +224,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			bi.setId(BillInterpretation.generateId(billId, sliceIndex));
 		}
 		
-		val respStats = IssueStats.parse(resp.getResponse().getBody().getChoices().get(0).getMessage().getContent());
+		new BillInterpretationParser(bi).parse(resp.getResponse().getBody().getChoices().get(0).getMessage().getContent());
 		
-		if (!respStats.hasStat(TrackedIssue.OverallBenefitToSociety)) {
-			if (sliceIndex != null) {throw new RuntimeException("Did not find OverallBenefitToSociety stat on interpretation");  }
-			
+		if (sliceIndex != null) {
 			val billText = s3.get(BillText.generateId(bill.getId()), BillText.class).orElseThrow();
 			
 			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, BillSlicer.MAX_SECTION_LENGTH);
@@ -245,13 +245,12 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			
 			bi.setIssueStats(billStats.divideByTotalSummed());
 			bi.setSliceInterpretations(sliceInterps);
-			bi.getIssueStats().setExplanation(resp.getResponse().getBody().getChoices().get(0).getMessage().getContent());
-		} else {
-			bi.setIssueStats(respStats);
+		} else if (!bi.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety)) {
+			throw new RuntimeException("Did not find OverallBenefitToSociety stat on interpretation");
 		}
 		
-		if (bi.getIssueStats() == null || !bi.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(bi.getIssueStats().getExplanation())) {
-			throw new RuntimeException("Unable to parse valid issue stats for bill " + billId);
+		if (bi.getIssueStats() == null || !bi.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(bi.getLongExplain())) {
+			throw new RuntimeException("Interpretation missing proper stats or explain." + billId);
 		}
 		
 		s3.put(bi);

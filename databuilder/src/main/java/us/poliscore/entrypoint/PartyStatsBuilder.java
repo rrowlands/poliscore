@@ -12,10 +12,10 @@ import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.val;
 import us.poliscore.model.IssueStats;
-import us.poliscore.model.Legislator;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
+import us.poliscore.model.legislator.Legislator;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
@@ -92,9 +92,6 @@ public class PartyStatsBuilder implements QuarkusApplication
 		
 		demStats = demStats.divideByTotalSummed();
 		repubStats = repubStats.divideByTotalSummed();
-		
-		demStats.setExplanation("");
-		repubStats.setExplanation("");
 		
 		Log.info("Dem stats:");
 		System.out.println(demStats);

@@ -30,9 +30,9 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.ImmutableMap;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.AIInterpretationMetadata;
-import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
-import us.poliscore.model.Legislator.LegislatorLegislativeTermSortedSet;
-import us.poliscore.model.LegislatorBillInteraction;
+import us.poliscore.model.legislator.LegislatorBillInteraction;
+import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
+import us.poliscore.model.legislator.Legislator.LegislatorLegislativeTermSortedSet;
 
 public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
 

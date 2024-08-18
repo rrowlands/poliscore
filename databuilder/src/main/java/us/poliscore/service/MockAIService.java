@@ -24,7 +24,6 @@ public class MockAIService extends OpenAIService {
 		{
 			stats.addStat(issue, num);
 		}
-		stats.setExplanation("Test Explanation " + num++);
 		return stats.toString();
 	}
 	

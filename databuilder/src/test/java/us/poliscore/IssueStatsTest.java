@@ -23,9 +23,9 @@ public class IssueStatsTest {
 //	@Test
 	public void testParseStats()
 	{
-		IssueStats stats = buildStats();
+//		IssueStats stats = buildStats();
 		
-		System.out.println(IssueStats.parse(stats.toString()));
+//		System.out.println(IssueStats.parse(stats.toString()));
 	}
 	
 	private IssueStats buildStats()
@@ -35,7 +35,6 @@ public class IssueStatsTest {
 		{
 			stats.addStat(issue, 1);
 		}
-		stats.setExplanation("Test Explanation 1.");
 		return stats;
 	}
 }

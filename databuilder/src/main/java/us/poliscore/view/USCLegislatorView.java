@@ -7,9 +7,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.Data;
 import software.amazon.awssdk.utils.StringUtils;
-import us.poliscore.model.Legislator.CongressionalChamber;
-import us.poliscore.model.Legislator.LegislativeTerm;
-import us.poliscore.model.Legislator.LegislatorName;
+import us.poliscore.model.legislator.Legislator.CongressionalChamber;
+import us.poliscore.model.legislator.Legislator.LegislativeTerm;
+import us.poliscore.model.legislator.Legislator.LegislatorName;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -1,4 +1,4 @@
-package us.poliscore.model;
+package us.poliscore.model.legislator;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -23,11 +23,15 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
-import us.poliscore.model.LegislatorBillInteraction.LegislatorBillCosponsor;
-import us.poliscore.model.LegislatorBillInteraction.LegislatorBillSponsor;
-import us.poliscore.model.LegislatorBillInteraction.LegislatorBillVote;
+import us.poliscore.model.IssueStats;
+import us.poliscore.model.LegislativeNamespace;
+import us.poliscore.model.Persistable;
+import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.dynamodb.DdbKeyProvider;
+import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCosponsor;
+import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor;
+import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillVote;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
@@ -61,6 +65,9 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	
 	@EqualsAndHashCode.Exclude
 	protected IssueStats issueStats;
+	
+	@EqualsAndHashCode.Exclude
+	protected String shortExplain;
 	
 	@NonNull
 	@EqualsAndHashCode.Exclude

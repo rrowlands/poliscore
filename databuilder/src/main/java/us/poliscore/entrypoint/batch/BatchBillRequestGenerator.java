@@ -29,15 +29,15 @@ import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.model.AISliceInterpretationMetadata;
 import us.poliscore.model.IssueStats;
-import us.poliscore.model.Legislator;
-import us.poliscore.model.Legislator.LegislatorBillInteractionSet;
-import us.poliscore.model.LegislatorBillInteraction;
-import us.poliscore.model.LegislatorInterpretation;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillSlice;
 import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
+import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.legislator.LegislatorBillInteraction;
+import us.poliscore.model.legislator.LegislatorInterpretation;
+import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillInterpretationService;
@@ -149,10 +149,12 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	        		
 	        		if (sliceInterps.size() == slices.size()) {
 	        			IssueStats billStats = new IssueStats();
+	        			List<String> summaries = new ArrayList<String>();
 	            		
 	            		for (int i = 0; i < slices.size(); ++i)
 	            		{
 	            			billStats = billStats.sum(sliceInterps.get(i).getIssueStats());
+	            			summaries.add(sliceInterps.get(i).getShortExplain());
 	            		}
 	            		
 	            		billStats = billStats.divideByTotalSummed();
@@ -161,7 +163,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	            		
 	            		if (s3.exists(oid, BillInterpretation.class)) { continue; }
 	            		
-		    			createRequest(oid, BillInterpretationService.aggregatePrompt, billStats.getExplanation());
+		    			createRequest(oid, BillInterpretationService.aggregatePrompt, String.join("\n", summaries));
 	        		}
 	    		}
 	    	}

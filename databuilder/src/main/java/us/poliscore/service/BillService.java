@@ -21,13 +21,13 @@ import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeNamespace;
-import us.poliscore.model.Legislator;
-import us.poliscore.model.LegislatorBillInteraction.LegislatorBillCosponsor;
-import us.poliscore.model.LegislatorBillInteraction.LegislatorBillSponsor;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
+import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCosponsor;
+import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryPersistenceService;
 import us.poliscore.service.storage.S3PersistenceService;
@@ -158,7 +158,8 @@ public class BillService {
 		
 		data.forEach(b -> {
 			val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
-			interp.getIssueStats().setExplanation(interp.getIssueStats().getExplanation().substring(0, Math.min(600, interp.getIssueStats().getExplanation().length())));
+			interp.setLongExplain("");
+			interp.setShortExplain(interp.getShortExplain().substring(0, Math.min(600, interp.getShortExplain().length())));
 			b.setInterpretation(interp);
 		});
 		

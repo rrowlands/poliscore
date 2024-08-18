@@ -16,7 +16,7 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.UpdateTableRequest;
 import us.poliscore.PoliscoreUtil;
-import us.poliscore.model.Legislator;
+import us.poliscore.model.legislator.Legislator;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.MemoryPersistenceService;

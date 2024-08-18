@@ -6,7 +6,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import us.poliscore.model.Legislator;
+import us.poliscore.model.legislator.Legislator;
 
 @Data
 @AllArgsConstructor

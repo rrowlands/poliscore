@@ -16,9 +16,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeNamespace;
-import us.poliscore.model.Legislator;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.TrackedIssue;
+import us.poliscore.model.legislator.Legislator;
 
 @Data
 @DynamoDbBean

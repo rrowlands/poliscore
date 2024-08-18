@@ -1,4 +1,4 @@
-package us.poliscore.model;
+package us.poliscore.model.legislator;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -22,6 +22,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.CompressedLegislatorBillInteractionSetConverter;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverterProvider;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorLegislativeTermSortedSetConverter;
+import us.poliscore.model.CongressionalSession;
+import us.poliscore.model.LegislativeNamespace;
+import us.poliscore.model.Persistable;
 import us.poliscore.model.dynamodb.DdbDataPage;
 
 @Data
