@@ -102,77 +102,78 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		
 		for (Bill b : memService.query(Bill.class).stream()
 //				.filter(b -> specificFetch.contains(b.getId()))
+//				.filter(b -> !billInterpreter.isInterpreted(b.getId()))
+				.filter(b -> s3.exists(BillText.generateId(b.getId()), BillText.class))
 				.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
+				.limit(10)
 				.toList()) {
 			
-			if (!billInterpreter.isInterpreted(b.getId()) && s3.exists(BillText.generateId(b.getId()), BillText.class)) {
-				val billText = billService.getBillText(b).orElse(null);
-				b.setText(billText);
+			val billText = billService.getBillText(b).orElse(null);
+			b.setText(billText);
+			
+			if (billText.getXml().length() >= BillSlicer.MAX_SECTION_LENGTH)
+	    	{
+	    		List<BillSlice> slices = new XMLBillSlicer().slice(b, b.getText(), BillSlicer.MAX_SECTION_LENGTH);
+	    		
+	    		if (slices.size() == 0) throw new UnsupportedOperationException("Slicer returned zero slices?");
+	    		else if (slices.size() == 1) {
+	    			b.getText().setXml(slices.get(0).getText());
+	    			
+	    			List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();
+					messages.add(new BatchBillMessage("system", BillInterpretationService.statsPrompt));
+	    			messages.add(new BatchBillMessage("user", b.getText().getXml()));
+	    			
+	    			requests.add(new BatchOpenAIRequest(
+	    					BillInterpretation.generateId(b.getId(), null),
+	    					new BatchOpenAIBody(messages)
+	    			));
+	    		} else {
+	    			val sliceInterps = new ArrayList<BillInterpretation>();
+	    			
+	        		for (int i = 0; i < slices.size(); ++i)
+	        		{
+	        			BillSlice slice = slices.get(i);
+	        			
+	        			Optional<BillInterpretation> sliceInterp = s3.get(BillInterpretation.generateId(b.getId(), i), BillInterpretation.class);
+	        			
+	        			if (sliceInterp.isEmpty()) {
+	        				val oid = BillInterpretation.generateId(b.getId(), slice.getSliceIndex());
+	        				
+	        				if (s3.exists(oid, BillInterpretation.class)) { continue; }
+	        				
+		        			createRequest(oid, BillInterpretationService.slicePrompt, slice.getText());
+	        			} else {
+	        				sliceInterps.add(sliceInterp.get());
+	        			}
+	        		}
+	        		
+	        		if (sliceInterps.size() == slices.size()) {
+	        			IssueStats billStats = new IssueStats();
+	            		
+	            		for (int i = 0; i < slices.size(); ++i)
+	            		{
+	            			billStats = billStats.sum(sliceInterps.get(i).getIssueStats());
+	            		}
+	            		
+	            		billStats = billStats.divideByTotalSummed();
+	            		
+	            		val oid = BillInterpretation.generateId(b.getId(), null);
+	            		
+	            		if (s3.exists(oid, BillInterpretation.class)) { continue; }
+	            		
+		    			createRequest(oid, BillInterpretationService.aggregatePrompt, billStats.getExplanation());
+	        		}
+	    		}
+	    	}
+			else {
+    			createRequest(BillInterpretation.generateId(b.getId(), null), BillInterpretationService.statsPrompt, b.getText().getXml());
+			}
+			
+			if (tokenLen >= TOKEN_BLOCK_SIZE) {
+				writeBlock(requests, block++);
 				
-				if (billText.getXml().length() >= BillSlicer.MAX_SECTION_LENGTH)
-		    	{
-		    		List<BillSlice> slices = new XMLBillSlicer().slice(b, b.getText(), BillSlicer.MAX_SECTION_LENGTH);
-		    		
-		    		if (slices.size() == 0) throw new UnsupportedOperationException("Slicer returned zero slices?");
-		    		else if (slices.size() == 1) {
-		    			b.getText().setXml(slices.get(0).getText());
-		    			
-		    			List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();
-						messages.add(new BatchBillMessage("system", BillInterpretationService.statsPrompt));
-		    			messages.add(new BatchBillMessage("user", b.getText().getXml()));
-		    			
-		    			requests.add(new BatchOpenAIRequest(
-		    					BillInterpretation.generateId(b.getId(), null),
-		    					new BatchOpenAIBody(messages)
-		    			));
-		    		} else {
-		    			val sliceInterps = new ArrayList<BillInterpretation>();
-		    			
-		        		for (int i = 0; i < slices.size(); ++i)
-		        		{
-		        			BillSlice slice = slices.get(i);
-		        			
-		        			Optional<BillInterpretation> sliceInterp = s3.get(BillInterpretation.generateId(b.getId(), i), BillInterpretation.class);
-		        			
-		        			if (sliceInterp.isEmpty()) {
-		        				val oid = BillInterpretation.generateId(b.getId(), slice.getSliceIndex());
-		        				
-		        				if (s3.exists(oid, BillInterpretation.class)) { continue; }
-		        				
-			        			createRequest(oid, BillInterpretationService.slicePrompt, slice.getText());
-		        			} else {
-		        				sliceInterps.add(sliceInterp.get());
-		        			}
-		        		}
-		        		
-		        		if (sliceInterps.size() == slices.size()) {
-		        			IssueStats billStats = new IssueStats();
-		            		
-		            		for (int i = 0; i < slices.size(); ++i)
-		            		{
-		            			billStats = billStats.sum(sliceInterps.get(i).getIssueStats());
-		            		}
-		            		
-		            		billStats = billStats.divideByTotalSummed();
-		            		
-		            		val oid = BillInterpretation.generateId(b.getId(), null);
-		            		
-		            		if (s3.exists(oid, BillInterpretation.class)) { continue; }
-		            		
-			    			createRequest(oid, BillInterpretationService.aggregatePrompt, billStats.getExplanation());
-		        		}
-		    		}
-		    	}
-				else {
-	    			createRequest(BillInterpretation.generateId(b.getId(), null), BillInterpretationService.statsPrompt, b.getText().getXml());
-				}
-				
-				if (tokenLen >= TOKEN_BLOCK_SIZE) {
-					writeBlock(requests, block++);
-					
-					requests = new ArrayList<BatchOpenAIRequest>();
-					tokenLen = 0;
-				}
+				requests = new ArrayList<BatchOpenAIRequest>();
+				tokenLen = 0;
 			}
 		};
 		

@@ -25,55 +25,51 @@ import software.amazon.awssdk.utils.Pair;
 @RegisterForReflection
 public class IssueStats {
 	
-	protected static Integer NA = Integer.MIN_VALUE;
-	
-	protected static List<String> summaryHeader = Arrays.asList("summary:", "*summary:*", "**summary:**", "*summary*", "**summary**");
+	public static Integer NA = Integer.MIN_VALUE;
 	
 	protected Map<TrackedIssue, Integer> stats = new HashMap<TrackedIssue, Integer>();
-	
-	protected String explanation = "";
 	
 	@Getter(onMethod=@__({@JsonIgnore, @DynamoDbIgnore}))
 	@JsonIgnore
 	protected Map<TrackedIssue, Double> totalSummed;
 	
-	public static IssueStats parse(String text)
-	{
-		IssueStats stats = new IssueStats();
-		
-		try (final Scanner scanner = new Scanner(text))
-		{
-			boolean readStats = false;
-			
-			while (scanner.hasNextLine())
-			{
-			  String line = scanner.nextLine().strip();
-			  
-			  Pair<TrackedIssue, Integer> stat = parseStat(line);
-			  
-			  if (stat != null)
-			  {
-				  readStats = true;
-				  if (stat.right() != NA) stats.setStat(stat.left(), stat.right());
-			  }
-			  else if (summaryHeader.contains(line.trim().toLowerCase())) { continue; }
-			  else if (readStats && line.matches(".*[^\\s]{2,}.*"))
-			  {
-				  stats.explanation += line;
-			  }
-			}
-		}
-		
-		val summaryHeaders = new String[] { "summary of the predicted impact to society and why", "summary of the predicted impact to society", "summary of the bill and predicted impact to society and why", "summary of the bill and predicted impact to society", "summary of the bill and its predicted impact to society and why", "summary of the bill and its predicted impact to society", "Summary of the bill's predicted impact to society and why", "Summary of the bill's predicted impact to society", "summary of predicted impact to society and why", "summary of predicted impact to society", "summary of the impact to society", "summary of impact to society", "summary report", "summary of the impact", "summary of impact", "summary", "explanation" };
-		val summaryHeaderRegex = " *#*\\** *(" + String.join("|", summaryHeaders) + ") *#*\\** *:? *#*\\** *";
-		if (stats.explanation.matches("(?i)^" + summaryHeaderRegex + ".*$")) {
-			stats.explanation = stats.explanation.replaceFirst("(?i)" + summaryHeaderRegex, "");
-		}
-		
-		return stats;
-	}
+//	public static IssueStats parse(String text)
+//	{
+//		IssueStats stats = new IssueStats();
+//		
+//		try (final Scanner scanner = new Scanner(text))
+//		{
+//			boolean readStats = false;
+//			
+//			while (scanner.hasNextLine())
+//			{
+//			  String line = scanner.nextLine().strip();
+//			  
+//			  Pair<TrackedIssue, Integer> stat = parseStat(line);
+//			  
+//			  if (stat != null)
+//			  {
+//				  readStats = true;
+//				  if (stat.right() != NA) stats.setStat(stat.left(), stat.right());
+//			  }
+//			  else if (summaryHeader.contains(line.trim().toLowerCase())) { continue; }
+//			  else if (readStats && line.matches(".*[^\\s]{2,}.*"))
+//			  {
+//				  stats.explanation += line;
+//			  }
+//			}
+//		}
+//		
+//		val summaryHeaders = new String[] { "summary of the predicted impact to society and why", "summary of the predicted impact to society", "summary of the bill and predicted impact to society and why", "summary of the bill and predicted impact to society", "summary of the bill and its predicted impact to society and why", "summary of the bill and its predicted impact to society", "Summary of the bill's predicted impact to society and why", "Summary of the bill's predicted impact to society", "summary of predicted impact to society and why", "summary of predicted impact to society", "summary of the impact to society", "summary of impact to society", "summary report", "summary of the impact", "summary of impact", "summary", "explanation" };
+//		val summaryHeaderRegex = " *#*\\** *(" + String.join("|", summaryHeaders) + ") *#*\\** *:? *#*\\** *";
+//		if (stats.explanation.matches("(?i)^" + summaryHeaderRegex + ".*$")) {
+//			stats.explanation = stats.explanation.replaceFirst("(?i)" + summaryHeaderRegex, "");
+//		}
+//		
+//		return stats;
+//	}
 	
-	private static Pair<TrackedIssue, Integer> parseStat(String line)
+	public static Pair<TrackedIssue, Integer> parseStat(String line)
 	{
 		for (TrackedIssue issue : TrackedIssue.values())
 		{

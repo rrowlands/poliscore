@@ -29,8 +29,8 @@ import software.constructs.Construct;
 class PoliscoreStack extends Stack {
     public PoliscoreStack(final Construct parent, final String name, final StackProps props) {
         super(parent, name, props);
-
-        Table table = new Table(this, "poliscore", TableProps.builder()
+        
+        Table table = new Table(this, name + "-ddb", TableProps.builder()
                 .tableName("poliscore")
                 .partitionKey(Attribute.builder()
                         .name("id")
@@ -87,7 +87,7 @@ class PoliscoreStack extends Stack {
         lambdaEnvMap.put("TABLE_NAME", table.getTableName());
         lambdaEnvMap.put("PRIMARY_KEY","id");
 
-        Function fPoliscore = new Function(this, "bill-processor",
+        Function fPoliscore = new Function(this, name + "-webapp",
         		FunctionProps.builder()
                 .code(Code.fromAsset("../webapp/target/function.zip"))
                 .handler("not.used.in.provided.runtimei")
