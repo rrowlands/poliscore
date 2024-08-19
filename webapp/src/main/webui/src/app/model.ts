@@ -14,6 +14,7 @@ export interface Bill {
 export interface BillInterpretation {
   issueStats: IssueStats;
   id: string;
+  genBillTitle: string;
   shortExplain: string;
   longExplain: string;
   riders: string[];

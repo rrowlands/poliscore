@@ -21,19 +21,19 @@ public class BillInterpretationParser {
 	
 	public static enum State {
 		STATS("(?i)Stats:"),
-		TITLE("(?i)Title:"),
+		TITLE("(?i)Title:", "(?i)Bill Title:"),
 		RIDERS("(?i)Riders:"),
 		SHORT_REPORT("(?i)Short Report:"),
 		LONG_REPORT("(?i)Long Report:");
 		
-		private String regex;
+		private List<String> regex;
 		
-		private State(String regex) {
-			this.regex = regex;
+		private State(String ...regex) {
+			this.regex = Arrays.asList(regex);
 		}
 		
 		public boolean matches(String line) {
-			return line.matches(regex);
+			return regex.stream().map(r -> line.matches(r)).reduce(false, (a,b) -> a || b);
 		}
 	}
 	

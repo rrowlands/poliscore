@@ -39,71 +39,60 @@ import us.poliscore.service.storage.CachedS3Service;
  */
 @ApplicationScoped
 public class BillInterpretationService {
-	
-	// Score the following bill (or bill section) on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Please include the bill title in the section labeled 'Bill Title', but not the reports. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content. After the title, include two different reports at the end. The first report is a concise, single paragraph report which gives a brief summary of the bill and it's expected impact to society. The second report is a concise report of the bill which references concrete, notable and specific text of the bill where possible. This second report should be between one and seven paragraphs long, depending on the complexity of the bill and the topics it covers. In the long form report, make sure to explain: an overall, concise summary of the bill; the high level goals the bill is attempting to achieve, and how it plans to achieve those goals; the impact to society the bill would have, if enacted. If the bill touches on controversial topics such as trans issues or guns rights, please include in the long form report the advocating logic by proponents and also the advocating logic of the opposition. If the bill touches on topics which require advanced or expert knowledge to understand, please attempt to include in the long form report clarifying knowledge. Where relevant, cite scientific studies or the opinions of authoritative knowledge sources to provide more context. Keep in mind that we're trying to figure out how to spend U.S. taxpayer dollars: budgetary concerns are important, not an afterthought. Keep an eye out for riders while reading the bill text and if you discover any, please highlight them in your reports and also include them in the riders section and score the bill negatively. If the bill does not include riders, do not mention their absence. Do not include any formatting text in your reports, such as stars or dashes. Do not include non-human readable text such as XML ids. Please format your response as a list in the example format:
-	// Bill Title:
-	// <bill title>
-	//
-	// Riders:
-	// - <list of riders identified, or 'None' if there are none>
-	//
-	// Short Form:
-	// <Single paragraph concise report of the expected impact to society. Do not include proponents and opponents "both sides" logic.>
-	//
-	// Long Form:
-	// <Report between one and seven paragraphs long, covering the topics mentioned above. Keep it concise and do not repeat yourself>
-	
-	
+
 	// Test bills:
 	// 1. Riders (7 identified) - https://poliscore.us/bill/118/hr/4365
 	// 2. Good for america, bad for the world - https://poliscore.us/bill/118/hr/2336
 	// 3. Controversial bill - https://poliscore.us/bill/118/s/1409
 	// 4. Beetle bill - https://www.congress.gov/bill/118th-congress/senate-bill/3838
 	
-	
 	public static final String statsPromptTemplate = """
-			Score the following bill on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Write the bill title in the section labeled 'Bill Title', but not the reports. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content. After the title, include two different reports. The first report is a concise, single paragraph report which gives a brief summary of the bill and it's expected impact to society. The second report is a concise report of the bill which references concrete, notable and specific text of the bill where possible. This second report should be between one and seven paragraphs long, depending on the complexity of the bill and the topics it covers. In the long form report, make sure to explain: an overall, concise summary of the bill; the high level goals the bill is attempting to achieve, and how it plans to achieve those goals; the impact to society the bill would have, if enacted. If the bill touches on controversial topics such as trans issues or guns rights, please include in the long form report the advocating logic by proponents and also the advocating logic of the opposition. If the bill touches on topics which require advanced or expert knowledge to understand, please attempt to include in the long form report clarifying knowledge. Where relevant, cite scientific studies or the opinions of authoritative knowledge sources to provide more context. Keep in mind that we're trying to figure out how to spend U.S. taxpayer dollars: budgetary concerns are important, not an afterthought. Keep an eye out for bill riders while reading the bill text and if you discover any, please highlight them in your reports and also include them in the riders section and score the bill negatively. If the bill does not include riders, do not mention their absence. Do not include any formatting text in your reports, such as stars or dashes. Do not include non-human readable text such as XML ids. Please format your response as a list in the example format:
+			You will be given the text of a United States bill currently in congress. Your role is to be a non-partisan oversight committee, evaluating whether or not the following bill will produce a positive overall benefit to society. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Stats:') in your response. Do not include the section instructions in your response.
 
 			Stats:
-            {issuesList}
+			Score the following bill on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. If the bill includes riders, please score it negatively.
+			
+			{issuesList}
 			
 			Bill Title:
-			<bill title>
+			Write the bill title. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content.
 			
 			Riders:
-			- <list of riders identified, or 'None' if there are none>
+			- List of bill riders identified and the section they occured at, or 'None' if there are none
 			
 			Short Report:
-			<single paragraph concise report of the expected impact to society>
+			A single paragraph, at least four sentence report which gives a detailed, but not repetitive, summary of the bill, any high level goals, and it's expected impact to society. If riders are present in the bill mention them and the section they occur at here, otherwise do not mention their absence. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
 			
 			Long Report:
-			<report between one and seven paragraphs long, covering the topics mentioned above>
+			A detailed, but not repetitive, report of the bill which references concrete, notable and specific text of the bill where possible. Make sure to explain: an overall summary of the bill; the high level goals the bill is attempting to achieve, and how it plans to achieve those goals; the impact to society the bill would have, if enacted. Your audience here is general public layman voters, so if you think they won't understand an acronym or a complex topic, please explain it. Should be between one and seven paragraphs long, depending on the complexity of the bill and the topics it covers. If the bill touches on controversial topics such as trans issues or guns rights, please include the advocating logic by proponents and also the advocating logic of the opposition, otherwise do not include this logic. Where relevant, cite scientific studies or the opinions of authoritative knowledge sources to provide more context. Keep in mind that we're trying to figure out how to spend U.S. taxpayer dollars: budgetary concerns are important. If their are riders in the bill, mention them in this summary, otherwise do not mention their absence. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
 			""";
 	
 	public static final String slicePromptTemplate = """
-			Score the following bill section on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Include a concise, single paragraph report at the end which gives a brief summary of the bill and it's expected impact to society. Keep an eye out for bill riders while reading the bill text and if you discover any, please highlight them in your reports and score the bill negatively. If the bill does not include riders, do not mention their absence. Do not include any formatting text in your reports, such as stars or dashes. Do not include non-human readable text such as XML ids. Please format your response as a list in the example format:
-			
+			You will be given the text of a United States bill currently in congress. Your role is to be a non-partisan oversight committee, evaluating whether or not the following bill will produce a positive overall benefit to society. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Stats:') in your response. Do not include the section instructions in your response.
+
 			Stats:
+			Score the following bill on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. If the bill includes riders, please score it negatively.
+			
 			{issuesList}
 			
 			Short Report:
-			<single paragraph concise report of the expected impact to society>
+			A single paragraph, at least four sentence report which gives a detailed, but not repetitive, summary of the bill, any high level goals, and it's expected impact to society. If riders are present in the bill mention them and the section they occur at here, otherwise do not mention their absence. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
 			""";
 	
 	public static final String aggregatePrompt = """
-			A large U.S. congressional bill has been split into sections and summarized. You will be provided a list of these summaries. Write the bill title in the section labeled 'Bill Title', but not the reports. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content. After the title, include two different reports. The first report is a concise, single paragraph report which gives a brief summary of the bill and it's expected impact to society. The second report is a concise report of the bill which references concrete, notable and specific text of the bill where possible. This second report should be between one and seven paragraphs long, depending on the complexity of the bill and the topics it covers. In the long form report, make sure to explain: an overall, concise summary of the bill; the high level goals the bill is attempting to achieve, and how it plans to achieve those goals; the impact to society the bill would have, if enacted. If the bill touches on controversial topics such as trans issues or guns rights, please include in the long form report the advocating logic by proponents and also the advocating logic of the opposition. If the bill touches on topics which require advanced or expert knowledge to understand, please attempt to include in the long form report clarifying knowledge. Where relevant, cite scientific studies or the opinions of authoritative knowledge sources to provide more context. Keep an eye out for bill riders while reading the bill text and if you discover any, please highlight them in your reports and also include them in the riders section and score the bill negatively. If the bill does not include riders, do not mention their absence. Keep in mind that we're trying to figure out how to spend U.S. taxpayer dollars: budgetary concerns are important, not an afterthought.
+			A large U.S. congressional bill has been split into sections and summarized. Your role is to be a non-partisan oversight committee, evaluating whether or not the following bill will produce a positive overall benefit to society. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Stats:') in your response. Do not include the section instructions in your response.
 			
 			Bill Title:
-			<bill title>
+			Write the bill title. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content.
 			
 			Riders:
-			- <list of riders identified, or 'None' if there are none>
+			- List of bill riders identified and the section they occured at, or 'None' if there are none
 			
 			Short Report:
-			<single paragraph concise report of the expected impact to society>
+			A single paragraph, at least four sentence report which gives a detailed, but not repetitive, summary of the bill, any high level goals, and it's expected impact to society. If riders are present in the bill mention them and the section they occur at here, otherwise do not mention their absence. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
 			
 			Long Report:
-			<report between one and seven paragraphs long, covering the topics mentioned above>
+			A detailed, but not repetitive, report of the bill which references concrete, notable and specific text of the bill where possible. Make sure to explain: an overall summary of the bill; the high level goals the bill is attempting to achieve, and how it plans to achieve those goals; the impact to society the bill would have, if enacted. Your audience here is general public layman voters, so if you think they won't understand an acronym or a complex topic, please explain it. Should be between one and seven paragraphs long, depending on the complexity of the bill and the topics it covers. If the bill touches on controversial topics such as trans issues or guns rights, please include the advocating logic by proponents and also the advocating logic of the opposition, otherwise do not include this logic. Where relevant, cite scientific studies or the opinions of authoritative knowledge sources to provide more context. Keep in mind that we're trying to figure out how to spend U.S. taxpayer dollars: budgetary concerns are important. If their are riders in the bill, mention them in this summary, otherwise do not mention their absence. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
 			""";
 	
 	

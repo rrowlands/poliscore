@@ -3,6 +3,8 @@ package us.poliscore.model.bill;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -53,6 +55,14 @@ public class Bill implements Persistable {
 //	protected LegislativeChamber originatingChamber;
 	
 	protected BillInterpretation interpretation;
+	
+	public void setInterpretation(BillInterpretation interp) {
+		this.interpretation = interp;
+		
+		if (getName().contains(String.valueOf(getNumber())) && !StringUtils.isBlank(interp.getGenBillTitle())) {
+			setName(interp.getGenBillTitle());
+		}
+	}
 	
 	@DynamoDbIgnore
 	@JsonIgnore

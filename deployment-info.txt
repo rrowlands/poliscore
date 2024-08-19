@@ -5,3 +5,4 @@
 4. Change name parameter in CdkApp.java
 5. Change backendUrl in app.config.ts to make the aws function url
   - Poliscore1: https://y5i3jhm7k5vy67elvzly4b3b240kjwlp.lambda-url.us-east-1.on.aws/
+6. Check S3 bucket in S3PersistenceService

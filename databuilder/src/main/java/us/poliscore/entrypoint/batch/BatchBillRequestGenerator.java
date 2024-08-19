@@ -102,10 +102,10 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		
 		for (Bill b : memService.query(Bill.class).stream()
 //				.filter(b -> specificFetch.contains(b.getId()))
-//				.filter(b -> !billInterpreter.isInterpreted(b.getId()))
+				.filter(b -> !billInterpreter.isInterpreted(b.getId()))
 				.filter(b -> s3.exists(BillText.generateId(b.getId()), BillText.class))
 				.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
-				.limit(10)
+//				.limit(100)
 				.toList()) {
 			
 			val billText = billService.getBillText(b).orElse(null);
