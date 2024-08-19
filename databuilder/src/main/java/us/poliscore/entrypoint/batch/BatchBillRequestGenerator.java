@@ -134,12 +134,12 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	        		{
 	        			BillSlice slice = slices.get(i);
 	        			
-	        			Optional<BillInterpretation> sliceInterp = s3.get(BillInterpretation.generateId(b.getId(), i), BillInterpretation.class);
+	        			Optional<BillInterpretation> sliceInterp = Optional.empty(); // s3.get(BillInterpretation.generateId(b.getId(), i), BillInterpretation.class);
 	        			
 	        			if (sliceInterp.isEmpty()) {
 	        				val oid = BillInterpretation.generateId(b.getId(), slice.getSliceIndex());
 	        				
-	        				if (s3.exists(oid, BillInterpretation.class)) { continue; }
+//	        				if (s3.exists(oid, BillInterpretation.class)) { continue; }
 	        				
 		        			createRequest(oid, BillInterpretationService.slicePrompt, slice.getText());
 	        			} else {
@@ -161,7 +161,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	            		
 	            		val oid = BillInterpretation.generateId(b.getId(), null);
 	            		
-	            		if (s3.exists(oid, BillInterpretation.class)) { continue; }
+//	            		if (s3.exists(oid, BillInterpretation.class)) { continue; }
 	            		
 		    			createRequest(oid, BillInterpretationService.aggregatePrompt, String.join("\n", summaries));
 	        		}

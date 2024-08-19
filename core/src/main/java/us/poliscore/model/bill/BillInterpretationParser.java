@@ -23,8 +23,8 @@ public class BillInterpretationParser {
 		STATS("(?i)Stats:"),
 		TITLE("(?i)Title:"),
 		RIDERS("(?i)Riders:"),
-		SHORT_FORM("(?i)Short Form:"),
-		LONG_FORM("(?i)Long Form:");
+		SHORT_REPORT("(?i)Short Report:"),
+		LONG_REPORT("(?i)Long Report:");
 		
 		private String regex;
 		
@@ -61,9 +61,9 @@ public class BillInterpretationParser {
 				  processTitle(line);
 			  } else if (State.RIDERS.equals(state)) {
 				  processRider(line);
-			  } else if (State.SHORT_FORM.equals(state)) {
+			  } else if (State.SHORT_REPORT.equals(state)) {
 				  processShortForm(line);
-			  } else if (State.LONG_FORM.equals(state)) {
+			  } else if (State.LONG_REPORT.equals(state)) {
 				  processLongForm(line);
 			  }
 			}

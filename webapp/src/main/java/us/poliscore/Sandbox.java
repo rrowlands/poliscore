@@ -57,9 +57,9 @@ public class Sandbox implements QuarkusApplication
 	
 	protected void process() throws IOException
 	{
-//		val obj = dynamoDb.get("BIL/us/congress/118/hr/4763", Bill.class).orElseThrow();
-//		
-//		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(obj));
+		// TEST getBill
+		val out = ddb.get("BIL/us/congress/118/s/4700", Bill.class).orElseThrow();
+		
 		
 		
 		
@@ -111,11 +111,11 @@ public class Sandbox implements QuarkusApplication
 		
 //		val out = getBills(25, Lambda.TRACKED_ISSUE_INDEX + TrackedIssue.NationalDefense.name(), false, null, null);
 		
-		s3.optimizeExists(BillInterpretation.class);
-		
-		val out = memService.query(Bill.class).stream()
-				.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
-				.toList().size();
+//		s3.optimizeExists(BillInterpretation.class);
+//		
+//		val out = memService.query(Bill.class).stream()
+//				.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
+//				.toList().size();
 		
 		
     	
@@ -128,7 +128,7 @@ public class Sandbox implements QuarkusApplication
 	private void linkInterpBills(Legislator leg) {
 		try
 		{
-			var exp = leg.getInterpretation().getIssueStats().getExplanation();
+			var exp = leg.getInterpretation().getLongExplain();
 			
 			// Standardize terminology from H.J. Res XXX -> HJRES-XXX
 			exp = exp.replaceAll("H\\.?J\\.? ?Res\\.? ?-?(\\d{1,4})", "HJRES-$1");
@@ -144,7 +144,7 @@ public class Sandbox implements QuarkusApplication
 				exp = exp.replaceAll("(?i)" + Pattern.quote(interact.getBillName()), "<a href=\"" + url + "\" >" + interact.getBillName() + "</a>");
 			}
 			
-			leg.getInterpretation().getIssueStats().setExplanation(exp);
+			leg.getInterpretation().setLongExplain(exp);
 		} catch (Throwable t) {
 			Log.error(t);
 		}

@@ -31,7 +31,7 @@ class PoliscoreStack extends Stack {
         super(parent, name, props);
         
         Table table = new Table(this, name + "-ddb", TableProps.builder()
-                .tableName("poliscore")
+                .tableName(name.toLowerCase())
                 .partitionKey(Attribute.builder()
                         .name("id")
                         .type(AttributeType.STRING)
@@ -99,7 +99,7 @@ class PoliscoreStack extends Stack {
                 .environment(Map.of("DISABLE_SIGNAL_HANDLERS", "true"))
                 .build());
         
-        FunctionUrl.Builder.create(this, "poliscore-bill-processor-url")
+        FunctionUrl.Builder.create(this, name + "-webapp-url")
         	.function(fPoliscore)
         	.authType(FunctionUrlAuthType.NONE)
         	.cors(FunctionUrlCorsOptions.builder().allowedOrigins(Arrays.asList("*")).allowedMethods(Arrays.asList(HttpMethod.ALL)).build())
@@ -107,7 +107,7 @@ class PoliscoreStack extends Stack {
 
         table.grantReadWriteData(fPoliscore);
         
-        Secret dbReadSecret2 = new Secret(this, "ipgeolocation");
+        Secret dbReadSecret2 = new Secret(this, name + "-ipgeolocation");
         dbReadSecret2.grantRead(fPoliscore.getRole());
         
         

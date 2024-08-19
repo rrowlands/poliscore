@@ -75,6 +75,8 @@ public class BatchOpenAIResponse {
 		protected String role;
 		
 		protected String content;
+		
+		protected String refusal;
 	}
 	
 	@Data

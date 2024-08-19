@@ -1,0 +1,7 @@
+
+1. Find out what the current deployment is on: 1 or 2.
+2. Change TABLE_NAME in DynamoDbPersistenceService to match the next server
+3. Change BUCKET_NAME in deploy.sh
+4. Change name parameter in CdkApp.java
+5. Change backendUrl in app.config.ts to make the aws function url
+  - Poliscore1: https://y5i3jhm7k5vy67elvzly4b3b240kjwlp.lambda-url.us-east-1.on.aws/

@@ -50,10 +50,10 @@ import us.poliscore.service.storage.MemoryPersistenceService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_NQfaQzu2KATomaekSvYEx1Su_output.jsonl";
+	public static final String INPUT = "/Users/rrowlands/Downloads/batch_VwF8VdCijFL8PIJlqeYgq05G_output.jsonl";
 	
 	// All Legislators (Aug 5th) 
-	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
 	
 //	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	
@@ -226,7 +226,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		new BillInterpretationParser(bi).parse(resp.getResponse().getBody().getChoices().get(0).getMessage().getContent());
 		
-		if (sliceIndex != null) {
+		if (!bi.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety)) {
+			if (sliceIndex != null) {throw new RuntimeException("Did not find OverallBenefitToSociety stat on interpretation");  }
+			
 			val billText = s3.get(BillText.generateId(bill.getId()), BillText.class).orElseThrow();
 			
 			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, BillSlicer.MAX_SECTION_LENGTH);
@@ -245,11 +247,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			
 			bi.setIssueStats(billStats.divideByTotalSummed());
 			bi.setSliceInterpretations(sliceInterps);
-		} else if (!bi.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety)) {
-			throw new RuntimeException("Did not find OverallBenefitToSociety stat on interpretation");
 		}
 		
-		if (bi.getIssueStats() == null || !bi.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(bi.getLongExplain())) {
+		if (bi.getIssueStats() == null || !bi.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(bi.getShortExplain()) || (sliceIndex == null && StringUtils.isBlank(bi.getLongExplain()))) {
 			throw new RuntimeException("Interpretation missing proper stats or explain." + billId);
 		}
 		

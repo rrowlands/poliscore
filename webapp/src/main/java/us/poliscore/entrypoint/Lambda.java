@@ -88,7 +88,7 @@ public class Lambda {
     private void linkInterpBills(Legislator leg) {
 		try
 		{
-			var exp = leg.getInterpretation().getIssueStats().getExplanation();
+			var exp = leg.getInterpretation().getLongExplain();
 			
 			// Standardize terminology from H.J. Res XXX -> HJRES-XXX
 //			if (leg.getTerms().last().getChamber().equals(CongressionalChamber.SENATE)) {
@@ -116,7 +116,7 @@ public class Lambda {
 //				}
 			}
 			
-			leg.getInterpretation().getIssueStats().setExplanation(exp);
+			leg.getInterpretation().setLongExplain(exp);
 		} catch (Throwable t) {
 			Log.error(t);
 		}

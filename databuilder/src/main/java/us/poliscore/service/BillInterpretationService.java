@@ -73,10 +73,10 @@ public class BillInterpretationService {
 			Riders:
 			- <list of riders identified, or 'None' if there are none>
 			
-			Short Form:
+			Short Report:
 			<single paragraph concise report of the expected impact to society>
 			
-			Long Form:
+			Long Report:
 			<report between one and seven paragraphs long, covering the topics mentioned above>
 			""";
 	
@@ -86,7 +86,7 @@ public class BillInterpretationService {
 			Stats:
 			{issuesList}
 			
-			Short Form:
+			Short Report:
 			<single paragraph concise report of the expected impact to society>
 			""";
 	
@@ -99,10 +99,10 @@ public class BillInterpretationService {
 			Riders:
 			- <list of riders identified, or 'None' if there are none>
 			
-			Short Form:
+			Short Report:
 			<single paragraph concise report of the expected impact to society>
 			
-			Long Form:
+			Long Report:
 			<report between one and seven paragraphs long, covering the topics mentioned above>
 			""";
 	
