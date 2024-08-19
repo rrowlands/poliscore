@@ -199,7 +199,7 @@ export class BillsComponent implements OnInit {
 
   descriptionForBill(bill: Bill): string
   {
-    return bill.interpretation.issueStats.explanation.substring(0, 300) + "...";
+    return bill.interpretation.shortExplain.substring(0, 300) + "...";
   }
 
   // descriptionForBill(bill: Bill): string

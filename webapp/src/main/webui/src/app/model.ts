@@ -14,6 +14,9 @@ export interface Bill {
 export interface BillInterpretation {
   issueStats: IssueStats;
   id: string;
+  shortExplain: string;
+  longExplain: string;
+  riders: string[];
   billId: string;
   metadata: any;
 }
@@ -58,15 +61,15 @@ export interface LegislatorPageData {
   allLegislators: [string, string][];
 }
 
-export class LegislatorInterpretation {
-    issueStats!: IssueStats;
-    legislatorId!: string;
-    metadata!: any;
+export interface LegislatorInterpretation {
+    issueStats: IssueStats;
+    legislatorId: string;
+    metadata: any;
+    longExplain: string;
 }
 
 export class IssueStats {
     stats: any;
-    explanation!: string;
 }
 
 export class Page {

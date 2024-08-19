@@ -101,6 +101,8 @@ public class BillInterpretationParser {
 			line = line.replaceFirst(" ?\\d\\.? ?", "");
 		}
 		
+		if (line.strip().toLowerCase().equals("none")) return;
+		
 		interp.getRiders().add(line);
 	}
 	

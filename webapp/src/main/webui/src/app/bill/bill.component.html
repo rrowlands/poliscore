@@ -23,7 +23,16 @@
                         <canvas id="barChart"></canvas>
                     </div>
 
-                    <p class="interp-text">{{bill.interpretation.issueStats.explanation}}</p>
+                    <div class="bill-section" *ngIf="bill.interpretation.riders != null && bill.interpretation.riders.length > 0">
+                        <h2>Riders</h2>
+                        <ul>
+                            <li *ngFor="let rider of bill.interpretation.riders">{{rider}}</li>
+                        </ul>
+                    </div>
+
+                    <div class="bill-section"><h2>Short Summary</h2><p *ngFor="let paragraph of bill.interpretation.shortExplain?.split('\n')" [innerHTML]="paragraph"></p></div>
+
+                    <div class="bill-section"><h2>Long Summary</h2><p *ngFor="let paragraph of bill.interpretation.longExplain?.split('\n')" [innerHTML]="paragraph"></p></div>
                 </mat-card-content>
             </mat-card>
         </div>
