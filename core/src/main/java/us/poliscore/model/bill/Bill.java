@@ -59,7 +59,7 @@ public class Bill implements Persistable {
 	public void setInterpretation(BillInterpretation interp) {
 		this.interpretation = interp;
 		
-		if (getName().contains(String.valueOf(getNumber())) && !StringUtils.isBlank(interp.getGenBillTitle())) {
+		if (getName() != null && getName().contains(String.valueOf(getNumber())) && !StringUtils.isBlank(interp.getGenBillTitle())) {
 			setName(interp.getGenBillTitle());
 		}
 	}

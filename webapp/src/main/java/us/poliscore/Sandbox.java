@@ -63,6 +63,21 @@ public class Sandbox implements QuarkusApplication
 		
 		
 		
+		// TEST location service
+//		String location = null;
+//    	
+//    	try {
+//    		val sourceIp = "";
+//	    	location = ipService.locateIp(sourceIp).orElse(null);
+//    	}
+//    	catch(Exception e) {
+//    		Log.error(e);
+//    	}
+		
+		
+		
+		
+		
 //		val legs = dynamoDb.query(Legislator.class, 25, null, null, null);
 //		System.out.println(legs.size());
 //		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(legs));

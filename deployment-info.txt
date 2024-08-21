@@ -6,3 +6,6 @@
 5. Change backendUrl in app.config.ts to make the aws function url
   - Poliscore1: https://y5i3jhm7k5vy67elvzly4b3b240kjwlp.lambda-url.us-east-1.on.aws/
 6. Check S3 bucket in S3PersistenceService
+7. Check the ip geolocation key in SecretService.
+  - Poliscore1: Poliscore1ipgeolocation683E-N4epMkZ8yjtM
+  - poliscore: ipgeolocation02363461-ojkx6KmXVj1V

@@ -50,10 +50,10 @@ import us.poliscore.service.storage.MemoryPersistenceService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-	public static final String INPUT = "/Users/rrowlands/Downloads/batch_PFM1jbNzEkH8DE8CBhv7R3NP_output.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_QNpNG5aKKXi2gvdKGIoRirSA_output.jsonl";
 	
 	// All Legislators (Aug 5th) 
-//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
+	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
 	
 //	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	
@@ -127,14 +127,15 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			System.out.println("Encountered errors on " + erroredLines.size() + " lines. Printed them to " + f.getAbsolutePath());
 		}
 		
-		legService.generateLegislatorWebappIndex();
-		billService.generateBillWebappIndex();
+		// These indexes can't be created here because they might not have all the required data
+//		legService.generateLegislatorWebappIndex();
+//		billService.generateBillWebappIndex();
 		
 		System.out.println("Program complete.");
 	}
 	
 	private void importLegislator(final BatchOpenAIResponse resp) {
-		if (!resp.getCustom_id().contains("K000402")) return;
+//		if (!resp.getCustom_id().contains("D000197")) return;
 		
 		val leg = memService.get(resp.getCustom_id().replace(LegislatorInterpretation.ID_CLASS_PREFIX, Legislator.ID_CLASS_PREFIX), Legislator.class).orElseThrow();
 		
@@ -147,13 +148,15 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			if (interp.isPresent()) {
 				i.setIssueStats(interp.get().getIssueStats());
 				
-				if (!importedBills.contains(i.getBillId())) {
-					val bill = memService.get(i.getBillId(), Bill.class).orElseThrow();
-					bill.setInterpretation(interp.get());
-					ddb.put(bill);
-//					ddb.put(i); // TODO : This won't work anyway since it's inside the !importedBills if block
-					importedBills.add(bill.getId());
-				}
+				val bill = memService.get(i.getBillId(), Bill.class).orElseThrow();
+				bill.setInterpretation(interp.get());
+				i.setBillName(bill.getName());
+//				ddb.put(i);
+				
+//				if (!importedBills.contains(i.getBillId())) {
+//					ddb.put(bill);
+//					importedBills.add(bill.getId());
+//				}
 			}
 		}
 		
@@ -177,10 +180,13 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		interp.setHash(legInterp.calculateInterpHashCode(leg));
 		
 		val interpText = resp.getResponse().getBody().getChoices().get(0).getMessage().getContent();
-		new LegislatorInterpretationParser(interp).parse(interpText);
+//		new LegislatorInterpretationParser(interp).parse(interpText);
+		interp.setLongExplain(interpText);
+		
+		interp.setIssueStats(stats);
 		
 		if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(interp.getLongExplain())) {
-			throw new RuntimeException("Unable to parse valid issue stats for bill " + leg.getId());
+			throw new RuntimeException("Unable to parse valid issue stats for legislator " + leg.getId());
 		}
 		
 		s3.put(interp);
@@ -255,10 +261,12 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		s3.put(bi);
 		
-		bill.setInterpretation(bi);
-		ddb.put(bill);
-		
-		importedBills.add(billId);
+		if (sliceIndex == null) {
+			bill.setInterpretation(bi);
+			ddb.put(bill);
+			
+			importedBills.add(billId);
+		}
 	}
 	
 	@Override

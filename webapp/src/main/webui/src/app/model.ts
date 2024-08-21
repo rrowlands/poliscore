@@ -151,10 +151,10 @@ export function gradeForStats(issueStats: IssueStats): string {
   else return "?";
   */
 
-  if (credit >= 50) return "A";
-  else if (credit >= 30 && credit < 50) return "B";
-  else if (credit >= 10 && credit < 30) return "C";
-  else if (credit >= 0 && credit < 10) return "D";
+  if (credit >= 40) return "A";
+  else if (credit >= 30 && credit < 40) return "B";
+  else if (credit >= 15 && credit < 30) return "C";
+  else if (credit >= 0 && credit < 15) return "D";
   else if (credit < 0) return "F";
   else return "?";
 }

@@ -60,6 +60,8 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 {
 	public static final long TOKEN_BLOCK_SIZE = 30000000;
 	
+	public static final boolean CHECK_S3_EXISTS = true;
+	
 	@Inject
 	private MemoryPersistenceService memService;
 	
@@ -102,7 +104,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		
 		for (Bill b : memService.query(Bill.class).stream()
 //				.filter(b -> specificFetch.contains(b.getId()))
-				.filter(b -> !billInterpreter.isInterpreted(b.getId()))
+				.filter(b -> CHECK_S3_EXISTS && !billInterpreter.isInterpreted(b.getId()))
 				.filter(b -> s3.exists(BillText.generateId(b.getId()), BillText.class))
 				.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
 //				.limit(100)
@@ -139,7 +141,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	        			if (sliceInterp.isEmpty()) {
 	        				val oid = BillInterpretation.generateId(b.getId(), slice.getSliceIndex());
 	        				
-//	        				if (s3.exists(oid, BillInterpretation.class)) { continue; }
+	        				if (CHECK_S3_EXISTS && s3.exists(oid, BillInterpretation.class)) { continue; }
 	        				
 		        			createRequest(oid, BillInterpretationService.slicePrompt, slice.getText());
 	        			} else {
@@ -161,7 +163,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	            		
 	            		val oid = BillInterpretation.generateId(b.getId(), null);
 	            		
-//	            		if (s3.exists(oid, BillInterpretation.class)) { continue; }
+	            		if (CHECK_S3_EXISTS && s3.exists(oid, BillInterpretation.class)) { continue; }
 	            		
 		    			createRequest(oid, BillInterpretationService.aggregatePrompt, String.join("\n", summaries));
 	        		}

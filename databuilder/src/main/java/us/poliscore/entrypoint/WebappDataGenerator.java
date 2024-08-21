@@ -1,4 +1,4 @@
-package us.poliscore.entrypoint.batch;
+package us.poliscore.entrypoint;
 
 import java.io.File;
 import java.io.IOException;

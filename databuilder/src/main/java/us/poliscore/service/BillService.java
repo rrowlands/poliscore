@@ -138,7 +138,12 @@ public class BillService {
 		
 		val data = memService.query(Bill.class).stream()
 			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
-			.map(b -> Arrays.asList(b.getId(), b.getName()))
+			.map(b -> {
+				// The bill name can come from the interpretation so we have to fetch it.
+				b.setInterpretation(s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).orElseThrow());
+				
+				return Arrays.asList(b.getId(), b.getName());
+			})
 			.sorted((a,b) -> a.get(1).compareTo(b.get(1)))
 			.toList();
 		
