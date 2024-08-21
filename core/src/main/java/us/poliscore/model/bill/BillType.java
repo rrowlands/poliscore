@@ -36,4 +36,8 @@ public enum BillType {
 	{
 		return Arrays.asList(BillType.SCONRES, BillType.HCONRES, BillType.HRES, BillType.SRES);
 	}
+	
+	public static BillType fromName(String name) {
+		return Arrays.asList(BillType.values()).stream().filter(bt -> bt.getName().equals(name)).findFirst().get();
+	}
 }

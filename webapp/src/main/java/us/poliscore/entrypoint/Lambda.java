@@ -108,11 +108,15 @@ public class Lambda {
 				if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);
 				billName = billName.strip();
 				
+				val billId = Bill.billTypeFromId(interact.getBillId()).getName() + "-" + Bill.billNumberFromId(interact.getBillId());
+				
+				val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")";
+				
 //				if (interact.getBillName().matches("(?i) of \\d\\d\\d\\d$") && exp.toLowerCase().contains(interact.getBillName().substring(0, interact.getBillName().length() - 8).toLowerCase())) {
 //					val shortName = interact.getBillName().substring(0, interact.getBillName().length() - 8);
 //					exp = exp.replaceAll("(?i)" + Pattern.quote(shortName), "<a href=\"" + url + "\" >" + shortName + "</a>");
 //				} else {
-					exp = exp.replaceAll("(?i)\\s*" + Pattern.quote(billName) + "\\.?\\s*", "<a href=\"" + url + "\" >" + billName + "</a>");
+					exp = exp.replaceAll("(?i)\\s*" + billMatchPattern + "\\.?\\s*", "<a href=\"" + url + "\" >" + billName + "</a>");
 //				}
 			}
 			

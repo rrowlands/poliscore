@@ -30,9 +30,9 @@
                         </ul>
                     </div>
 
-                    <div class="bill-section"><h2>Short Summary</h2><p *ngFor="let paragraph of bill.interpretation.shortExplain?.split('\n')" [innerHTML]="paragraph"></p></div>
+                    <!-- <div class="bill-section"><h2>Short Summary</h2><p *ngFor="let paragraph of bill.interpretation.shortExplain?.split('\n')" [innerHTML]="paragraph"></p></div> -->
 
-                    <div class="bill-section"><h2>Long Summary</h2><p *ngFor="let paragraph of bill.interpretation.longExplain?.split('\n')" [innerHTML]="paragraph"></p></div>
+                    <div class="bill-section"><h2 *ngIf="bill.interpretation.riders.length > 0">Summary</h2><p *ngFor="let paragraph of bill.interpretation.longExplain?.split('\n')" [innerHTML]="paragraph"></p></div>
                 </mat-card-content>
             </mat-card>
         </div>

@@ -263,13 +263,15 @@ Based on these scores, this legislator has received the overall letter grade: {{
 //	}
 	
 	public static String getAiPrompt(Legislator leg, IssueStats stats) {
+		val grade = stats.getLetterGrade();
+		
 		return PROMPT_TEMPLATE
-				.replace("{{letterGrade}}", stats.getLetterGrade())
+				.replace("{{letterGrade}}", grade)
 				.replace("{{politicianType}}", leg.getTerms().last().getChamber() == CongressionalChamber.SENATE ? "Senator" : "House Representative")
 				.replace("{{fullName}}", leg.getName().getOfficial_full())
 				.replace("{{stats}}", stats.toString())
-				.replace("{{analysisType}}", stats.getRating() >= 30 ? "endorsement" : (stats.getRating() >= 0 && stats.getRating() < 30 ? "mixed analysis" : "harsh critique"))
-				.replace("{{behavior}}", stats.getRating() >= 30 ? "specific accomplishments" : (stats.getRating() >= 0 && stats.getRating() < 30 ? "specific accomplishments or alarming behaviour" : "alarming behaviour"));
+				.replace("{{analysisType}}", grade.equals("A") || grade.equals("B") ? "endorsement" : (grade.equals("C") || grade.equals("D") ? "mixed analysis" : "harsh critique"))
+				.replace("{{behavior}}", grade.equals("A") || grade.equals("B") ? "specific accomplishments" : (grade.equals("C") || grade.equals("D") ? "specific accomplishments or alarming behaviour" : "alarming behaviour"));
 	}
 	
 	public static String describeTimePeriod(LocalDate periodStart, LocalDate periodEnd)

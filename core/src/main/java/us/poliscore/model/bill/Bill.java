@@ -110,6 +110,14 @@ public class Bill implements Persistable {
 		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + congress + "/" + type.getName().toLowerCase() + "/" + number;
 	}
 	
+	public static BillType billTypeFromId(String poliscoreId) {
+		return BillType.fromName(poliscoreId.split("/")[4]);
+	}
+	
+	public static int billNumberFromId(String poliscoreId) {
+		return Integer.valueOf(poliscoreId.split("/")[5]);
+	}
+	
 	@Data
 	@DynamoDbBean
 	@AllArgsConstructor

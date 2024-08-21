@@ -44,6 +44,8 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 {
 	public static final long TOKEN_BLOCK_SIZE = 30000000;
 	
+	public static final boolean CHECK_S3_EXISTS = false;
+	
 	@Inject
 	private MemoryPersistenceService memService;
 	
@@ -86,7 +88,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 				.filter(l -> 
 					l.getInteractions().size() > 0
 //					&& (l.getBioguideId().equals("F000476") || l.getBioguideId().equals("O000172"))
-//					&& !s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class)
+					&& (!CHECK_S3_EXISTS || !s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
 				)
 				.sorted(Comparator.comparing(Legislator::getDate).reversed())
 //				.limit(2)

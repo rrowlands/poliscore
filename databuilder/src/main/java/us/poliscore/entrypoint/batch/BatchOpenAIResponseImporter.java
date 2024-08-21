@@ -52,8 +52,11 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
 //	public static final String INPUT = "/Users/rrowlands/Downloads/batch_QNpNG5aKKXi2gvdKGIoRirSA_output.jsonl";
 	
+	// All Legislators (August 21st)
+	public static final String INPUT = "/Users/rrowlands/Downloads/batch_P8Wsivj5pgknA2QPVrK9KZJI_output.jsonl";
+	
 	// All Legislators (Aug 5th) 
-	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
 	
 //	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	

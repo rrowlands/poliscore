@@ -58,7 +58,7 @@ public class Sandbox implements QuarkusApplication
 	protected void process() throws IOException
 	{
 		// TEST getBill
-		val out = ddb.get("BIL/us/congress/118/s/4700", Bill.class).orElseThrow();
+//		val out = ddb.get("BIL/us/congress/118/s/4700", Bill.class).orElseThrow();
 		
 		
 		
@@ -73,6 +73,13 @@ public class Sandbox implements QuarkusApplication
 //    	catch(Exception e) {
 //    		Log.error(e);
 //    	}
+		
+		
+		
+		// TEST legislator bill linking
+		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "F000480"), Legislator.class).orElseThrow();
+		linkInterpBills(leg);
+		val out = leg.getInterpretation().getLongExplain();
 		
 		
 		
@@ -112,8 +119,6 @@ public class Sandbox implements QuarkusApplication
 		
 //		val out = leg.calculateTopInteractions();
 		
-//		linkInterpBills(leg);
-		
 //		val out = leg.getInterpretation().getIssueStats().getExplanation();
 		
 		
@@ -146,17 +151,33 @@ public class Sandbox implements QuarkusApplication
 			var exp = leg.getInterpretation().getLongExplain();
 			
 			// Standardize terminology from H.J. Res XXX -> HJRES-XXX
-			exp = exp.replaceAll("H\\.?J\\.? ?Res\\.? ?-?(\\d{1,4})", "HJRES-$1");
-			exp = exp.replaceAll("S\\.?J\\.? ?Res\\.? ?-?(\\d{1,4})", "SJRES-$1");
-			exp = exp.replaceAll("H\\.?R\\.? ?-?(\\d{1,4})", "HR-$1");
-			exp = exp.replaceAll("S\\.? ?-?(\\d{1,4})", "S-$1");
+//			if (leg.getTerms().last().getChamber().equals(CongressionalChamber.SENATE)) {
+//				exp = exp.replaceAll("S(\\.|-) ?(\\d{1,4})", "S-$1");
+//				exp = exp.replaceAll("S\\.?J\\.? ?(Res)?\\.? ?-?(\\d{1,4})", "SJRES-$2");
+//			} else {
+//				exp = exp.replaceAll("H\\.?J\\.? ?(Res)?\\.? ?-?(\\d{1,4})", "HJRES-$2");
+//				exp = exp.replaceAll("H\\.?R\\.? ?-?(\\d{1,4})", "HR-$1");
+//			}
 			
 			
 			// Replace 
 			for (val interact : leg.getInteractions()) {
 				val url = "/bill" + interact.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace(), "");
 				
-				exp = exp.replaceAll("(?i)" + Pattern.quote(interact.getBillName()), "<a href=\"" + url + "\" >" + interact.getBillName() + "</a>");
+				var billName = interact.getBillName();
+				if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);
+				billName = billName.strip();
+				
+				val billId = Bill.billTypeFromId(interact.getBillId()).getName() + "-" + Bill.billNumberFromId(interact.getBillId());
+				
+				val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")";
+				
+//				if (interact.getBillName().matches("(?i) of \\d\\d\\d\\d$") && exp.toLowerCase().contains(interact.getBillName().substring(0, interact.getBillName().length() - 8).toLowerCase())) {
+//					val shortName = interact.getBillName().substring(0, interact.getBillName().length() - 8);
+//					exp = exp.replaceAll("(?i)" + Pattern.quote(shortName), "<a href=\"" + url + "\" >" + shortName + "</a>");
+//				} else {
+					exp = exp.replaceAll("(?i)\\s*" + billMatchPattern + "\\.?\\s*", "<a href=\"" + url + "\" >" + billName + "</a>");
+//				}
 			}
 			
 			leg.getInterpretation().setLongExplain(exp);
