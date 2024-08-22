@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -17,8 +18,6 @@ import org.jboss.resteasy.reactive.RestQuery;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.RequestScoped;
@@ -37,8 +36,8 @@ import us.poliscore.model.Persistable;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.legislator.Legislator;
-import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
+import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.CachedDynamoDbService;
 
@@ -107,17 +106,20 @@ public class Lambda {
 				var billName = interact.getBillName();
 				if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);
 				billName = billName.strip();
+				if (billName.endsWith("."))
+					billName = billName.substring(0, billName.length() - 1);
 				
 				val billId = Bill.billTypeFromId(interact.getBillId()).getName() + "-" + Bill.billNumberFromId(interact.getBillId());
 				
-				val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")";
+				val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")[^\\d]";
 				
-//				if (interact.getBillName().matches("(?i) of \\d\\d\\d\\d$") && exp.toLowerCase().contains(interact.getBillName().substring(0, interact.getBillName().length() - 8).toLowerCase())) {
-//					val shortName = interact.getBillName().substring(0, interact.getBillName().length() - 8);
-//					exp = exp.replaceAll("(?i)" + Pattern.quote(shortName), "<a href=\"" + url + "\" >" + shortName + "</a>");
-//				} else {
-					exp = exp.replaceAll("(?i)\\s*" + billMatchPattern + "\\.?\\s*", "<a href=\"" + url + "\" >" + billName + "</a>");
-//				}
+				Pattern pattern = Pattern.compile("(?i)\\s*" + billMatchPattern + "\\.?\\s*", Pattern.CASE_INSENSITIVE);
+			    Matcher matcher = pattern.matcher(exp);
+			    while (matcher.find()) {
+			    	exp = exp.replaceFirst(matcher.group(1), "<a href=\"" + url + "\" >" + billName + "</a>");
+			    }
+				
+//				exp = exp.replaceAll(, "<a href=\"" + url + "\" >" + billName + "</a>");
 			}
 			
 			leg.getInterpretation().setLongExplain(exp);

@@ -50,7 +50,7 @@ import us.poliscore.service.storage.MemoryPersistenceService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_QNpNG5aKKXi2gvdKGIoRirSA_output.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_o32fkIswzuN3OZ8Z4jpVUdS4_output.jsonl";
 	
 	// All Legislators (August 21st)
 	public static final String INPUT = "/Users/rrowlands/Downloads/batch_P8Wsivj5pgknA2QPVrK9KZJI_output.jsonl";
@@ -93,6 +93,8 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		legService.importLegislators();
 		billService.importUscBills();
 		rollCallService.importUscVotes();
+		
+		System.out.println("Importing " + INPUT);
 		
 		@Cleanup BufferedReader reader = new BufferedReader(new FileReader(INPUT));
 		String line = reader.readLine();
@@ -258,7 +260,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			bi.setSliceInterpretations(sliceInterps);
 		}
 		
-		if (bi.getIssueStats() == null || !bi.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(bi.getShortExplain()) || (sliceIndex == null && StringUtils.isBlank(bi.getLongExplain()))) {
+		if (StringUtils.isBlank(bi.getLongExplain()) || (sliceIndex == null && (StringUtils.isBlank(bi.getShortExplain()) || bi.getIssueStats() == null || !bi.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety)))) {
 			throw new RuntimeException("Interpretation missing proper stats or explain." + billId);
 		}
 		

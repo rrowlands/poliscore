@@ -72,6 +72,13 @@ export class BillComponent implements OnInit {
 
     this.service.getBill(this.billId).then(bill => {
       this.bill = bill;
+
+      if (bill.interpretation == null || bill.interpretation.longExplain == null || bill.interpretation.longExplain.length == 0
+        || bill.interpretation.shortExplain == null || bill.interpretation.shortExplain.length == 0
+        || bill.interpretation.issueStats == null || bill.interpretation.issueStats.stats == null || bill.interpretation.issueStats.stats['OverallBenefitToSociety'] == null) {
+        throw new Error("Invalid interpretation for bill " + this.billId);
+      }
+
       this.loading = false;
       this.titleService.setTitle(bill.name + " - Bill - PoliScore: non-partisan political rating service");
       this.buildBarChartData();

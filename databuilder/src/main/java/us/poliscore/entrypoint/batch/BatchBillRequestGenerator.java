@@ -100,7 +100,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		s3.optimizeExists(BillInterpretation.class);
 		s3.optimizeExists(BillText.class);
 		
-//		List<String> specificFetch = Arrays.asList("BIL/us/congress/118/hr/647", "BIL/us/congress/118/hr/2670", "BIL/us/congress/118/hr/2497");
+//		List<String> specificFetch = Arrays.asList("BIL/us/congress/118/s/1", "BIL/us/congress/118/s/4677");
 		
 		for (Bill b : memService.query(Bill.class).stream()
 //				.filter(b -> specificFetch.contains(b.getId()))
@@ -136,7 +136,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	        		{
 	        			BillSlice slice = slices.get(i);
 	        			
-	        			Optional<BillInterpretation> sliceInterp = Optional.empty(); // s3.get(BillInterpretation.generateId(b.getId(), i), BillInterpretation.class);
+	        			Optional<BillInterpretation> sliceInterp = s3.get(BillInterpretation.generateId(b.getId(), i), BillInterpretation.class);
 	        			
 	        			if (sliceInterp.isEmpty()) {
 	        				val oid = BillInterpretation.generateId(b.getId(), slice.getSliceIndex());
@@ -156,7 +156,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	            		for (int i = 0; i < slices.size(); ++i)
 	            		{
 	            			billStats = billStats.sum(sliceInterps.get(i).getIssueStats());
-	            			summaries.add(sliceInterps.get(i).getShortExplain());
+	            			summaries.add(sliceInterps.get(i).getLongExplain());
 	            		}
 	            		
 	            		billStats = billStats.divideByTotalSummed();
@@ -164,6 +164,18 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	            		val oid = BillInterpretation.generateId(b.getId(), null);
 	            		
 	            		if (CHECK_S3_EXISTS && s3.exists(oid, BillInterpretation.class)) { continue; }
+	            		
+	            		if (String.join("\n", summaries).length() > XMLBillSlicer.MAX_SECTION_LENGTH) {
+	            			summaries = new ArrayList<String>();
+	            			for (int i = 0; i < slices.size(); ++i)
+		            		{
+	            				val split = sliceInterps.get(i).getLongExplain().split("\n");
+	            				
+	            				for (int j = 0; j < Math.min(3, split.length); ++j) {
+	            					summaries.add(split[j]);
+	            				}
+		            		}
+	            		}
 	            		
 		    			createRequest(oid, BillInterpretationService.aggregatePrompt, String.join("\n", summaries));
 	        		}
@@ -187,6 +199,10 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	}
 	
 	private void createRequest(String oid, String sysMsg, String userMsg) {
+		if (userMsg.length() >= XMLBillSlicer.MAX_SECTION_LENGTH) {
+			throw new RuntimeException("Max user message length exceeded on " + oid + " (" + userMsg.length() + " > " + XMLBillSlicer.MAX_SECTION_LENGTH);
+		}
+		
 		List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();
 		messages.add(new BatchBillMessage("system", sysMsg));
 		messages.add(new BatchBillMessage("user", userMsg));

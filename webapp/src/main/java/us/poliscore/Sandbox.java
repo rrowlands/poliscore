@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -77,7 +78,7 @@ public class Sandbox implements QuarkusApplication
 		
 		
 		// TEST legislator bill linking
-		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "F000480"), Legislator.class).orElseThrow();
+		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "C001098"), Legislator.class).orElseThrow();
 		linkInterpBills(leg);
 		val out = leg.getInterpretation().getLongExplain();
 		
@@ -167,17 +168,20 @@ public class Sandbox implements QuarkusApplication
 				var billName = interact.getBillName();
 				if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);
 				billName = billName.strip();
+				if (billName.endsWith("."))
+					billName = billName.substring(0, billName.length() - 1);
 				
 				val billId = Bill.billTypeFromId(interact.getBillId()).getName() + "-" + Bill.billNumberFromId(interact.getBillId());
 				
-				val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")";
+				val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")[^\\d]";
 				
-//				if (interact.getBillName().matches("(?i) of \\d\\d\\d\\d$") && exp.toLowerCase().contains(interact.getBillName().substring(0, interact.getBillName().length() - 8).toLowerCase())) {
-//					val shortName = interact.getBillName().substring(0, interact.getBillName().length() - 8);
-//					exp = exp.replaceAll("(?i)" + Pattern.quote(shortName), "<a href=\"" + url + "\" >" + shortName + "</a>");
-//				} else {
-					exp = exp.replaceAll("(?i)\\s*" + billMatchPattern + "\\.?\\s*", "<a href=\"" + url + "\" >" + billName + "</a>");
-//				}
+				Pattern pattern = Pattern.compile("(?i)\\s*" + billMatchPattern + "\\.?\\s*", Pattern.CASE_INSENSITIVE);
+			    Matcher matcher = pattern.matcher(exp);
+			    while (matcher.find()) {
+			    	exp = exp.replaceFirst(matcher.group(1), "<a href=\"" + url + "\" >" + billName + "</a>");
+			    }
+				
+//				exp = exp.replaceAll(, "<a href=\"" + url + "\" >" + billName + "</a>");
 			}
 			
 			leg.getInterpretation().setLongExplain(exp);
