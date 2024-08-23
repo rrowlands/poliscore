@@ -4,7 +4,7 @@ import convertStateCodeToName, { Legislator, issueKeyToLabel, getBenefitToSociet
 import { HttpHeaders, HttpClient, HttpParams, HttpHandler } from '@angular/common/http';
 import { CommonModule, DatePipe, KeyValuePipe, isPlatformBrowser } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
-import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement} from 'chart.js'
+import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement, Tooltip} from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card'; 
@@ -27,7 +27,7 @@ const floatingLabelsPlugin = {
 };
 */
 
-Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels);
+Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
 export const CHART_COLORS = {
   red: 'rgb(255, 99, 132)',

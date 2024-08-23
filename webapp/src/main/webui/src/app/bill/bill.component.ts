@@ -5,8 +5,11 @@ import { Bill, colorForGrade, getBenefitToSocietyIssue, gradeForStats, issueKeyT
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule, isPlatformBrowser, isPlatformServer } from '@angular/common';
 import { HttpClient, HttpHandler } from '@angular/common/http';
-import { Chart, ChartConfiguration } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement, Tooltip} from 'chart.js'
 import { Title } from '@angular/platform-browser';
+
+Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
 @Component({
   selector: 'app-bill',
