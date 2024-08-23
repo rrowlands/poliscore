@@ -37,7 +37,7 @@ public class SecretService {
 	}
 	
 	public String getIpGeoLocationKey() {
-		String secretName = "Poliscore1ipgeolocation683E-N4epMkZ8yjtM";
+		String secretName = "ipgeolocation02363461-ojkx6KmXVj1V";
 	    Region region = Region.of("us-east-1");
 
 	    // Create a Secrets Manager client
