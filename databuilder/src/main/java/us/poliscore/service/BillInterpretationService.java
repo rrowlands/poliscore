@@ -12,6 +12,7 @@ import lombok.NonNull;
 import lombok.val;
 import us.poliscore.MissingBillTextException;
 import us.poliscore.model.AISliceInterpretationMetadata;
+import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
@@ -154,7 +155,7 @@ public class BillInterpretationService {
     		else if (slices.size() == 1) {
     			bill.getText().setXml(slices.get(0).getText()); // TODO : Hackity hack. This achieves our goal of treating it as the bill text but it's not actually xml
     		} else {
-    			IssueStats billStats = new IssueStats();
+    			DoubleIssueStats billStats = new DoubleIssueStats();
     			List<String> aggregateExplain = new ArrayList<String>();
         		
         		for (int i = 0; i < slices.size(); ++i)
@@ -163,7 +164,7 @@ public class BillInterpretationService {
         			
         			BillInterpretation sliceInterp = getOrCreateInterpretation(bill, slice);
         			
-        			billStats = billStats.sum(sliceInterp.getIssueStats());
+        			billStats = billStats.sum(sliceInterp.getIssueStats().toDoubleIssueStats());
         			sliceMetadata.add((AISliceInterpretationMetadata) sliceInterp.getMetadata());
         			
         			sliceInterps.add(sliceInterp);
@@ -172,7 +173,7 @@ public class BillInterpretationService {
         		
         		billStats = billStats.divideByTotalSummed();
         		
-        		var bi = getOrCreateAggregateInterpretation(bill, billStats, String.join("\n", aggregateExplain), sliceInterps);
+        		var bi = getOrCreateAggregateInterpretation(bill, billStats.toIssueStats(), String.join("\n", aggregateExplain), sliceInterps);
         		
         		return bi;
     		}

@@ -11,7 +11,7 @@ import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.val;
-import us.poliscore.model.IssueStats;
+import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
@@ -71,8 +71,8 @@ public class PartyStatsBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		var demStats = new IssueStats();
-		var repubStats = new IssueStats();
+		var demStats = new DoubleIssueStats();
+		var repubStats = new DoubleIssueStats();
 		
 		for (val b : memService.query(Bill.class)) {
 			val op = ddb.get(b.getId(), Bill.class);
@@ -81,9 +81,9 @@ public class PartyStatsBuilder implements QuarkusApplication
 				val sponsor = memService.get(b.getSponsor().getId(), Legislator.class).orElseThrow();
 				
 				if (interp != null && "Democrat".equals(sponsor.getTerms().last().getParty())) {
-					demStats = demStats.sum(interp.getIssueStats());
+					demStats = demStats.sum(interp.getIssueStats().toDoubleIssueStats());
 				} else if (interp != null && "Republican".equals(sponsor.getTerms().last().getParty())) {
-					repubStats = repubStats.sum(interp.getIssueStats());
+					repubStats = repubStats.sum(interp.getIssueStats().toDoubleIssueStats());
 				}
 			}
 		}

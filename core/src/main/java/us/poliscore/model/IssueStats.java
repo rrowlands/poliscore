@@ -157,40 +157,53 @@ public class IssueStats {
 		return result;
 	}
 	
-	public IssueStats divide(double divisor)
+	public DoubleIssueStats divide(double divisor)
 	{
-		IssueStats result = new IssueStats();
+		DoubleIssueStats result = new DoubleIssueStats();
 		
 		for (TrackedIssue issue : stats.keySet())
 		{
-			result.setStat(issue, (int) Math.round((double)getStat(issue) / divisor));
+			result.setStat(issue, (double)getStat(issue) / divisor);
 		}
 		
 		return result;
 	}
 	
-	public IssueStats divideByTotalSummed()
+	public DoubleIssueStats divideByTotalSummed()
 	{
-		IssueStats result = new IssueStats();
+		DoubleIssueStats result = new DoubleIssueStats();
 		
 		for (TrackedIssue issue : stats.keySet())
 		{
 			if (!totalSummed.containsKey(issue)) throw new NoSuchElementException();
 			
-			result.setStat(issue, (int) Math.round((double)getStat(issue) / totalSummed.get(issue)));
+			result.setStat(issue, (double)getStat(issue) / totalSummed.get(issue));
 		}
 		
 		return result;
 	}
 	
-	public IssueStats multiply(double multiplier)
+	public DoubleIssueStats multiply(double multiplier)
 	{
-		IssueStats result = new IssueStats();
+		DoubleIssueStats result = new DoubleIssueStats();
 		
 		for (TrackedIssue issue : stats.keySet())
 		{
-			result.setStat(issue, (int) Math.round((double)getStat(issue) * multiplier));
+			result.setStat(issue, (double)getStat(issue) * multiplier);
 		}
+		
+		return result;
+	}
+	
+	public DoubleIssueStats toDoubleIssueStats()
+	{
+		DoubleIssueStats result = new DoubleIssueStats();
+		
+		for (TrackedIssue issue : stats.keySet())
+		{
+			result.setStat(issue, getStat(issue));
+		}
+		result.totalSummed = totalSummed;
 		
 		return result;
 	}

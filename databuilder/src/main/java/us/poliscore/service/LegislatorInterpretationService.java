@@ -17,18 +17,17 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.val;
 import us.poliscore.MissingBillTextException;
+import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.legislator.Legislator;
-import us.poliscore.model.legislator.LegislatorBillInteraction;
-import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.model.legislator.Legislator.CongressionalChamber;
+import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCosponsor;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillVote;
-import us.poliscore.parsing.BillSlicer;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryPersistenceService;
 
@@ -160,8 +159,8 @@ Based on these scores, this legislator has received the overall letter grade: {{
 		}
 	}
 	
-	public IssueStats calculateAgregateInteractionStats(Legislator leg) {
-		IssueStats stats = new IssueStats();
+	public DoubleIssueStats calculateAgregateInteractionStats(Legislator leg) {
+		DoubleIssueStats stats = new DoubleIssueStats();
 		
 		for (val interact : getInteractionsForInterpretation(leg))
 		{

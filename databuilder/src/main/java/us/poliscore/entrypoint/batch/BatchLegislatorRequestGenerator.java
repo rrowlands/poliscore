@@ -24,7 +24,7 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
-import us.poliscore.model.IssueStats;
+import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.LegislatorInterpretation;
@@ -112,7 +112,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 	{
 		legInterp.populateInteractionStats(leg);
 		
-		IssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
+		DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
 		
 		val topInteractions = legInterp.calculateTopInteractions(leg);
 		
@@ -133,7 +133,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 			}
 		}
 		
-		createRequest(LegislatorInterpretation.generateId(leg.getId()), LegislatorInterpretationService.getAiPrompt(leg, stats), String.join("\n", billMsgs));
+		createRequest(LegislatorInterpretation.generateId(leg.getId()), LegislatorInterpretationService.getAiPrompt(leg, stats.toIssueStats()), String.join("\n", billMsgs));
 	}
 
 	private void createRequest(String oid, String sysMsg, String userMsg) {

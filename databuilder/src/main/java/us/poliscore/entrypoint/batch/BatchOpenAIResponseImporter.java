@@ -22,6 +22,7 @@ import lombok.val;
 import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIResponse;
+import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
@@ -32,7 +33,6 @@ import us.poliscore.model.bill.BillText;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.legislator.LegislatorInterpretation;
-import us.poliscore.model.legislator.LegislatorInterpretationParser;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillService;
@@ -165,7 +165,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			}
 		}
 		
-		IssueStats stats = new IssueStats();
+		DoubleIssueStats doubleStats = new DoubleIssueStats();
 		
 		val interacts = new LegislatorBillInteractionSet();
 		for (val interact : legInterp.getInteractionsForInterpretation(leg))
@@ -173,13 +173,14 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			if (interact.getIssueStats() != null)
 			{
 				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
-				stats = stats.sum(weightedStats, Math.abs(interact.getJudgementWeight()));
+				doubleStats = doubleStats.sum(weightedStats, Math.abs(interact.getJudgementWeight()));
 				
 				interacts.add(interact);
 			}
 		}
 		
-		stats = stats.divideByTotalSummed();
+		doubleStats = doubleStats.divideByTotalSummed();
+		IssueStats stats = doubleStats.toIssueStats();
 		
 		val interp = new LegislatorInterpretation(OpenAIService.metadata(), leg, stats);
 		interp.setHash(legInterp.calculateInterpHashCode(leg));
@@ -246,17 +247,17 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			
 			if (slices.size() <= 1) { throw new RuntimeException("Expected multiple slices on [" + billId + "] since OpenAI did not include benefit to society issue stat"); }
 			
-			IssueStats billStats = new IssueStats();
+			DoubleIssueStats billStats = new DoubleIssueStats();
 			List<BillInterpretation> sliceInterps = new ArrayList<BillInterpretation>();
 			
 			for (int i = 0; i < slices.size(); ++i) {
 				val sliceInterp = s3.get(resp.getCustom_id() + "-" + i, BillInterpretation.class).orElseThrow();
 				
-				billStats = billStats.sum(sliceInterp.getIssueStats());
+				billStats = billStats.sum(sliceInterp.getIssueStats().toDoubleIssueStats());
 				sliceInterps.add(sliceInterp);
 			}
 			
-			bi.setIssueStats(billStats.divideByTotalSummed());
+			bi.setIssueStats(billStats.divideByTotalSummed().toIssueStats());
 			bi.setSliceInterpretations(sliceInterps);
 		}
 		

@@ -1,13 +1,11 @@
 package us.poliscore.entrypoint.batch;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -15,42 +13,30 @@ import org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.val;
 import us.poliscore.Environment;
-import us.poliscore.MissingBillTextException;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIRequest;
-import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
-import us.poliscore.model.AISliceInterpretationMetadata;
-import us.poliscore.model.IssueStats;
+import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
+import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillSlice;
 import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
-import us.poliscore.model.legislator.Legislator;
-import us.poliscore.model.legislator.LegislatorBillInteraction;
-import us.poliscore.model.legislator.LegislatorInterpretation;
-import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
-import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.RollCallService;
-import us.poliscore.service.storage.CachedS3Service;
-import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
-import us.poliscore.service.storage.LocalFilePersistenceService;
 import us.poliscore.service.storage.MemoryPersistenceService;
-import us.poliscore.service.storage.S3PersistenceService;
 
 /**
  * This bulk importer is designed to import a full dataset built with the github.com/unitedstates/congress toolkit 
@@ -150,16 +136,12 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	        		}
 	        		
 	        		if (sliceInterps.size() == slices.size()) {
-	        			IssueStats billStats = new IssueStats();
 	        			List<String> summaries = new ArrayList<String>();
 	            		
 	            		for (int i = 0; i < slices.size(); ++i)
 	            		{
-	            			billStats = billStats.sum(sliceInterps.get(i).getIssueStats());
 	            			summaries.add(sliceInterps.get(i).getLongExplain());
 	            		}
-	            		
-	            		billStats = billStats.divideByTotalSummed();
 	            		
 	            		val oid = BillInterpretation.generateId(b.getId(), null);
 	            		
