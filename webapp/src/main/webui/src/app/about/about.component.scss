@@ -242,6 +242,10 @@ input, select, textarea {
 		margin: 0 0 2em 0;
 	}
 
+	p + ul, p + ol {
+		margin-top: -1.7em;
+	}
+
 	h1, h2, h3, h4, h5, h6 {
 		font-weight: normal;
 		line-height: 1em;
@@ -3394,9 +3398,9 @@ input, select, textarea {
 		text-align: right;
 	}
 
-	.spotlight .content p {
-		text-indent: 3em;
-	}
+	// .spotlight .content p {
+	// 	text-indent: 3em;
+	// }
 
 	.spotlight .wrapper .inner:nth-child(2n) {
 		background-color: #fbfbfb;
