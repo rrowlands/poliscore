@@ -796,11 +796,6 @@ input, select, textarea {
 			padding: 3em 1.5em 1em 1.5em ;
 		}
 
-			#header .image {
-				font-size: 0.6em;
-				max-width: 60vw;
-			}
-
 	}
 
 @media screen and (max-width: 480px) and (orientation: landscape) {
@@ -853,13 +848,6 @@ input, select, textarea {
 
 @media screen and (max-width: 980px) and (orientation: portrait) {
 
-	.is-preload #header .content {
-		-moz-transform: none;
-		-webkit-transform: none;
-		-ms-transform: none;
-		transform: none;
-		opacity: 1;
-	}
 
 	.is-preload #header .image {
 		-moz-transform: translateY(2em);
