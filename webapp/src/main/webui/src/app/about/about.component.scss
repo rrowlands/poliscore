@@ -165,7 +165,7 @@ input, select, textarea {
 		background: #ffffff;
 	}
 
-		body.is-preload *, body.is-preload *:before, body.is-preload *:after {
+		.is-preload *, .is-preload *:before, .is-preload *:after {
 			-moz-animation: none !important;
 			-webkit-animation: none !important;
 			-ms-animation: none !important;
@@ -433,6 +433,20 @@ input, select, textarea {
 	background-size: auto, cover;
 	height: 100vh;
 	min-height: 35em;
+}
+
+#header .content {
+	-moz-transition: opacity 0.5s ease, -moz-transform 1s ease;
+	-webkit-transition: opacity 0.5s ease, -webkit-transform 1s ease;
+	-ms-transition: opacity 0.5s ease, -ms-transform 1s ease;
+	transition: opacity 0.5s ease, transform 1s ease;
+	-moz-transform: translateX(0);
+	-webkit-transform: translateX(0);
+	-ms-transform: translateX(0);
+	transform: translateX(0);
+	opacity: 1;
+	text-align: right;
+	margin: -3.5em 4em 0 0;
 }
 
 	#header input[type="submit"],
@@ -817,7 +831,7 @@ input, select, textarea {
 		background-attachment: scroll, scroll;
 	}
 
-	body.is-preload #header .content {
+	.is-preload #header .content {
 		-moz-transform: translateX(2em);
 		-webkit-transform: translateX(2em);
 		-ms-transform: translateX(2em);
@@ -825,7 +839,7 @@ input, select, textarea {
 		opacity: 0;
 	}
 
-	body.is-preload #header .image {
+	.is-preload #header .image {
 		-moz-transform: translateY(4em);
 		-webkit-transform: translateY(4em);
 		-ms-transform: translateY(4em);
@@ -833,13 +847,13 @@ input, select, textarea {
 		opacity: 0;
 	}
 
-		body.is-preload #header .image img {
+		.is-preload #header .image img {
 			opacity: 0;
 		}
 
 @media screen and (max-width: 980px) and (orientation: portrait) {
 
-	body.is-preload #header .content {
+	.is-preload #header .content {
 		-moz-transform: none;
 		-webkit-transform: none;
 		-ms-transform: none;
@@ -847,7 +861,7 @@ input, select, textarea {
 		opacity: 1;
 	}
 
-	body.is-preload #header .image {
+	.is-preload #header .image {
 		-moz-transform: translateY(2em);
 		-webkit-transform: translateY(2em);
 		-ms-transform: translateY(2em);

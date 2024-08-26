@@ -139,17 +139,3 @@ html {
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
-
-#header .content {
-	-moz-transition: opacity 0.5s ease, -moz-transform 1s ease;
-	-webkit-transition: opacity 0.5s ease, -webkit-transform 1s ease;
-	-ms-transition: opacity 0.5s ease, -ms-transform 1s ease;
-	transition: opacity 0.5s ease, transform 1s ease;
-	-moz-transform: translateX(0);
-	-webkit-transform: translateX(0);
-	-ms-transform: translateX(0);
-	transform: translateX(0);
-	opacity: 1;
-	text-align: right;
-	margin: -3.5em 4em 0 0;
-}
