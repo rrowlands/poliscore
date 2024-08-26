@@ -1,8 +1,8 @@
 **/target/**
 **/node_modules/**
 **/.quinoa/**
-graphics/press
-graphics/press.zip
+graphics/press-kit
+graphics/press-kit.zip
 
 # MacOSX
 **/.DS_Store
