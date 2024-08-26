@@ -1,4 +1,29 @@
 
+.popup-donate {
+	position: absolute;
+	bottom: 3px;
+	left:5px;
+	
+	-moz-transition: opacity 0.5s ease, -moz-transform 1s ease;
+	-webkit-transition: opacity 0.5s ease, -webkit-transform 1s ease;
+	-ms-transition: opacity 0.5s ease, -ms-transform 1s ease;
+	transition: opacity 0.5s ease, transform 1s ease;
+	-moz-transform: translateX(0);
+	-webkit-transform: translateX(0);
+	-ms-transform: translateX(0);
+	transform: translateX(0);
+	opacity: 1;
+}
+
+.popup-donate.hidden {
+	opacity: 0;
+
+	-moz-transform: translateX(-200%);
+	-webkit-transform: translateX(-200%);
+	-ms-transform: translateX(-200%);
+	transform: translateX(-200%);
+}
+
 .prompt {
 	background-color: rgba(202, 208, 219, 0.2);
 	padding: 20px;

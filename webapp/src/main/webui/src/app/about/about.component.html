@@ -1,4 +1,4 @@
-<div style="overflow: scroll; height: 100vh;" [class]="isPreload ? 'is-preload' : ''">
+<div style="overflow: scroll; height: 100vh;" (scroll)="onScroll($event)" [class]="isPreload ? 'is-preload' : ''">
 
 <!-- Header -->
 			<header id="header">
@@ -292,7 +292,7 @@ Based on these scores, this legislator has received the overall letter grade: {{
 					<li><a href="mailto:contact@poliscore.us" class="button primary icon solid fa-envelope" style="">Contact</a></li>
 					<!-- <li><a href="#" class="button primary icon solid fa-envelope">Donate</a></li> -->
 
-					<li><a class="dbox-donation-page-button" href="https://donorbox.org/poliscore?default_interval=o" class="button primary icon solid"><img src="https://donorbox.org/images/white_logo.svg" style="margin-right: 8px;">Donate</a></li>
+					<li><a href="https://donorbox.org/poliscore?default_interval=o" class="dbox-donation-page-button button primary icon solid"><img src="https://donorbox.org/images/white_logo.svg" style="margin-right: 8px;">Donate</a></li>
 					<li><a href="https://poliscore-prod-public.s3.amazonaws.com/press-kit.zip" class="button primary icon solid fa-download">Press Kit</a></li>
 				</ul>
 			</section>
@@ -615,6 +615,11 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 				</div>
 			</section>
 		-->
+
+		<!-- Donate bar -->
+		 <div class="popup-donate vertical-layout" [class]="donateBarHidden ? 'hidden' : ''"><div class="horizontal-layout" style="height: 100%;">
+			<a href="https://donorbox.org/poliscore?default_interval=o" class="dbox-donation-page-button button primary icon solid" style="width: 100px;"><img src="https://donorbox.org/images/white_logo.svg" style="margin-right: 8px;">Donate</a>
+		</div></div>
 
 		<!-- Footer -->
 			<footer id="footer">

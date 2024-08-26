@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -12,12 +12,26 @@ export class AboutComponent implements OnInit {
 
   public isPreload = true;
 
+  public donateBarHidden = true;
+
   constructor() { }
 
   ngOnInit(): void {
     setTimeout(() => {
       this.isPreload = false;
     }, 100);
+  }
+
+  onScroll(e: any) {
+    const el = e.target;
+
+    let scrollAmt = el.offsetHeight + el.scrollTop;
+
+    if (scrollAmt >= (el.scrollHeight * 0.35) && scrollAmt <= (el.scrollHeight - 1000)) {
+      this.donateBarHidden = false;
+    } else {
+      this.donateBarHidden = true;
+    }
   }
 
   public captureEmailForm(): void {
