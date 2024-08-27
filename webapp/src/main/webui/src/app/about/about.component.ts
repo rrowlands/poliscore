@@ -27,7 +27,7 @@ export class AboutComponent implements OnInit {
 
     let scrollAmt = el.offsetHeight + el.scrollTop;
 
-    if (scrollAmt >= (el.scrollHeight * 0.35) && scrollAmt <= (el.scrollHeight - 1000)) {
+    if (scrollAmt >= (el.scrollHeight * 0.30) && scrollAmt <= (el.scrollHeight - 1000)) {
       this.donateBarHidden = false;
     } else {
       this.donateBarHidden = true;
