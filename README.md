@@ -2,7 +2,7 @@
 
 This is the official codebase which powers https://poliscore.us.
 
-Poliscore is an effort to bring about more transparency, accountability and easier access to information within the political landscape.
+Poliscore is the world's first LLM-powered legislative rating service.
 
 The website is built upon the following technologies:
 
