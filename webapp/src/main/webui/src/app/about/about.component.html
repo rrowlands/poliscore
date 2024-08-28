@@ -28,6 +28,8 @@
 				</div>
 				<button class="button primary icon solid show-me image" style="min-width: 180px; padding: 0; width: 180px;"><a href="/legislators" routerLink="/legislators" class="unstyled" style="color: #81548f">Show me <i class="icon solid fa-solid fa-arrow-right" style="margin-right:-10px; margin-left:10px; color: #81548f !important;"></i></a></button>
 				<!-- <div class="image phone"><div class="inner"><img src="/images/screen.jpg" alt="" /></div></div> -->
+
+				<a class="fork-me" href="https://github.com/rrowlands/poliscore"><img decoding="async" width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_green_007200.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" loading="lazy" data-recalc-dims="1"></a>
 			</header>
 
 		<!-- One -->
@@ -78,7 +80,7 @@
 							<p>Every legislator on our website has on average 1000+ bill interactions which are used to calculate their performance metrics. This means that the ratings are:</p>
 							<ul>
 								<li>Based on legislative performance, not partisan rhetoric</li>
-								<li>Third-party verifiable - <a href="/about#bill-scoring">our AI prompts can be found below</a> and our software is open source</li>
+								<li>Third-party verifiable - <a href="/about#bill-scoring">our AI prompts can be found below</a> and <a href="https://github.com/rrowlands/poliscore">our software is open source</a></li>
 								<li>Non-partisan - We're not affiliated with or funded by any political party. All legislators are graded using the same non-partisan AI algorithm.</li>
 								<li>Not influenced by AI hallucinations or prompt quirks - Because legislator scores are the aggregate of 1000+ bill interactions, AI hallucinations or slight prompt tweaks don't make much difference in the legislator scores.</li>
 							</ul>
@@ -136,9 +138,9 @@
 						<div class="content">
 							<h3 class="content-header"><a href="/about#local-data">I Want State / Local Data</a></h3>
 
-							<p>Data at the State level is coming soon! Unfortunately it's going to be very expensive to generate and as such won't be offered for free like our national data. Given the scale and complexity of the task, it will also take us a while to get to all 50 states.</p>
+							<p>Data at the State level is unfortunately going to be very expensive to build and maintain and can't be offered for free, unlike our national data. Given the scale and complexity of the task, it will also take us a while to get to all 50 states.</p>
 
-							<p><a href="https://docs.google.com/forms/d/e/1FAIpQLSeG0hp_it7fZ0zipH_iegTnlp6AE2UYowWBHp59JryuLItkQw/viewform?usp=sf_link">If this is something you're interested in, please fill out our Google Form.</a></p>
+							<p><a href="https://docs.google.com/forms/d/e/1FAIpQLSeG0hp_it7fZ0zipH_iegTnlp6AE2UYowWBHp59JryuLItkQw/viewform?usp=sf_link">If this is something you're interested in, please fill out our Google Form. If enough people request it, we'll build it.</a></p>
 						</div>
 					</section>
 
@@ -293,15 +295,23 @@ Based on these scores, this legislator has received the overall letter grade: {{
 					<div class="vertical-layout"><p>If you're excited about what we're doing, there are plenty of ways to get involved.</p></div>
 				</header>
 				<ul class="actions special">
-					<li><a class="button primary vertical-layout" href="https://x.com/Poliscore22">
+					<li><a class="button primary vertical-layout" href="https://mastodon.social/@rrowlands">
 						
 						<div class="horizontal-layout">
 							Follow On 
-							<svg style="width: 20px; height: 20px; padding-left: 10px;" width="92" viewBox="0 0 1200 1227" fill="none" xmlns="http://www.w3.org/2000/svg">
-						<path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" fill="white"></path>
-						</svg></div>
+							<svg style="margin-left: 7px;" width="25" height="26" viewBox="0 0 75 79" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M73.8393 17.4898C72.6973 9.00165 65.2994 2.31235 56.5296 1.01614C55.05 0.797115 49.4441 0 36.4582 0H36.3612C23.3717 0 20.585 0.797115 19.1054 1.01614C10.5798 2.27644 2.79399 8.28712 0.904997 16.8758C-0.00358524 21.1056 -0.100549 25.7949 0.0682394 30.0965C0.308852 36.2651 0.355538 42.423 0.91577 48.5665C1.30307 52.6474 1.97872 56.6957 2.93763 60.6812C4.73325 68.042 12.0019 74.1676 19.1233 76.6666C26.7478 79.2728 34.9474 79.7055 42.8039 77.9162C43.6682 77.7151 44.5217 77.4817 45.3645 77.216C47.275 76.6092 49.5123 75.9305 51.1571 74.7385C51.1797 74.7217 51.1982 74.7001 51.2112 74.6753C51.2243 74.6504 51.2316 74.6229 51.2325 74.5948V68.6416C51.2321 68.6154 51.2259 68.5896 51.2142 68.5661C51.2025 68.5426 51.1858 68.522 51.1651 68.5058C51.1444 68.4896 51.1204 68.4783 51.0948 68.4726C51.0692 68.4669 51.0426 68.467 51.0171 68.4729C45.9835 69.675 40.8254 70.2777 35.6502 70.2682C26.7439 70.2682 24.3486 66.042 23.6626 64.2826C23.1113 62.762 22.7612 61.1759 22.6212 59.5646C22.6197 59.5375 22.6247 59.5105 22.6357 59.4857C22.6466 59.4609 22.6633 59.4391 22.6843 59.422C22.7053 59.4048 22.73 59.3929 22.7565 59.3871C22.783 59.3813 22.8104 59.3818 22.8367 59.3886C27.7864 60.5826 32.8604 61.1853 37.9522 61.1839C39.1768 61.1839 40.3978 61.1839 41.6224 61.1516C46.7435 61.008 52.1411 60.7459 57.1796 59.7621C57.3053 59.7369 57.431 59.7154 57.5387 59.6831C65.4861 58.157 73.0493 53.3672 73.8178 41.2381C73.8465 40.7606 73.9184 36.2364 73.9184 35.7409C73.9219 34.0569 74.4606 23.7949 73.8393 17.4898Z" fill="url(#paint0_linear_549_34)"/>
+								<path d="M61.2484 27.0263V48.114H52.8916V27.6475C52.8916 23.3388 51.096 21.1413 47.4437 21.1413C43.4287 21.1413 41.4177 23.7409 41.4177 28.8755V40.0782H33.1111V28.8755C33.1111 23.7409 31.0965 21.1413 27.0815 21.1413C23.4507 21.1413 21.6371 23.3388 21.6371 27.6475V48.114H13.2839V27.0263C13.2839 22.7176 14.384 19.2946 16.5843 16.7572C18.8539 14.2258 21.8311 12.926 25.5264 12.926C29.8036 12.926 33.0357 14.5705 35.1905 17.8559L37.2698 21.346L39.3527 17.8559C41.5074 14.5705 44.7395 12.926 49.0095 12.926C52.7013 12.926 55.6784 14.2258 57.9553 16.7572C60.1531 19.2922 61.2508 22.7152 61.2484 27.0263Z" fill="white"/>
+								<defs>
+								<linearGradient id="paint0_linear_549_34" x1="37.0692" y1="0" x2="37.0692" y2="79" gradientUnits="userSpaceOnUse">
+								<stop stop-color="#6364FF"/>
+								<stop offset="1" stop-color="#563ACC"/>
+								</linearGradient>
+								</defs>
+							</svg>
+						</div>
 					</a></li>
-					<li><a class="button primary" href="https://docs.google.com/forms/d/e/1FAIpQLSeG0hp_it7fZ0zipH_iegTnlp6AE2UYowWBHp59JryuLItkQw/viewform?usp=sf_link">Request Local Data</a></li>
+					<li><a class="button primary icon solid fa-pen-to-square" href="https://docs.google.com/forms/d/e/1FAIpQLSeG0hp_it7fZ0zipH_iegTnlp6AE2UYowWBHp59JryuLItkQw/viewform?usp=sf_link">Request Local Data</a></li>
 					<li><a (click)="captureEmailForm()" class="button primary icon solid fa-envelope" style="">Mailing List</a></li>
 					<li><a href="mailto:contact@poliscore.us" class="button primary icon solid fa-envelope" style="">Contact</a></li>
 					<!-- <li><a href="#" class="button primary icon solid fa-envelope">Donate</a></li> -->

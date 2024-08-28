@@ -40,7 +40,7 @@ import us.poliscore.model.dynamodb.DdbListPage;
 @ApplicationScoped
 public class DynamoDbPersistenceService implements PersistenceServiceIF
 {
-	public static final String TABLE_NAME = "poliscore2";
+	public static final String TABLE_NAME = "poliscore1";
 	
 	public static final String HEAD_PAGE = "0";
 	

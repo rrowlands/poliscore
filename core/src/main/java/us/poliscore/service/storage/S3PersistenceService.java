@@ -27,7 +27,7 @@ import us.poliscore.model.Persistable;
 public class S3PersistenceService implements PersistenceServiceIF
 {
 	
-	public static final String BUCKET_NAME = "poliscore-prod2";
+	public static final String BUCKET_NAME = "poliscore-prod1";
 	
 	private S3Client client;
 	

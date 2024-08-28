@@ -1,4 +1,3 @@
-
 .popup-donate {
 	position: absolute;
 	bottom: 3px;
@@ -437,6 +436,7 @@ input, select, textarea {
 /* Header */
 
 #header {
+	position: relative;
 	background-color: #81548f;
 	color: #d1e5f9;
 	padding: 4.5em 0 2.5em 0 ;
@@ -458,6 +458,14 @@ input, select, textarea {
 	background-size: auto, cover;
 	height: 100vh;
 	min-height: 35em;
+}
+
+#header .fork-me {
+	position: absolute;
+	color: transparent;
+	border-bottom-color: transparent;
+	top: 0;
+	right: 0;
 }
 
 #header .content {
