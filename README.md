@@ -10,3 +10,5 @@ The website is built upon the following technologies and is a fully serverless a
 - Angular SSG
 - DynamoDB
 - S3
+
+The project is fully open-sourced under MIT license.
