@@ -78,7 +78,7 @@ public class Sandbox implements QuarkusApplication
 		
 		
 		// TEST legislator bill linking
-		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "C001098"), Legislator.class).orElseThrow();
+		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "R000614"), Legislator.class).orElseThrow();
 		linkInterpBills(leg);
 		val out = leg.getInterpretation().getLongExplain();
 		
@@ -175,7 +175,7 @@ public class Sandbox implements QuarkusApplication
 				
 				val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")[^\\d]";
 				
-				Pattern pattern = Pattern.compile("(?i)\\s*" + billMatchPattern + "\\.?\\s*", Pattern.CASE_INSENSITIVE);
+				Pattern pattern = Pattern.compile("(?i)" + billMatchPattern + "", Pattern.CASE_INSENSITIVE);
 			    Matcher matcher = pattern.matcher(exp);
 			    while (matcher.find()) {
 			    	exp = exp.replaceFirst(matcher.group(1), "<a href=\"" + url + "\" >" + billName + "</a>");

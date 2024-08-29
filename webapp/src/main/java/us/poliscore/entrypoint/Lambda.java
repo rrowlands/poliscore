@@ -113,7 +113,7 @@ public class Lambda {
 				
 				val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")[^\\d]";
 				
-				Pattern pattern = Pattern.compile("(?i)\\s*" + billMatchPattern + "\\.?\\s*", Pattern.CASE_INSENSITIVE);
+				Pattern pattern = Pattern.compile("(?i)" + billMatchPattern + "", Pattern.CASE_INSENSITIVE);
 			    Matcher matcher = pattern.matcher(exp);
 			    while (matcher.find()) {
 			    	exp = exp.replaceFirst(matcher.group(1), "<a href=\"" + url + "\" >" + billName + "</a>");
