@@ -1,6 +1,7 @@
 .popup-donate {
 	position: absolute;
-	bottom: 3px;
+	height: 3em;
+	top: calc(100dvh - 3em - 3px);
 	left:5px;
 	
 	-moz-transition: opacity 0.5s ease, -moz-transform 1s ease;
@@ -21,6 +22,11 @@
 	-webkit-transform: translateX(-200%);
 	-ms-transform: translateX(-200%);
 	transform: translateX(-200%);
+}
+
+.kofi {
+	margin-right: 8px;
+	width: 30px;
 }
 
 .prompt {

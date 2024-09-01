@@ -219,7 +219,9 @@ export class LegislatorsComponent implements OnInit {
       this.searchOptions = data.allLegislators.concat(states.map(s => ["STATE/" + s[1], s[0]]));
       this.myLocation = data.location;
 
-      if (state == null && !routeParams) {
+      let hasntChangedUrl = (this.router.url == "" || this.router.url == "/" || this.router.url == "/legislators");
+
+      if (state == null && !routeParams && hasntChangedUrl) {
         this.router.navigate(['/legislators/state/' + data.location.toLowerCase()]);
       }
     }).finally(() => {
