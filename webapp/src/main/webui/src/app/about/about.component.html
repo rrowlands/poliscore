@@ -75,34 +75,30 @@
 			<!-- Two -->
 			<section id="two" class="wrapper">
 				<div class="inner alt">
+					<section class="spotlight" id="how-it-works">
+						<div class="image">
+                            <a href="/about#how-it-works"><img src="/images/robot-judge.png" alt="" /></a>
+                        </div>
+						<div class="content">
+							<h3 class="content-header"><a href="/about#how-it-works">How Does It Work?</a></h3>
+							<p>It all starts with bill interpretations. For every bill in the 118th congress, GPT-4o was fed the entire bill text, and then asked to predict the impact the bill would have to society, if it were passed, written as a number from -100 (harmful) to 100 (beneficial). This provides the foundation for our "performance metrics", and we then expand the concept by applying it to a list of policy areas (i.e. healthcare, environment, housing, etc.). This gives a simplified breakdown of how AI is predicting the impact to society, broken down by sector, and is incredibly useful for bills with more mixed or complex impacts.</p>
+							<p>Next comes legislator interpretations. Legislator metrics are produced from a weighted average of the last ~1000 bill interactions. These metrics are then fed to AI, along with some bill summaries, and AI is then asked to produce a critique of their recent legislative history. At a conceptual level, these legislator metrics represent the legislator's predicted impact to society, as estimated by AI, if all their legislation were able to be enacted as is.</p>
+						</div>
+					</section>
+
 					<section class="spotlight" id="verifiable-ratings">
 						<div class="image">
                             <a href="/about#verifiable-ratings"><img src="/images/poliscore2.png" alt="" /></a>
                         </div>
 						<div class="content">
 							<h3 class="content-header"><a href="/about#verifiable-ratings">Ratings Are Rooted in Verifiable Policy Decisions</a></h3>
-							<p>Every legislator on our website has on average 1000+ bill interactions which are used to calculate their performance metrics. This means that the ratings are:</p>
+							<p>Because every legislator on our website has on average 1000+ bill interactions which are used to calculate their performance metrics, this means that the ratings are:</p>
 							<ul>
 								<li>Based on legislative performance, not partisan rhetoric</li>
 								<li>Third-party verifiable - <a href="/about#bill-scoring">our AI prompts can be found below</a> and <a href="https://github.com/rrowlands/poliscore">our software is open source</a></li>
 								<li>Non-partisan - We're not affiliated with or funded by any political party or political organization. All legislators are graded using the same non-partisan AI algorithm.</li>
 								<li>Not influenced by AI hallucinations or prompt quirks - Because legislator scores are the aggregate of 1000+ bill interactions, AI hallucinations or slight prompt tweaks don't make much difference in the legislator scores.</li>
 							</ul>
-						</div>
-					</section>
-
-					<section class="spotlight" id="scoring-bills">
-						<div class="image">
-                            <a href="/about#scoring-bills"><img src="/images/robot-judge.png" alt="" /></a>
-                        </div>
-						<div class="content">
-							<h3 class="content-header"><a href="/about#scoring-bills">GPT-4o is Scary Good at Interpreting Bills</a></h3>
-							<p>Here are some revelations we've discovered while using AI to interpret 13K+ congressional bills</p>
-							<ol>
-								<li>Some of the bill text we interpreted is almost incomprehensible gibberish to the general public. <a href="https://www.congress.gov/bill/118th-congress/senate-joint-resolution/61">This is the raw bill text for SJRES 61.</a> From that bill text, AI somehow already knew the EPA regulation it was referencing, pulled in all its knowledge about climate change, and developed opinions about all the downstream effects this regulation could have, turning dense legalese into <a href="https://poliscore.us/bill/118/sjres/61">something the average person can understand.</a></li>
-								<li>Our AI doesn't just regurgitate more of what you're already reading. Because the insights come from interpreting very newly released bill text, sometimes there won't even be anything written online about the bill, and thus this could be the first time the AI has seen it. This proves the adapatable nature of LLMs.</li>
-								<li>GPT-4o displays evidence of what we consider to be independent thought. In the "<a href="https://poliscore.us/bill/118/hr/7823">Second Chance for Moms Act</a>," AI correctly identifies that mifepristone is not counteracted by natural progesterone and that the Federal Government placing a warning label on mifeprestone would contribute to confusion and ultimately be bad for society. It even references information published by the American College of Obstetricians and Gynecologists (ACOG).</li>
-							</ol>
 						</div>
 					</section>
 
