@@ -1,0 +1,90 @@
+<div>
+    <span class="purplebg"></span> <!-- There's a bug on Moible Chrome browsers where when the nav bar hides, it reveals the white bg. -->
+<div class="stripedbg">
+    <div *ngIf="loading" class="loader"></div>
+    <h1 *ngIf="!loading && stats == null" class="object-not-found"><a href="/">Stats not found!</a></h1>
+
+    <!--
+    <div style="width:800px; height:800px">
+        <canvas id="barChart"></canvas>
+    </div>
+-->
+
+<!---->
+    <div class="vertical-layout">
+        <div class="breadcrumb">
+            <a href="/">Home</a>
+            /
+            <a href="/sessionStats">Session Stats</a>
+
+            <a class="float-right" href="/about">About</a>
+        </div>
+
+        <mat-card class="tran-div">
+            <mat-card-content>
+                <div class="row">
+                    <div class="col-left vertical-layout">
+                        <!-- <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForLegislator())}">{{gradeForLegislator()}}</p></h1> -->
+                        <h1 class="card-title" style="text-align:center;">{{party}}</h1>
+                        <!-- <h3 class="card-subtitle" style="text-align:center;">{{subtitleForLegislator()}}</h3> -->
+                        
+                        <!-- <img class="leg-img img-fluid rounded-start" *ngIf="!leg?.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg?.id + '.jpg'" (error)="legPhotoError(leg)" > -->
+                        <img class="leg-img img-fluid rounded-start" style="max-height:360px;" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>
+
+                        <!-- <p class="reelection" *ngIf="upForReelection()">Up for reelection in November</p> -->
+                    </div>
+                    <div class="col-right">
+                        <div class="card-body chart-container">
+                            <canvas #barChart id="barChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    
+                </div>
+
+                <section *ngIf="stats != null">
+                    <!-- <h2>Interpretation</h2> -->
+                    <!-- <div class="leg-summary"><p *ngFor="let paragraph of leg?.interpretation?.longExplain?.split('\n')" [innerHTML]="paragraph"></p></div> -->
+
+                    <!-- <h2>Bill History</h2>
+                    <table mat-table [dataSource]="billData" class="bill-history-table mat-elevation-z8">
+
+                        <ng-container matColumnDef="billName">
+                            <th mat-header-cell *matHeaderCellDef>Bill Name</th>
+                            <td mat-cell *matCellDef="let element">
+                                {{element.billName}}
+
+                                <a fxFlexFill [href]="'/bill/' + element.billId.replace('BIL/us/congress/', '')" class="mat-row-link"></a>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="billGrade">
+                            <th mat-header-cell *matHeaderCellDef>Bill Grade</th>
+                            <td mat-cell *matCellDef="let element"> {{element.billGrade}} </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="association">
+                            <th mat-header-cell *matHeaderCellDef>Association</th>
+                            <td mat-cell *matCellDef="let element"> {{element.association}} </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="date">
+                            <th mat-header-cell *matHeaderCellDef>Date</th>
+                            <td mat-cell *matCellDef="let element"> {{element.date | date}} </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="getDisplayedColumns()"></tr>
+                        <tr mat-row *matRowDef="let row; columns: getDisplayedColumns();" class="mat-row"></tr>
+                    </table> -->
+                </section>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+</div>
+</div>
+
+
+<!-- <p class="card-text"><small class="text-body-secondary">{{leg?.interpretation?.issueStats?.explanation}}</small></p> -->
+<!-- <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small></p> -->

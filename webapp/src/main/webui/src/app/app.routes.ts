@@ -5,6 +5,7 @@ import { AboutComponent } from './about/about.component';
 import { LegislatorsComponent } from './legislators/legislators.component';
 import { BillComponent } from './bill/bill.component';
 import { BillsComponent } from './bills/bills.component';
+import { SessionStatsComponent } from './sessionstats/sessionstats.component';
 
 function idPathMatcher(path: string) {
   let p = path;
@@ -33,5 +34,6 @@ export const routes: Routes = [
   { path: 'bills', component: BillsComponent, data: { animation: 'billsPage' } },
   { path: 'bills/:index/:ascending', component: BillsComponent, data: { animation: 'billsPage' } },
   { matcher: idPathMatcher('bill'), component: BillComponent, data: { animation: 'billPage' } },
+  { path: 'sessionStats', component: SessionStatsComponent, data: { animation: 'sessionStatsPage' } },
   { path: 'about', component: AboutComponent, title: "About - PoliScore: non-partisan political rating service", data: { animation: 'about' } }
 ];

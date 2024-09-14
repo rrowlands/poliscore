@@ -46,7 +46,7 @@ export interface PartyStats extends IssueStats {
 
 export interface SessionStats {
   session: number;
-  stats: {
+  partyStats: {
     [key: string]: PartyStats;
   };
 }
@@ -85,9 +85,7 @@ export interface LegislatorInterpretation {
 }
 
 export interface IssueStats {
-    stats: {
-      [key: string]: number;
-    };
+    stats: any;
 }
 
 export class Page {

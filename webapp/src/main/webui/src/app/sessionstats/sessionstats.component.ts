@@ -1,19 +1,27 @@
-import { Component, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, Inject, PLATFORM_ID, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Chart, ChartConfiguration } from 'chart.js';
+import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement, Tooltip} from 'chart.js'
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { AppService } from '../app.service';
 import { Title } from '@angular/platform-browser';
 import { getBenefitToSocietyIssue, issueKeyToLabel, issueKeyToLabelSmall, SessionStats } from '../model';
-import { isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { MatCardModule } from '@angular/material/card'; 
+import { HttpClient } from '@angular/common/http';
+
+Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
 @Component({
-  selector: 'partystats',
+  selector: 'sessionstats',
   standalone: true,
-  imports: [],
-  templateUrl: './partystats.component.html',
-  styleUrl: './partystats.component.scss'
+  imports: [CommonModule, MatCardModule],
+  providers: [AppService, HttpClient],
+  templateUrl: './sessionstats.component.html',
+  styleUrl: './sessionstats.component.scss'
 })
-export class PartystatsComponent {
+export class SessionStatsComponent {
+
+  @ViewChild("barChart") barChart!: HTMLCanvasElement;
 
   public party: "REPUBLICAN" | "DEMOCRAT" | "INDEPENDENT" = "REPUBLICAN";
 
@@ -79,7 +87,9 @@ export class PartystatsComponent {
   async buildBarChartData() {
     if (this.party == null || this.stats == null) return;
 
-    let partyStats = this.stats.stats[this.party];
+    console.log(this.stats);
+
+    let partyStats = this.stats.partyStats[this.party].stats;
 
     let data: number[] = [];
     let labels: string[] = [];
@@ -88,7 +98,7 @@ export class PartystatsComponent {
     labels.push(getBenefitToSocietyIssue(partyStats)[0]);
 
     let i = 0;
-    for (const [key, value] of Object.entries(this.leg?.interpretation?.issueStats?.stats)
+    for (const [key, value] of Object.entries(partyStats.stats)
       .filter(kv => kv[0] != "OverallBenefitToSociety")
       .sort((a, b) => (b[1] as number) - (a[1] as number))) {
       data.push(value as number);
@@ -133,8 +143,9 @@ export class PartystatsComponent {
     }];
 
     if (isPlatformBrowser(this._platformId)) {
-      await this.waitForImage(document.querySelector('img'));
-      window.setTimeout(() => { this.renderBarChart(); }, 10);
+      // await this.waitForImage(document.querySelector('img'));
+      // window.setTimeout(() => { this.renderBarChart(); }, 10);
+      this.renderBarChart();
     }
   }
 

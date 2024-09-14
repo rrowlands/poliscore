@@ -2,6 +2,8 @@ package us.poliscore.model.dynamodb;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
@@ -9,6 +11,7 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.EnumAttributeConverter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.ImmutableMap;
+import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.VoteStatus;
 
 public class WorkaroundEnumAttributeConverter<T extends Enum<T>> implements AttributeConverter<T> {

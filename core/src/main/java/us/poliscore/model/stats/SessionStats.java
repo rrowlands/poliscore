@@ -105,6 +105,7 @@ public class SessionStats implements Persistable {
 		protected Integer benefitToSociety;
 		
 		@DynamoDbIgnore
+		@JsonIgnore
 		public Double getWeight() {
 			return (double)benefitToSociety * (cosponsors.size() + 1);
 		}

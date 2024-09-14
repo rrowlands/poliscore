@@ -4,8 +4,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import lombok.SneakyThrows;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
@@ -15,6 +15,7 @@ import us.poliscore.model.Party;
 import us.poliscore.model.stats.SessionStats.PartyStats;
 
 public class PartyStatsMapAttributeConverter implements AttributeConverter<Map<Party, PartyStats>> {
+  protected static final ObjectMapper mapper = PoliscoreUtil.getObjectMapper();
 
   @Override
   public AttributeValue transformFrom(final Map<Party, PartyStats> input) {
@@ -24,7 +25,7 @@ public class PartyStatsMapAttributeConverter implements AttributeConverter<Map<P
                     k -> k.getKey().name(),
                     v -> {
 						try {
-							return AttributeValue.builder().s(PoliscoreUtil.getObjectMapper().writeValueAsString(v.getValue())).build();
+							return AttributeValue.builder().s(mapper.writeValueAsString(v.getValue())).build();
 						} catch (JsonProcessingException e) {
 							throw new RuntimeException(e);
 						}
@@ -39,7 +40,7 @@ public class PartyStatsMapAttributeConverter implements AttributeConverter<Map<P
             Collectors.toMap(
                 k -> getEnumClassKeyByString(k.getKey()), v -> {
 					try {
-						return PoliscoreUtil.getObjectMapper().readValue(v.getValue().s(), PartyStats.class);
+						return mapper.readValue(v.getValue().s(), PartyStats.class);
 					} catch (JsonProcessingException e) {
 						throw new RuntimeException(e);
 					}

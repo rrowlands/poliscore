@@ -18,8 +18,10 @@ import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.Party;
 import us.poliscore.model.bill.Bill;
+import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.model.stats.SessionStats;
 import us.poliscore.model.stats.SessionStats.PartyBillInteraction;
 import us.poliscore.model.stats.SessionStats.PartyBillSet;
@@ -89,6 +91,8 @@ public class SessionStatsBuilder implements QuarkusApplication
 		val bestLegislators = new HashMap<Party, PriorityQueue<Legislator>>();
 		for(val party : Party.values()) {
 			doublePartyStats.put(party, new DoubleIssueStats());
+			
+			val p = party;
 			worstBills.put(party, new PriorityQueue<>((a,b) -> (int) Math.round(a.getWeight() - b.getWeight())));
 			bestBills.put(party, new PriorityQueue<>((a,b) -> (int) Math.round(b.getWeight() - a.getWeight())));
 			bestLegislators.put(party, new PriorityQueue<>((a,b) -> (int) Math.round(b.getRating() - a.getRating())));
@@ -98,25 +102,34 @@ public class SessionStatsBuilder implements QuarkusApplication
 		
 		// Calculate Stats //
 		for (val b : memService.query(Bill.class)) {
-			val op = ddb.get(b.getId(), Bill.class);
+			val op = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class);
+			
 			if (op.isPresent()) {
-				val interp = op.get().getInterpretation();
+				val interp = op.get();
 				val sponsor = memService.get(b.getSponsor().getId(), Legislator.class).orElseThrow();
 				val party = sponsor.getTerms().last().getParty();
-				
-				val ps = doublePartyStats.get(party);
-				doublePartyStats.put(party, ps.sum(interp.getIssueStats().toDoubleIssueStats()));
-				
-				val pbi = new PartyBillInteraction(b.getId(), b.getName(), b.getSponsor(), b.getCosponsors(), interp.getIssueStats().getRating());
+				val partyCosponsors = b.getCosponsors().stream().filter(sp -> memService.get(sp.getId(), Legislator.class).get().getParty().equals(party)).toList();
+						
+				val pbi = new PartyBillInteraction(b.getId(), b.getName(), b.getSponsor(), partyCosponsors, interp.getIssueStats().getRating());
 				bestBills.get(party).add(pbi);
 				worstBills.get(party).add(pbi);
 			}
 		}
 		for (val l : memService.query(Legislator.class).stream().filter(leg -> leg.isMemberOfSession(CongressionalSession.S118)).toList()) {
-			l.setInteractions(null);
-			l.setTerms(null);
-			bestLegislators.get(l.getParty()).add(l);
-			worstLegislators.get(l.getParty()).add(l);
+			val op = s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class);
+			
+			if (op.isPresent()) {
+				val interp = op.get();
+				val party = l.getParty();
+				
+				l.getInteractions().clear();
+				l.getTerms().clear();
+				bestLegislators.get(party).add(l);
+				worstLegislators.get(party).add(l);
+				
+				val ps = doublePartyStats.get(party);
+				doublePartyStats.put(party, ps.sum(interp.getIssueStats().toDoubleIssueStats()));
+			}
 		}
 		
 		// Build persistant data //
