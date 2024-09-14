@@ -34,6 +34,7 @@ export const routes: Routes = [
   { path: 'bills', component: BillsComponent, data: { animation: 'billsPage' } },
   { path: 'bills/:index/:ascending', component: BillsComponent, data: { animation: 'billsPage' } },
   { matcher: idPathMatcher('bill'), component: BillComponent, data: { animation: 'billPage' } },
-  { path: 'sessionStats', component: SessionStatsComponent, data: { animation: 'sessionStatsPage' } },
+  { path: 'congress', component: SessionStatsComponent, data: { animation: 'sessionStatsPage' } },
+  { path: 'congress/:session/:party', component: SessionStatsComponent, data: { animation: 'sessionStatsPage' } },
   { path: 'about', component: AboutComponent, title: "About - PoliScore: non-partisan political rating service", data: { animation: 'about' } }
 ];

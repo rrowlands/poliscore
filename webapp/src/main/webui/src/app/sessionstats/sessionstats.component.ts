@@ -72,6 +72,13 @@ export class SessionStatsComponent {
   constructor(private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
 
   ngOnInit(): void {
+    let session = this.route.snapshot.paramMap.get('session') as string;
+    let party = this.route.snapshot.paramMap.get('party') as string;
+
+    if (party != null) {
+      this.party = party.toUpperCase() as "REPUBLICAN" | "DEMOCRAT" | "INDEPENDENT";
+    }
+
     this.service.getSessionStats().then(stats => {
       this.stats = stats;
       this.loading = false;
