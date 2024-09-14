@@ -36,6 +36,21 @@ export interface BillInteraction {
   voteStatus?: string;
 }
 
+export interface PartyStats extends IssueStats {
+  party: string;
+  bestBills: Bill[];
+  worstBills: Bill[];
+  bestLegislators: Legislator[];
+  worstLegislators: Legislator[];
+}
+
+export interface SessionStats {
+  session: number;
+  stats: {
+    [key: string]: PartyStats;
+  };
+}
+
 export class Legislator {
     name!: {first: string, last: string, official_full: string};
     id!: string;
@@ -69,8 +84,10 @@ export interface LegislatorInterpretation {
     longExplain: string;
 }
 
-export class IssueStats {
-    stats: any;
+export interface IssueStats {
+    stats: {
+      [key: string]: number;
+    };
 }
 
 export class Page {

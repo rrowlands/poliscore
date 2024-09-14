@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpHeaders, HttpClient, HttpParams } from '@angular/common/http';
 import { backendUrl } from './app.config';
-import { Bill, BillInteraction, Legislator, LegislatorPageData, Page } from './model';
+import { Bill, BillInteraction, Legislator, LegislatorPageData, Page, SessionStats } from './model';
 import { firstValueFrom } from 'rxjs/internal/firstValueFrom';
 import { Observable } from 'rxjs';
 
@@ -16,6 +16,12 @@ export class AppDataPage {
 export class AppService {
     
     constructor(private http: HttpClient) { }
+
+    getSessionStats(): Promise<SessionStats | undefined> {
+        let params: HttpParams = new HttpParams();
+
+        return firstValueFrom(this.http.get<SessionStats>(backendUrl + "/getSessionStats", { params: params }));
+    }
 
     getLegislator(id: string): Promise<Legislator | undefined> {
         let params: HttpParams = new HttpParams();
