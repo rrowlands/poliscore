@@ -16,22 +16,24 @@ import lombok.NonNull;
 import lombok.val;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
+import us.poliscore.model.CongressionalSession;
+import us.poliscore.model.LegislativeNamespace;
+import us.poliscore.model.Party;
+import us.poliscore.model.Persistable;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.CompressedLegislatorBillInteractionSetConverter;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverterProvider;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorLegislativeTermSortedSetConverter;
-import us.poliscore.model.CongressionalSession;
-import us.poliscore.model.LegislativeNamespace;
-import us.poliscore.model.Persistable;
 import us.poliscore.model.dynamodb.DdbDataPage;
 
 @Data
 @DynamoDbBean
 @NoArgsConstructor
 @RegisterForReflection
-public class Legislator implements Persistable {
+public class Legislator implements Persistable, Comparable<Legislator> {
 	
 	public static final String ID_CLASS_PREFIX = "LEG";
 	
@@ -75,6 +77,13 @@ public class Legislator implements Persistable {
 		if (!interactions.contains(incoming)) {
 			interactions.add(incoming);
 		}
+	}
+	
+	@JsonIgnore
+	@DynamoDbIgnore
+	public Party getParty()
+	{
+		return this.terms.last().getParty();
 	}
 	
 	public boolean isMemberOfSession(CongressionalSession session) {
@@ -134,7 +143,7 @@ public class Legislator implements Persistable {
 		
 		protected Integer district;
 		
-		protected String party;
+		protected Party party;
 		
 		protected CongressionalChamber chamber;
 
@@ -157,5 +166,10 @@ public class Legislator implements Persistable {
 	
 	@DynamoDbBean
 	public static class LegislatorLegislativeTermSortedSet extends TreeSet<LegislativeTerm> {}
+
+	@Override
+	public int compareTo(Legislator o) {
+		return Integer.valueOf(this.getRating()).compareTo(o.getRating());
+	}
 	
 }

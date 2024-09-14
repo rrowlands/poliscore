@@ -68,6 +68,8 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	
 	private long tokenLen = 0;
 	
+	private long totalRequests = 0;
+	
 	private List<BatchOpenAIRequest> requests = new ArrayList<BatchOpenAIRequest>();
 	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
@@ -177,6 +179,18 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		
 		writeBlock(requests, block++);
 		
+		if (totalRequests == 0) {
+			val mostRecent = memService.query(Bill.class).stream()
+					.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
+					.limit(100)
+					.filter(b -> (!CHECK_S3_EXISTS || !billInterpreter.isInterpreted(b.getId())))
+					.limit(10)
+					.map(b -> Arrays.asList(b.getId(), s3.exists(BillText.generateId(b.getId()), BillText.class)))
+					.toList();
+			
+			System.out.println(mostRecent);
+		}
+		
 		System.out.println("Program complete.");
 	}
 	
@@ -210,6 +224,8 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		}).toList();
 		
 		FileUtils.write(f, String.join("\n", s), "UTF-8");
+		
+		totalRequests += requests.size();
 		
 		System.out.println("Successfully wrote " + requests.size() + " requests to " + f.getAbsolutePath());
 	}

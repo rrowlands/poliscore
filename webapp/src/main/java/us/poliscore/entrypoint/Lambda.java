@@ -38,6 +38,7 @@ import us.poliscore.model.bill.Bill;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
+import us.poliscore.model.stats.SessionStats;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.CachedDynamoDbService;
 
@@ -65,6 +66,18 @@ public class Lambda {
     private static List<Bill> allBillsDump;
     
     private static List<List<String>> allBillsIndex;
+    
+    @GET
+    @Path("getSessionStats")
+    public SessionStats getSessionStats() {
+    	val op = ddb.get(SessionStats.generateId(PoliscoreUtil.SUPPORTED_CONGRESSES.get(0)), SessionStats.class);
+    	
+    	if (op.isPresent()) {
+    		return op.get();
+    	}
+    	
+    	return op.orElse(null);
+    }
     
     @GET
     @Path("getLegislator")

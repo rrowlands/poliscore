@@ -38,6 +38,8 @@ public class Bill implements Persistable {
 	
 	protected BillType type;
 	
+//	protected BillStatus status;
+	
 	protected int number;
 	
 	protected String name;

@@ -15,6 +15,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.val;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
+import us.poliscore.model.dynamodb.IssueStatsMapAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 
