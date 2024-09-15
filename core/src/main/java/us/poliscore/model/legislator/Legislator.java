@@ -68,7 +68,7 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 		throw new NullPointerException();
 	}
 	
-	public void setId(String id) { this.bioguideId = id; }
+	public void setId(String id) { }
 	
 	public void addBillInteraction(LegislatorBillInteraction incoming)
 	{

@@ -13,6 +13,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Observable, debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs';
 import { BillComponent } from '../bill/bill.component';
 import { Title } from '@angular/platform-browser';
+import { descriptionForBill, gradeForBill, subtitleForBill } from '../bills';
 
 @Component({
   selector: 'bills',
@@ -191,66 +192,8 @@ export class BillsComponent implements OnInit {
     });
   }
 
-  routeTo(bill: Bill)
-  {
-    document.getElementById(bill.id)?.classList.add("tran-div");
-    this.router.navigate(['/bill/' + bill.id.replace("BIL/us/congress", "")]);
-  }
-
-  descriptionForBill(bill: Bill): string
-  {
-    return bill.interpretation.shortExplain.substring(0, 300) + "...";
-  }
-
-  // descriptionForBill(bill: Bill): string
-  // {
-  //   var issueStats: any = Object.entries(bill?.interpretation?.issueStats?.stats)
-  //     .filter(kv => kv[0] != "OverallBenefitToSociety")
-  //     .sort((a,b) => Math.abs(b[1] as number) - Math.abs(a[1] as number))
-  //     // .map(kv => issueKeyToLabel(kv[0]));
-
-  //   if (window.innerWidth < 480) {
-  //     issueStats = issueStats.map((kv: any) => issueKeyToLabelSmall(kv[0]));
-  //   } else {
-  //     issueStats = issueStats.map((kv: any) => issueKeyToLabel(kv[0]));
-  //   }
-
-  //   issueStats = issueStats.slice(0, Math.min(3, issueStats.length));
-
-  //   return "Focuses on " + issueStats.join(", ");
-  // }
-
-  gradeForBill(bill: Bill): string
-  {
-    /*
-    let credit = Object.entries(leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number;
-
-    if (credit >= 50) return "A";
-    else if (credit >= 30 && credit < 50) return "B";
-    else if (credit >= 10 && credit < 30) return "C";
-    else if (credit > 0 && credit < 10) return "D";
-    else if (credit <= 0) return "F";
-    else return "Not enough data";
-    */
-
-    return gradeForStats(bill.interpretation?.issueStats!);
-  }
-
-  colorForGrade(grade: string): string {
-    return colorForGrade(grade);
-  }
-
-  subtitleForBill(bill: Bill): string
-  {
-    // return subtitleForStats(leg.interpretation?.issueStats!);
-
-    // let term = bill.terms[bill.terms.length - 1];
-
-    // return (term.chamber == "SENATE" ? "Senator" : "House") + " (" + convertStateCodeToName(term.state) + ")";
-
-    let chamber = bill.type.toLowerCase().startsWith("s") ? "Senate" : "House";
-
-    return "Sponsor: " + bill.sponsor.name + " (" + chamber + ")";
-  }
-
+  gradeForBill(bill: Bill): string { return gradeForBill(bill); }
+  subtitleForBill(bill: Bill) { return subtitleForBill(bill); }
+  descriptionForBill(bill: Bill) { return descriptionForBill(bill); }
+  colorForGrade(grade: string): string { return colorForGrade(grade); }
 }

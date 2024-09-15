@@ -9,6 +9,8 @@ export interface Bill {
   introducedDate: string;
   id: string;
   interpretation: BillInterpretation;
+  rating?: number;
+  shortExplain?: string;
 }
 
 export interface BillInterpretation {
@@ -155,22 +157,17 @@ export function getBenefitToSocietyIssue(issueStats: IssueStats): [string, numbe
 export function gradeForStats(issueStats: IssueStats): string {
   if (issueStats == null || getBenefitToSocietyIssue(issueStats) == null) return "?";
 
-  let credit = getBenefitToSocietyIssue(issueStats)[1];
+  let rating = getBenefitToSocietyIssue(issueStats)[1];
 
-  /*
-  if (credit >= 30) return "A";
-  else if (credit > 10 && credit < 30) return "B";
-  else if (credit >= -10 && credit <= 10) return "C";
-  else if (credit > -30 && credit < -10) return "D";
-  else if (credit <= -30) return "F";
-  else return "?";
-  */
+  return gradeForRating(rating);
+}
 
-  if (credit >= 40) return "A";
-  else if (credit >= 30 && credit < 40) return "B";
-  else if (credit >= 15 && credit < 30) return "C";
-  else if (credit >= 0 && credit < 15) return "D";
-  else if (credit < 0) return "F";
+export function gradeForRating(rating: number): string {
+  if (rating >= 40) return "A";
+  else if (rating >= 30 && rating < 40) return "B";
+  else if (rating >= 15 && rating < 30) return "C";
+  else if (rating >= 0 && rating < 15) return "D";
+  else if (rating < 0) return "F";
   else return "?";
 }
 

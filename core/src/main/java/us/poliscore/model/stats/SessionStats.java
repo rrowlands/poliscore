@@ -1,10 +1,11 @@
 package us.poliscore.model.stats;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -25,6 +26,7 @@ import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.bill.Bill.BillSponsor;
+import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverterProvider;
 import us.poliscore.model.dynamodb.PartyStatsMapAttributeConverter;
 import us.poliscore.model.legislator.Legislator;
@@ -89,11 +91,14 @@ public class SessionStats implements Persistable {
 	public static class PartyBillInteraction implements Comparable<PartyBillInteraction>
 	{
 		@NonNull
-		protected String billId;
+		protected String id;
 		
 		@NonNull
 		@EqualsAndHashCode.Exclude
-		protected String billName;
+		protected String name;
+		
+		@EqualsAndHashCode.Exclude
+		protected LocalDate introducedDate;
 		
 		@EqualsAndHashCode.Exclude
 		protected BillSponsor sponsor;
@@ -102,12 +107,15 @@ public class SessionStats implements Persistable {
 		protected List<BillSponsor> cosponsors;
 		
 		@EqualsAndHashCode.Exclude
-		protected Integer benefitToSociety;
+		protected Integer rating;
+		
+		@EqualsAndHashCode.Exclude
+		protected String shortExplain;
 		
 		@DynamoDbIgnore
 		@JsonIgnore
 		public Double getWeight() {
-			return (double)benefitToSociety * (cosponsors.size() + 1);
+			return (double)rating * (cosponsors.size() + 1);
 		}
 
 		@Override
@@ -116,9 +124,13 @@ public class SessionStats implements Persistable {
 		}
 	}
 	
+	/**
+	 * TreeSet was decided against for these methods because TreeSet doesn't allow duplicates on the 'compareTo' method (which is sorted on rating for legislators)
+	 */
+	
 	@DynamoDbBean(converterProviders = LegislatorBillInteractionSetConverterProvider.class)
 	@NoArgsConstructor
-	public static class PartyBillSet extends TreeSet<PartyBillInteraction> {
+	public static class PartyBillSet extends ArrayList<PartyBillInteraction> {
 
 		public PartyBillSet(Collection c) {
 			super(c);
@@ -127,7 +139,7 @@ public class SessionStats implements Persistable {
 	
 	@DynamoDbBean(converterProviders = LegislatorBillInteractionSetConverterProvider.class)
 	@NoArgsConstructor
-	public static class PartyLegislatorSet extends TreeSet<Legislator> {
+	public static class PartyLegislatorSet extends ArrayList<Legislator> {
 
 		public PartyLegislatorSet(Collection c) {
 			super(c);

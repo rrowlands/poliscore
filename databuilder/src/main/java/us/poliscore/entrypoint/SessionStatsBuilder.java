@@ -24,8 +24,6 @@ import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.model.stats.SessionStats;
 import us.poliscore.model.stats.SessionStats.PartyBillInteraction;
-import us.poliscore.model.stats.SessionStats.PartyBillSet;
-import us.poliscore.model.stats.SessionStats.PartyLegislatorSet;
 import us.poliscore.model.stats.SessionStats.PartyStats;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
@@ -110,7 +108,7 @@ public class SessionStatsBuilder implements QuarkusApplication
 				val party = sponsor.getTerms().last().getParty();
 				val partyCosponsors = b.getCosponsors().stream().filter(sp -> memService.get(sp.getId(), Legislator.class).get().getParty().equals(party)).toList();
 						
-				val pbi = new PartyBillInteraction(b.getId(), b.getName(), b.getSponsor(), partyCosponsors, interp.getIssueStats().getRating());
+				val pbi = new PartyBillInteraction(b.getId(), b.getName(), b.getIntroducedDate(), b.getSponsor(), partyCosponsors, interp.getIssueStats().getRating(), interp.getShortExplain().substring(0, 300));
 				bestBills.get(party).add(pbi);
 				worstBills.get(party).add(pbi);
 			}
@@ -123,7 +121,13 @@ public class SessionStatsBuilder implements QuarkusApplication
 				val party = l.getParty();
 				
 				l.getInteractions().clear();
+				
+				val t = l.getTerms().last();
 				l.getTerms().clear();
+				l.getTerms().add(t);
+				
+				l.setInterpretation(interp);
+				
 				bestLegislators.get(party).add(l);
 				worstLegislators.get(party).add(l);
 				
@@ -142,11 +146,21 @@ public class SessionStatsBuilder implements QuarkusApplication
 			ps.setStats(stats.toIssueStats());
 			
 			ps.setParty(party);
-			ps.setBestBills(bestBills.get(party).stream().limit(10).collect(Collectors.toCollection(PartyBillSet::new)));
-			ps.setWorstBills(worstBills.get(party).stream().limit(10).collect(Collectors.toCollection(PartyBillSet::new)));
-			ps.setBestLegislators(bestLegislators.get(party).stream().limit(10).collect(Collectors.toCollection(PartyLegislatorSet::new)));
-			ps.setWorstLegislators(worstLegislators.get(party).stream().limit(10).collect(Collectors.toCollection(PartyLegislatorSet::new)));
 			
+			for (int i = 0; i < 10; ++i) {
+				if (!bestBills.get(party).isEmpty()) ps.getBestBills().add(bestBills.get(party).poll());
+				if (!worstBills.get(party).isEmpty()) ps.getWorstBills().add(worstBills.get(party).poll());
+				if (!bestLegislators.get(party).isEmpty()) ps.getBestLegislators().add(bestLegislators.get(party).poll());
+				if (!worstLegislators.get(party).isEmpty()) ps.getWorstLegislators().add(worstLegislators.get(party).poll());
+			}
+//			ps.setBestBills(bestBills.get(party).stream().limit(10).collect(Collectors.toCollection(PartyBillSet::new)));
+//			ps.setWorstBills(worstBills.get(party).stream().limit(10).collect(Collectors.toCollection(PartyBillSet::new)));
+//			ps.setBestLegislators(bestLegislators.get(party).stream().limit(10).collect(Collectors.toCollection(PartyLegislatorSet::new)));
+//			ps.setWorstLegislators(worstLegislators.get(party).stream().limit(10).collect(Collectors.toCollection(PartyLegislatorSet::new)));
+			
+//			ps.getBestLegislators().forEach(l -> l.setInterpretation(s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class).get()));
+//			ps.getWorstLegislators().forEach(l -> l.setInterpretation(s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class).get()));
+
 			partyStats.put(party, ps);
 		}
 		

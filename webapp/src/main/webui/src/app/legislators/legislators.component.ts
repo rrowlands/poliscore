@@ -12,6 +12,7 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Observable, map, startWith } from 'rxjs';
 import { Title } from '@angular/platform-browser';
+import { descriptionForLegislator, gradeForLegislator, subtitleForLegislator, upForReelection } from '../legislators';
 
 @Component({
   selector: 'legislators',
@@ -237,55 +238,10 @@ export class LegislatorsComponent implements OnInit {
     this.router.navigate(['/legislator/' + leg.id.replace("LEG/us/congress", "")]);
   }
 
-  descriptionForLegislator(leg: Legislator): string
-  {
-    var issueStats: any = Object.entries(leg?.interpretation?.issueStats?.stats)
-      .filter(kv => kv[0] != "OverallBenefitToSociety")
-      .sort((a,b) => Math.abs(b[1] as number) - Math.abs(a[1] as number))
-      // .map(kv => issueKeyToLabel(kv[0]));
 
-    if (isPlatformBrowser(this._platformId) && window.innerWidth < 480) {
-      issueStats = issueStats.map((kv: any) => issueKeyToLabelSmall(kv[0]));
-    } else {
-      issueStats = issueStats.map((kv: any) => issueKeyToLabel(kv[0]));
-    }
-
-    issueStats = issueStats.slice(0, Math.min(3, issueStats.length));
-
-    return "Focuses on " + issueStats.join(", ");
-  }
-
-  upForReelection(leg: Legislator) {
-    return leg && leg!.terms![leg!.terms!.length - 1].endDate === (new Date().getFullYear() + 1) + '-01-03';
-  }
-
-  gradeForLegislator(leg: Legislator): string
-  {
-    /*
-    let credit = Object.entries(leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number;
-
-    if (credit >= 50) return "A";
-    else if (credit >= 30 && credit < 50) return "B";
-    else if (credit >= 10 && credit < 30) return "C";
-    else if (credit > 0 && credit < 10) return "D";
-    else if (credit <= 0) return "F";
-    else return "Not enough data";
-    */
-
-    return gradeForStats(leg.interpretation?.issueStats!);
-  }
-
-  colorForGrade(grade: string): string {
-    return colorForGrade(grade);
-  }
-
-  subtitleForLegislator(leg: Legislator): string
-  {
-    // return subtitleForStats(leg.interpretation?.issueStats!);
-
-    let term = leg.terms[leg.terms.length - 1];
-
-    return (term.chamber == "SENATE" ? "Senator" : "House") + " (" + convertStateCodeToName(term.state) + ")";
-  }
-
+  colorForGrade(grade: any): any { return colorForGrade(grade); }
+  gradeForLegislator(leg: Legislator): any { return gradeForLegislator(leg); }
+  subtitleForLegislator(leg: Legislator) { return subtitleForLegislator(leg); }
+  descriptionForLegislator(leg: Legislator) { return descriptionForLegislator(leg, isPlatformBrowser(this._platformId) && window.innerWidth < 480); }
+  upForReelection(leg: Legislator): any { return upForReelection(leg); }
 }

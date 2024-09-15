@@ -15,7 +15,7 @@
         <div class="breadcrumb">
             <a href="/">Home</a>
             /
-            <a href="/sessionStats">Session Stats</a>
+            <a href="/congress">Party Stats</a>
 
             <a class="float-right" href="/about">About</a>
         </div>
@@ -55,41 +55,62 @@
                     <!-- <h2>Interpretation</h2> -->
                     <!-- <div class="leg-summary"><p *ngFor="let paragraph of leg?.interpretation?.longExplain?.split('\n')" [innerHTML]="paragraph"></p></div> -->
 
-                    <!-- <h2>Bill History</h2>
-                    <table mat-table [dataSource]="billData" class="bill-history-table mat-elevation-z8">
-
-                        <ng-container matColumnDef="billName">
-                            <th mat-header-cell *matHeaderCellDef>Bill Name</th>
-                            <td mat-cell *matCellDef="let element">
-                                {{element.billName}}
-
-                                <a fxFlexFill [href]="'/bill/' + element.billId.replace('BIL/us/congress/', '')" class="mat-row-link"></a>
-                            </td>
-                        </ng-container>
-
-                        <ng-container matColumnDef="billGrade">
-                            <th mat-header-cell *matHeaderCellDef>Bill Grade</th>
-                            <td mat-cell *matCellDef="let element"> {{element.billGrade}} </td>
-                        </ng-container>
-
-                        <ng-container matColumnDef="association">
-                            <th mat-header-cell *matHeaderCellDef>Association</th>
-                            <td mat-cell *matCellDef="let element"> {{element.association}} </td>
-                        </ng-container>
-
-                        <ng-container matColumnDef="date">
-                            <th mat-header-cell *matHeaderCellDef>Date</th>
-                            <td mat-cell *matCellDef="let element"> {{element.date | date}} </td>
-                        </ng-container>
-
-                        <tr mat-header-row *matHeaderRowDef="getDisplayedColumns()"></tr>
-                        <tr mat-row *matRowDef="let row; columns: getDisplayedColumns();" class="mat-row"></tr>
-                    </table> -->
+                    
                 </section>
             </mat-card-content>
         </mat-card>
-    </div>
 
+        <div class="horizontal-layout breadcrumb">
+            <h1><a [href]="'/congress/' + session + '/' + party.toLowerCase() + '/best-legislators'">Best Legislators</a></h1>
+            <h1><a [href]="'/congress/' + session + '/' + party.toLowerCase() + '/worst-legislators'">Worst Legislators</a></h1>
+            <h1><a [href]="'/congress/' + session + '/' + party.toLowerCase() + '/best-bills'">Best Bills</a></h1>
+            <h1><a [href]="'/congress/' + session + '/' + party.toLowerCase() + '/worst-bills'">Worst Bills</a></h1>
+        </div>
+
+        <div class="vertical-layout" *ngIf="stats && sort.indexOf('Legislators') !== -1">
+            <mat-card *ngFor="let leg of getData()" class="example-card" appearance="outlined">
+                <a [href]="'/legislator/' + leg.id.replace('LEG/us/congress/', '')">
+                    <div class="left">
+                        <img *ngIf="!leg.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" (error)="leg.photoError = true;" >
+                        <img *ngIf="leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>
+                    </div>
+                    <div class="right">
+                        <mat-card-header>
+                            <mat-card-title-group>
+                                <mat-card-title>{{leg.name.official_full}}</mat-card-title>
+                                <h1 class="col-2 g-0"><p class="text-end" style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForLegislator(leg))}">{{gradeForLegislator(leg)}}</p></h1>
+                                <mat-card-subtitle>{{subtitleForLegislator(leg)}}</mat-card-subtitle>
+                            </mat-card-title-group>
+                        </mat-card-header>
+                        <mat-card-content>
+                            <span><p>{{descriptionForLegislator(leg)}}</p></span>
+                        </mat-card-content>
+                        <mat-card-footer class="horizontal-layout">
+                            <p class="reelection" *ngIf="upForReelection(leg)">Up for reelection in Nov</p>
+                        </mat-card-footer>
+                    </div>
+                </a>
+            </mat-card>
+        </div>
+
+        <div class="vertical-layout" *ngIf="stats && sort.indexOf('Bills') !== -1">
+            <mat-card *ngFor="let bill of getData()" class="example-card" appearance="outlined">
+                <a [href]="'/bill/' + bill.id.replace('BIL/us/congress/', '')">
+                    <mat-card-header>
+                        <mat-card-title-group>
+                            <h4 class="title-date"><p style="padding-left:12px;">{{bill.introducedDate}}</p></h4>
+                            <mat-card-title>{{bill.name}}</mat-card-title>
+                            <h1 class="title-grade"><p style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForBill(bill))}">{{gradeForBill(bill)}}</p></h1>
+                            <mat-card-subtitle>{{subtitleForBill(bill)}}</mat-card-subtitle>
+                        </mat-card-title-group>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <span><p>{{descriptionForBill(bill)}}</p></span>
+                    </mat-card-content>
+                </a>
+            </mat-card>
+        </div>
+    </div>
 </div>
 </div>
 

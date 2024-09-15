@@ -4,17 +4,20 @@ import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, B
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { AppService } from '../app.service';
 import { Title } from '@angular/platform-browser';
-import { getBenefitToSocietyIssue, issueKeyToLabel, issueKeyToLabelSmall, SessionStats } from '../model';
+import { Bill, colorForGrade, getBenefitToSocietyIssue, issueKeyToLabel, issueKeyToLabelSmall, Legislator, SessionStats } from '../model';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatCardModule } from '@angular/material/card'; 
 import { HttpClient } from '@angular/common/http';
+import { MatTableModule } from '@angular/material/table';
+import { gradeForLegislator, subtitleForLegislator, descriptionForLegislator, upForReelection } from '../legislators';
+import { gradeForBill, subtitleForBill, descriptionForBill } from '../bills';
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
 @Component({
   selector: 'sessionstats',
   standalone: true,
-  imports: [CommonModule, MatCardModule],
+  imports: [CommonModule, MatCardModule, MatTableModule],
   providers: [AppService, HttpClient],
   templateUrl: './sessionstats.component.html',
   styleUrl: './sessionstats.component.scss'
@@ -24,6 +27,10 @@ export class SessionStatsComponent {
   @ViewChild("barChart") barChart!: HTMLCanvasElement;
 
   public party: "REPUBLICAN" | "DEMOCRAT" | "INDEPENDENT" = "REPUBLICAN";
+
+  public sort: "bestLegislators" | "worstLegislators" | "bestBills" | "worstBills" = "bestLegislators";
+
+  public session: string = "118";
 
   public stats?: SessionStats;
 
@@ -73,10 +80,26 @@ export class SessionStatsComponent {
 
   ngOnInit(): void {
     let session = this.route.snapshot.paramMap.get('session') as string;
-    let party = this.route.snapshot.paramMap.get('party') as string;
+    if (session != null) {
+      this.session = session;
+    }
 
+    let party = this.route.snapshot.paramMap.get('party') as string;
     if (party != null) {
       this.party = party.toUpperCase() as "REPUBLICAN" | "DEMOCRAT" | "INDEPENDENT";
+    }
+
+    let sort = this.route.snapshot.paramMap.get('sort') as string;
+    if (sort != null) {
+      if (sort == 'best-legislators') {
+        this.sort = "bestLegislators";
+      } else if (sort == 'worst-legislators') {
+        this.sort = "worstLegislators";
+      } else if (sort == 'best-bills') {
+        this.sort = "bestBills";
+      } else if (sort == 'worst-bills') {
+        this.sort = "worstBills";
+      }
     }
 
     this.service.getSessionStats().then(stats => {
@@ -89,6 +112,10 @@ export class SessionStatsComponent {
 
       this.buildBarChartData();
     });
+  }
+
+  public getData() {
+    return (this.stats!.partyStats[this.party] as any)[this.sort];
   }
 
   async buildBarChartData() {
@@ -167,4 +194,13 @@ export class SessionStatsComponent {
       }
     );
   }
+
+  colorForGrade(grade: any): any { return colorForGrade(grade); }
+  gradeForLegislator(leg: Legislator): any { return gradeForLegislator(leg); }
+  subtitleForLegislator(leg: Legislator) { return subtitleForLegislator(leg); }
+  descriptionForLegislator(leg: Legislator) { return descriptionForLegislator(leg, isPlatformBrowser(this._platformId) && window.innerWidth < 480); }
+  upForReelection(leg: Legislator): any { return upForReelection(leg); }
+  gradeForBill(bill: Bill): string { return gradeForBill(bill); }
+  subtitleForBill(bill: Bill) { return subtitleForBill(bill); }
+  descriptionForBill(bill: Bill) { return descriptionForBill(bill); }
 }
