@@ -1,4 +1,40 @@
 
+/* Header */
+.title {
+    display: grid;
+    grid-template-columns: minmax(100px, 260px) 1fr;
+}
+.nav-buttons {
+    min-width: 120px;
+}
+.nav-buttons button {
+    width: 115px;
+    height: 30px;
+    margin: 5px;
+}
+.logo {
+    cursor: pointer;
+    width:230px;
+    padding:0;
+    margin:16px;
+    margin-top:5px;
+}
+@media screen and (max-width: 400px) {
+    .logo {
+        width: 180px;
+    }
+    .logo-subtitle {
+        font-size: 12px;
+    }
+}
+.vertical-content > * {
+    width: calc(100% - 20px);
+    margin: 10px;
+}
+
+
+
+
 mat-card {
     width: 80%;
     margin: 10px;
@@ -118,7 +154,7 @@ h1 {
 
 @media screen and (max-width: 410px) {
     table.bill-history-table {
-        margin-left: calc(50vw - 210px);
+        margin-left: calc(50vw - 180px);
     }
 }
 
@@ -128,32 +164,10 @@ h1 {
         display: block;
     }
     .chart-container {
-        width: calc(80vw - 30px);
+        width: calc(90vw - 15px);
         height: 300px;
     }
 }
-// @media screen and (min-width: 425px) and (max-width:499px) {
-//     .chart-container {
-//         width: 380px;
-//     }
-// }
-// @media screen and (min-width: 500px) and (max-width:599px) {
-//     .chart-container {
-//         width: 480px;
-//     }
-// }
-// @media screen and (min-width: 600px) and (max-width:700px) {
-//     .chart-container {
-//         width: 580px;
-//     }
-// }
-// @media screen and (min-width: 701px) {
-//     .chart-container {
-//         max-width: 100%;
-//         min-width: 450px;
-//         width: 100%;
-//     }
-// }
 
 
 

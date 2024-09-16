@@ -12,12 +12,30 @@
 
 <!---->
     <div class="vertical-layout">
-        <div class="breadcrumb">
+        <div class="vertical-content">
+        <!-- <div class="breadcrumb">
             <a href="/">Home</a>
             /
             <a href="/legislators">Legislators</a>
 
             <a class="float-right" href="/about">About</a>
+        </div> -->
+
+        <div class="content-section">
+            <!-- <h1 class="poliscore" href="#" routerLink="/">poliscore.us</h1> -->
+             <div class="title">
+                <div class="vertical-layout">
+                    <a class="unstyled" href="/"><img class="logo" src="/images/poliscore-word.png" routerLink="/"></a>
+                    <span class="logo-subtitle">AI Political Rating Service</span>
+                </div>
+                <div class="horizontal-layout" style="flex-direction: row-reverse !important;">
+                    <div class="nav-buttons vertical-layout">
+                        <button mat-raised-button routerLink="/legislators"><a href="/legislators" class="unstyled"><span>Legislators</span></a></button>
+                        <button mat-raised-button routerLink="/bills"><a href="/bills" class="unstyled"><span>Bills</span></a></button>
+                        <button mat-raised-button routerLink="/about" class="about-button"><a href="/about" routerLink="/about" class="unstyled"><span>About</span></a></button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <mat-card class="tran-div">
@@ -84,7 +102,7 @@
             </mat-card-content>
         </mat-card>
     </div>
-
+    </div>
 </div>
 </div>
 
