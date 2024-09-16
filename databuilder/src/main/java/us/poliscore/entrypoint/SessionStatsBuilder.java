@@ -155,13 +155,6 @@ public class SessionStatsBuilder implements QuarkusApplication
 				if (!bestLegislators.get(party).isEmpty()) ps.getBestLegislators().add(bestLegislators.get(party).poll());
 				if (!worstLegislators.get(party).isEmpty()) ps.getWorstLegislators().add(worstLegislators.get(party).poll());
 			}
-//			ps.setBestBills(bestBills.get(party).stream().limit(10).collect(Collectors.toCollection(PartyBillSet::new)));
-//			ps.setWorstBills(worstBills.get(party).stream().limit(10).collect(Collectors.toCollection(PartyBillSet::new)));
-//			ps.setBestLegislators(bestLegislators.get(party).stream().limit(10).collect(Collectors.toCollection(PartyLegislatorSet::new)));
-//			ps.setWorstLegislators(worstLegislators.get(party).stream().limit(10).collect(Collectors.toCollection(PartyLegislatorSet::new)));
-			
-//			ps.getBestLegislators().forEach(l -> l.setInterpretation(s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class).get()));
-//			ps.getWorstLegislators().forEach(l -> l.setInterpretation(s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class).get()));
 
 			partyStats.put(party, ps);
 		}

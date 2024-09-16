@@ -40,7 +40,7 @@ import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.stats.SessionStats;
 import us.poliscore.service.IpGeolocationService;
-import us.poliscore.service.storage.CachedDynamoDbService;
+import us.poliscore.service.storage.DynamoDbPersistenceService;
 
 @Path("")
 @RequestScoped
@@ -49,7 +49,8 @@ public class Lambda {
 	public static final String TRACKED_ISSUE_INDEX = "~ti~";
 
     @Inject
-    CachedDynamoDbService ddb;
+    DynamoDbPersistenceService ddb;
+//    CachedDynamoDbService ddb;
     
     @Inject
     IpGeolocationService ipService;

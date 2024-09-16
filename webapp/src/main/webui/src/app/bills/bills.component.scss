@@ -6,14 +6,6 @@
     z-index: 1000;
 }
 
-.logo {
-    cursor: pointer;
-    width:230px;
-    padding:0;
-    margin:16px;
-    margin-top:5px;
-}
-
 .vertical-content {
     max-width: 540px;
 }
@@ -28,11 +20,6 @@
     width: calc(100% - 27px);
 }
 
-.title {
-    display: grid;
-    grid-template-columns: minmax(100px, 260px) 1fr;
-}
-
 .breadcrumb > * {
     flex: 1;
     height:100%;
@@ -40,16 +27,6 @@
 
 .breadcrumb > a {
     font-size: 16px;
-}
-
-.nav-buttons {
-    min-width: 120px;
-}
-
-.nav-buttons button {
-    width: 115px;
-    height: 30px;
-    margin: 5px;
 }
 
 .sorting {

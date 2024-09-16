@@ -8,13 +8,14 @@ import { HttpClient, HttpHandler } from '@angular/common/http';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement, Tooltip} from 'chart.js'
 import { Title } from '@angular/platform-browser';
+import { MatButtonModule } from '@angular/material/button';
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
 @Component({
   selector: 'app-bill',
   standalone: true,
-  imports: [MatCardModule, CommonModule, CommonModule, RouterModule],
+  imports: [MatCardModule, CommonModule, CommonModule, RouterModule, MatButtonModule],
   providers: [AppService, HttpClient],
   templateUrl: './bill.component.html',
   styleUrl: './bill.component.scss'

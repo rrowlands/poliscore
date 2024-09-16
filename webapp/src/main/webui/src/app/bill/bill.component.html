@@ -5,36 +5,46 @@
         <h1 *ngIf="!loading && bill == null" class="object-not-found"><a href="/bills">Bill not found!</a></h1>
 
         <div class="vertical-layout">
-            <div class="breadcrumb">
-                <a href="/">Home</a>
-                /
-                <a href="/bills">Bills</a>
-
-                <a class="float-right" href="/about">About</a>
+            <div class="vertical-content">
+                <div class="content-section">
+                    <div class="title">
+                    <div class="vertical-layout">
+                        <a class="unstyled" href="/"><img class="logo" src="/images/poliscore-word.png" routerLink="/"></a>
+                        <span class="logo-subtitle">AI Political Rating Service</span>
+                    </div>
+                    <div class="horizontal-layout" style="flex-direction: row-reverse !important;">
+                        <div class="nav-buttons vertical-layout">
+                            <button mat-raised-button routerLink="/bills"><a href="/bills" class="unstyled"><span>View Bills</span></a></button>
+                            <button mat-raised-button routerLink="/congress"><a href="/congress" class="unstyled"><span>Party Stats</span></a></button>
+                            <button mat-raised-button routerLink="/about" class="about-button"><a href="/about" routerLink="/about" class="unstyled"><span>About</span></a></button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <mat-card *ngIf="bill != null" class="tran-div">
-                <mat-card-content class="vertical-layout">
-                    <h1 class="card-title" style="text-align:center;"><a [href]="'https://www.congress.gov/bill/' + bill.congress + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
-                    <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForBill())}">{{gradeForBill()}}</p></h1>
-                    <h3 class="date"><p >{{ bill.introducedDate }}</p></h3>
-                    <h3 class="card-subtitle">Sponsor: <a [href]="'/legislator/' + bill.sponsor.bioguide_id">{{bill.sponsor.name}}</a></h3>
-                    <div class="chart-container">
-                        <canvas id="barChart"></canvas>
-                    </div>
+                <mat-card *ngIf="bill != null" class="tran-div">
+                    <mat-card-content class="vertical-layout">
+                        <h1 class="card-title" style="text-align:center;"><a [href]="'https://www.congress.gov/bill/' + bill.congress + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
+                        <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForBill())}">{{gradeForBill()}}</p></h1>
+                        <h3 class="date"><p >{{ bill.introducedDate }}</p></h3>
+                        <h3 class="card-subtitle">Sponsor: <a [href]="'/legislator/' + bill.sponsor.bioguide_id">{{bill.sponsor.name}}</a></h3>
+                        <div class="chart-container">
+                            <canvas id="barChart"></canvas>
+                        </div>
 
-                    <div class="bill-section" *ngIf="bill.interpretation.riders != null && bill.interpretation.riders.length > 0">
-                        <h2>Riders</h2>
-                        <ul>
-                            <li *ngFor="let rider of bill.interpretation.riders">{{rider}}</li>
-                        </ul>
-                    </div>
+                        <div class="bill-section" *ngIf="bill.interpretation.riders != null && bill.interpretation.riders.length > 0">
+                            <h2>Riders</h2>
+                            <ul>
+                                <li *ngFor="let rider of bill.interpretation.riders">{{rider}}</li>
+                            </ul>
+                        </div>
 
-                    <!-- <div class="bill-section"><h2>Short Summary</h2><p *ngFor="let paragraph of bill.interpretation.shortExplain?.split('\n')" [innerHTML]="paragraph"></p></div> -->
+                        <!-- <div class="bill-section"><h2>Short Summary</h2><p *ngFor="let paragraph of bill.interpretation.shortExplain?.split('\n')" [innerHTML]="paragraph"></p></div> -->
 
-                    <div class="bill-section"><h2 *ngIf="bill.interpretation.riders.length > 0">Summary</h2><p *ngFor="let paragraph of bill.interpretation.longExplain?.split('\n')" [innerHTML]="paragraph"></p></div>
-                </mat-card-content>
-            </mat-card>
+                        <div class="bill-section"><h2 *ngIf="bill.interpretation.riders.length > 0">Summary</h2><p *ngFor="let paragraph of bill.interpretation.longExplain?.split('\n')" [innerHTML]="paragraph"></p></div>
+                    </mat-card-content>
+                </mat-card>
+            </div>
         </div>
     </div>
 </div>
