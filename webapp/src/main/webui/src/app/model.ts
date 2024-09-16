@@ -48,9 +48,12 @@ export interface PartyStats extends IssueStats {
 
 export interface SessionStats {
   session: number;
-  partyStats: {
-    [key: string]: PartyStats;
-  };
+  // partyStats: {
+  //   [key: string]: PartyStats;
+  // };
+  democrat: PartyStats;
+  republican: PartyStats;
+  independent: PartyStats;
 }
 
 export class Legislator {

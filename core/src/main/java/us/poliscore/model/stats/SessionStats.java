@@ -3,9 +3,7 @@ package us.poliscore.model.stats;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -17,18 +15,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.bill.Bill.BillSponsor;
-import us.poliscore.model.bill.BillInterpretation;
+import us.poliscore.model.bill.BillType;
+import us.poliscore.model.dynamodb.DdbDataPage;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverterProvider;
-import us.poliscore.model.dynamodb.PartyStatsMapAttributeConverter;
+import us.poliscore.model.dynamodb.JacksonAttributeConverter.CompressedPartyStatsConverter;
 import us.poliscore.model.legislator.Legislator;
 
 @Data
@@ -40,8 +39,17 @@ public class SessionStats implements Persistable {
 	
 	protected int session;
 	
-	@Getter(onMethod = @__({ @DynamoDbConvertedBy(PartyStatsMapAttributeConverter.class) }))
-	protected Map<Party, PartyStats> partyStats = new HashMap<Party, PartyStats>();
+//	@Getter(onMethod = @__({ @DynamoDbConvertedBy(PartyStatsMapAttributeConverter.class) }))
+//	protected Map<Party, PartyStats> partyStats = new HashMap<Party, PartyStats>();
+	
+	@Getter(onMethod = @__({ @DdbDataPage("1"), @DynamoDbConvertedBy(CompressedPartyStatsConverter.class) }))
+	protected PartyStats democrat;
+	
+	@Getter(onMethod = @__({ @DdbDataPage("2"), @DynamoDbConvertedBy(CompressedPartyStatsConverter.class) }))
+	protected PartyStats republican;
+	
+	@Getter(onMethod = @__({ @DdbDataPage("3"), @DynamoDbConvertedBy(CompressedPartyStatsConverter.class) }))
+	protected PartyStats independent;
 	
 	public static String generateId(int congress)
 	{
@@ -96,6 +104,10 @@ public class SessionStats implements Persistable {
 		@NonNull
 		@EqualsAndHashCode.Exclude
 		protected String name;
+		
+		@NonNull
+		@EqualsAndHashCode.Exclude
+		protected BillType type;
 		
 		@EqualsAndHashCode.Exclude
 		protected LocalDate introducedDate;

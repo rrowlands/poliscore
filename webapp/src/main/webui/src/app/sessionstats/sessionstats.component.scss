@@ -8,6 +8,17 @@ mat-card {
     border: 1px solid black;
 }
 
+.party-selector > * {
+    margin: 10px;
+}
+
+@media screen and (max-width: 410px) {
+    .party-selector > * {
+        margin: 2px;
+    }
+}
+
+
 .mat-row{        
     position: relative;
 }
@@ -28,6 +39,10 @@ mat-card {
     position: absolute;
     right: 0em;
     top: -0.3em;
+}
+
+div.horizontal-layout.breadcrumb h1 a {
+    font-size: 12px;
 }
 
 .grade {
@@ -288,7 +303,7 @@ h1 {
 }
 
 .vertical-content {
-    max-width: 540px;
+    // max-width: 540px;
 }
 
 .vertical-content > * {
@@ -324,8 +339,8 @@ h1 {
 }
 
 .nav-buttons button {
-    width: 110px;
-    height: 40px;
+    width: 115px;
+    height: 30px;
     margin: 5px;
 }
 
@@ -364,9 +379,13 @@ mat-card {
     color: black;
 }
 
-mat-card a {
+mat-card.legs a {
     display: grid;
     grid-template-columns: 150px 1fr;
+    text-decoration: none;
+}
+
+mat-card a {
     text-decoration: none;
 }
 

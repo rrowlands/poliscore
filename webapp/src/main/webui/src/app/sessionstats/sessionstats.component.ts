@@ -1,5 +1,5 @@
 import { Component, Inject, PLATFORM_ID, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement, Tooltip} from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { AppService } from '../app.service';
@@ -11,13 +11,15 @@ import { HttpClient } from '@angular/common/http';
 import { MatTableModule } from '@angular/material/table';
 import { gradeForLegislator, subtitleForLegislator, descriptionForLegislator, upForReelection } from '../legislators';
 import { gradeForBill, subtitleForBill, descriptionForBill } from '../bills';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatButtonModule } from '@angular/material/button';
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
 @Component({
   selector: 'sessionstats',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatTableModule],
+  imports: [CommonModule, MatCardModule, MatTableModule, MatButtonToggleModule, MatButtonModule, RouterModule],
   providers: [AppService, HttpClient],
   templateUrl: './sessionstats.component.html',
   styleUrl: './sessionstats.component.scss'
@@ -37,6 +39,8 @@ export class SessionStatsComponent {
   public loading: boolean = true;
 
   public isRequestingData: boolean = false;
+
+  private chart: Chart | undefined;
 
   public barChartData: ChartConfiguration<'bar'>['data'] = {
     labels: [],
@@ -79,43 +83,71 @@ export class SessionStatsComponent {
   constructor(private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
 
   ngOnInit(): void {
-    let session = this.route.snapshot.paramMap.get('session') as string;
-    if (session != null) {
-      this.session = session;
-    }
+    this.route.params.subscribe(newParams => {
+      let session = this.route.snapshot.paramMap.get('session') as string;
+      if (session != null) {
+        this.session = session;
+      }
 
-    let party = this.route.snapshot.paramMap.get('party') as string;
-    if (party != null) {
-      this.party = party.toUpperCase() as "REPUBLICAN" | "DEMOCRAT" | "INDEPENDENT";
-    }
+      let party = this.route.snapshot.paramMap.get('party') as string;
+      if (party != null) {
+        this.party = party.toUpperCase() as "REPUBLICAN" | "DEMOCRAT" | "INDEPENDENT";
+      }
 
-    let sort = this.route.snapshot.paramMap.get('sort') as string;
-    if (sort != null) {
-      if (sort == 'best-legislators') {
-        this.sort = "bestLegislators";
-      } else if (sort == 'worst-legislators') {
+      let sort = this.route.snapshot.paramMap.get('sort') as string;
+      if (sort != null) {
+        if (sort == 'best-legislators') {
+          this.sort = "bestLegislators";
+        } else if (sort == 'worst-legislators') {
+          this.sort = "worstLegislators";
+        } else if (sort == 'best-bills') {
+          this.sort = "bestBills";
+        } else if (sort == 'worst-bills') {
+          this.sort = "worstBills";
+        }
+      }
+
+      this.buildBarChartData();
+    }); 
+
+    if (this.stats == null) {
+      this.service.getSessionStats().then(stats => {
+        this.stats = stats;
+        this.loading = false;
+  
+        if (stats == null) { return; }
+  
+        this.titleService.setTitle(stats?.session + "th Congress Stats - PoliScore: non-partisan political rating service");
+  
+        this.buildBarChartData();
+      });
+    }
+  }
+
+  toggleSort(index: "legislators" | "bills") {
+    if (index == "legislators") {
+      if (this.sort == "bestLegislators") {
         this.sort = "worstLegislators";
-      } else if (sort == 'best-bills') {
-        this.sort = "bestBills";
-      } else if (sort == 'worst-bills') {
+      } else {
+        this.sort = "bestLegislators";
+      }
+    } else {
+      if (this.sort == "bestBills") {
         this.sort = "worstBills";
+      } else {
+        this.sort = "bestBills";
       }
     }
 
-    this.service.getSessionStats().then(stats => {
-      this.stats = stats;
-      this.loading = false;
+    let routeIndex;
+    if (index == "legislators") { routeIndex = this.sort == "bestLegislators" ? "best-legislators" : "worst-legislators"; }
+    if (index == "bills") { routeIndex = this.sort == "bestBills" ? "best-bills" : "worst-bills"; }
 
-      if (stats == null) { return; }
-
-      this.titleService.setTitle(stats?.session + "th Congress Stats - PoliScore: non-partisan political rating service");
-
-      this.buildBarChartData();
-    });
+    this.router.navigate(['/congress/' + this.session + '/' + this.party.toLowerCase() + '/' +  routeIndex]);;
   }
 
   public getData() {
-    return (this.stats!.partyStats[this.party] as any)[this.sort];
+    return ((this.stats! as any)[this.party.toLowerCase()] as any)[this.sort];
   }
 
   async buildBarChartData() {
@@ -123,7 +155,7 @@ export class SessionStatsComponent {
 
     console.log(this.stats);
 
-    let partyStats = this.stats.partyStats[this.party].stats;
+    let partyStats = (this.stats as any)[this.party.toLowerCase()].stats;
 
     let data: number[] = [];
     let labels: string[] = [];
@@ -176,15 +208,19 @@ export class SessionStatsComponent {
       borderWidth: 1
     }];
 
-    if (isPlatformBrowser(this._platformId)) {
+    // if (isPlatformBrowser(this._platformId)) {
       // await this.waitForImage(document.querySelector('img'));
       // window.setTimeout(() => { this.renderBarChart(); }, 10);
       this.renderBarChart();
-    }
+    // }
   }
 
   renderBarChart() {
-    new Chart(
+    if (this.chart != null) {
+      this.chart.destroy();
+    }
+
+    this.chart = new Chart(
       (this.barChart as any).nativeElement,
       {
         type: 'bar',

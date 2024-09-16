@@ -4,11 +4,8 @@ package us.poliscore.model.dynamodb;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.UncheckedIOException;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -24,15 +21,15 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
-import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.ImmutableMap;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.AIInterpretationMetadata;
-import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.legislator.Legislator.LegislatorLegislativeTermSortedSet;
+import us.poliscore.model.legislator.LegislatorBillInteraction;
+import us.poliscore.model.stats.SessionStats.PartyStats;
 
 public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
 
@@ -102,10 +99,6 @@ public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
 	    @SneakyThrows
 	    public T transformTo(AttributeValue input) {
 	    	try {
-		    	if (input.b() == null && input.s() != null) {
-		    		return mapper.readValue(input.s(), this.clazz);
-		    	}
-		    	
 		    	@Cleanup val bais = new GZIPInputStream(new ByteArrayInputStream(input.b().asByteArray()));
 		    	
 	        	return mapper.readValue(bais.readAllBytes(), this.clazz);
@@ -114,6 +107,11 @@ public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
 	    		Log.error(e);
 	    		return this.clazz.newInstance();
 	    	}
+	    }
+	    
+	    @Override
+	    public AttributeValueType attributeValueType() {
+	        return AttributeValueType.B;
 	    }
     	
     }
@@ -164,6 +162,13 @@ public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
     	
     	public CompressedLegislatorBillInteractionSetConverter() {
     		super(LegislatorBillInteractionSet.class);
+    	}
+    }
+    
+    public static class CompressedPartyStatsConverter extends CompressedJacksonAttributeConverter<PartyStats> {
+    	
+    	public CompressedPartyStatsConverter() {
+    		super(PartyStats.class);
     	}
     }
     

@@ -104,11 +104,13 @@ public class SessionStatsBuilder implements QuarkusApplication
 			
 			if (op.isPresent()) {
 				val interp = op.get();
+				b.setInterpretation(interp);
+				
 				val sponsor = memService.get(b.getSponsor().getId(), Legislator.class).orElseThrow();
 				val party = sponsor.getTerms().last().getParty();
 				val partyCosponsors = b.getCosponsors().stream().filter(sp -> memService.get(sp.getId(), Legislator.class).get().getParty().equals(party)).toList();
 						
-				val pbi = new PartyBillInteraction(b.getId(), b.getName(), b.getIntroducedDate(), b.getSponsor(), partyCosponsors, interp.getIssueStats().getRating(), interp.getShortExplain().substring(0, 300));
+				val pbi = new PartyBillInteraction(b.getId(), b.getName(), b.getType(), b.getIntroducedDate(), b.getSponsor(), partyCosponsors, interp.getIssueStats().getRating(), interp.getShortExplain().substring(0, 300));
 				bestBills.get(party).add(pbi);
 				worstBills.get(party).add(pbi);
 			}
@@ -164,7 +166,10 @@ public class SessionStatsBuilder implements QuarkusApplication
 			partyStats.put(party, ps);
 		}
 		
-		sessionStats.setPartyStats(partyStats);
+//		sessionStats.setPartyStats(partyStats);
+		sessionStats.setDemocrat(partyStats.get(Party.DEMOCRAT));
+		sessionStats.setRepublican(partyStats.get(Party.REPUBLICAN));
+		sessionStats.setIndependent(partyStats.get(Party.INDEPENDENT));
 		
 		ddb.put(sessionStats);
 		
