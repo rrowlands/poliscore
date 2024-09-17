@@ -37,6 +37,9 @@
     width: calc(100% - 20px) !important;
     margin: 10px !important;
 }
+.vertical-content {
+    max-width: 100%;
+}
 @media screen and (max-width: 400px) {
     .logo {
         width: 180px;

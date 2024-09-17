@@ -153,8 +153,6 @@ export class SessionStatsComponent {
   async buildBarChartData() {
     if (this.party == null || this.stats == null) return;
 
-    console.log(this.stats);
-
     let partyStats = (this.stats as any)[this.party.toLowerCase()].stats;
 
     let data: number[] = [];
@@ -208,11 +206,11 @@ export class SessionStatsComponent {
       borderWidth: 1
     }];
 
-    // if (isPlatformBrowser(this._platformId)) {
+    if (isPlatformBrowser(this._platformId)) {
       // await this.waitForImage(document.querySelector('img'));
       // window.setTimeout(() => { this.renderBarChart(); }, 10);
       this.renderBarChart();
-    // }
+    }
   }
 
   renderBarChart() {

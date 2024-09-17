@@ -1,3 +1,6 @@
+/congress/118/democrat
+/congress/118/republican
+/congress/118/independent
 /legislators/state/KY
 /legislators/state/LA
 /legislators/state/ME

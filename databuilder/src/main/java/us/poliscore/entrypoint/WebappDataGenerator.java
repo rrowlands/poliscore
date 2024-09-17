@@ -81,6 +81,11 @@ public class WebappDataGenerator implements QuarkusApplication
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/webui/routes.txt");
 		val routes = new ArrayList<String>();
 		
+		// Party Stats
+		routes.add("/congress/118/democrat");
+		routes.add("/congress/118/republican");
+		routes.add("/congress/118/independent");
+		
 		// All states
 		Arrays.asList(states).stream().forEach(s -> routes.add("/legislators/state/" + s));
 		
@@ -107,6 +112,11 @@ public class WebappDataGenerator implements QuarkusApplication
 		final String url = "https://poliscore.us";
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/webui/src/assets/sitemap.txt");
 		val routes = new ArrayList<String>();
+		
+		// Party Stats
+		routes.add(url + "/congress/118/democrat");
+		routes.add(url + "/congress/118/republican");
+		routes.add(url + "/congress/118/independent");
 		
 		// All states
 		Arrays.asList(states).stream().forEach(s -> routes.add(url + "/legislators/state/" + s));
