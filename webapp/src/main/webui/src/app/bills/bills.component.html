@@ -15,9 +15,9 @@
                     </div>
                     <div class="horizontal-layout" style="flex-direction: row-reverse !important;">
                         <div class="nav-buttons vertical-layout">
-                            <button mat-raised-button routerLink="/legislators"><a href="/legislators" class="unstyled"><span>Legislators</span></a></button>
-                            <button mat-raised-button routerLink="/congress"><a href="/congress" class="unstyled"><span>Party Stats</span></a></button>
-                            <button mat-raised-button routerLink="/about"><a href="/about" class="unstyled"><span>About</span></a></button>
+                            <button mat-raised-button routerLink="/legislators"><a href="/legislators/" class="unstyled"><span>Legislators</span></a></button>
+                            <button mat-raised-button routerLink="/congress"><a href="/congress/" class="unstyled"><span>Party Stats</span></a></button>
+                            <button mat-raised-button routerLink="/about"><a href="/about/" class="unstyled"><span>About</span></a></button>
                         </div>
                     </div>
                 </div>
@@ -49,7 +49,7 @@
             </div>
             
             <mat-card *ngFor="let bill of bills" class="example-card" appearance="outlined">
-                <a [href]="'/bill/' + bill.id.replace('BIL/us/congress/', '')">
+                <a [href]="'/bill/' + bill.id.replace('BIL/us/congress/', '') + '/'">
                     <mat-card-header>
                         <mat-card-title-group>
                             <h4 class="title-date"><p style="padding-left:12px;">{{bill.introducedDate}}</p></h4>

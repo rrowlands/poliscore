@@ -15,9 +15,9 @@
                     </div>
                     <div class="horizontal-layout" style="flex-direction: row-reverse !important;">
                         <div class="nav-buttons vertical-layout">
-                            <button mat-raised-button routerLink="/bills"><a href="/bills" class="unstyled"><span>View Bills</span></a></button>
-                            <button mat-raised-button routerLink="/congress"><a href="/congress" class="unstyled"><span>Party Stats</span></a></button>
-                            <button mat-raised-button routerLink="/about" class="about-button"><a href="/about" routerLink="/about" class="unstyled"><span>About</span></a></button>
+                            <button mat-raised-button routerLink="/bills"><a href="/bills/" class="unstyled"><span>View Bills</span></a></button>
+                            <button mat-raised-button routerLink="/congress"><a href="/congress/" class="unstyled"><span>Party Stats</span></a></button>
+                            <button mat-raised-button routerLink="/about" class="about-button"><a href="/about/" routerLink="/about" class="unstyled"><span>About</span></a></button>
                         </div>
                     </div>
                 </div>
@@ -49,7 +49,7 @@
             </div>
             
             <mat-card *ngFor="let leg of legs" class="example-card" appearance="outlined">
-                <a [href]="'/legislator/' + leg.id.replace('LEG/us/congress/', '')">
+                <a [href]="'/legislator/' + leg.id.replace('LEG/us/congress/', '') + '/'">
                     <div class="left">
                         <img *ngIf="!leg.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" (error)="leg.photoError = true;" >
                         <img *ngIf="leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>
