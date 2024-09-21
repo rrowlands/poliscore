@@ -25,7 +25,7 @@
             <!-- <h1 class="poliscore" href="#" routerLink="/">poliscore.us</h1> -->
              <div class="title">
                 <div class="vertical-layout">
-                    <a class="unstyled" href="/"><img class="logo" src="/images/poliscore-word.png" routerLink="/"></a>
+                    <a class="unstyled" href="/"><img class="logo" src="/images/poliscore-word.png" routerLink="/" alt="PoliScore Logo"></a>
                     <span class="logo-subtitle">AI Political Rating Service</span>
                 </div>
                 <div class="horizontal-layout" style="flex-direction: row-reverse !important;">
@@ -40,14 +40,14 @@
 
         <div class="content-section vertical-layout">
             <div class="col-left horizontal-layout party-selector">
-                <button *ngIf="party !== 'DEMOCRAT'" mat-raised-button routerLink="/congress/118/democrat"><a href="/congress/118/democrat" class="unstyled"><span>Democrat</span></a></button>
-                <button *ngIf="party === 'DEMOCRAT'" mat-button routerLink="/congress/118/democrat"><a href="/congress/118/democrat" class="unstyled"><span>Democrat</span></a></button>
+                <button *ngIf="party !== 'DEMOCRAT'" mat-raised-button routerLink="/congress/118/democrat"><span>Democrat</span></button>
+                <button *ngIf="party === 'DEMOCRAT'" mat-button routerLink="/congress/118/democrat"><span>Democrat</span></button>
 
-                <button *ngIf="party !== 'REPUBLICAN'" mat-raised-button routerLink="/congress/118/republican"><a href="/congress/118/republican" class="unstyled"><span>Republican</span></a></button>
-                <button *ngIf="party === 'REPUBLICAN'" mat-button routerLink="/congress/118/republican"><a href="/congress/118/republican" class="unstyled"><span>Republican</span></a></button>
+                <button *ngIf="party !== 'REPUBLICAN'" mat-raised-button routerLink="/congress/118/republican"><span>Republican</span></button>
+                <button *ngIf="party === 'REPUBLICAN'" mat-button routerLink="/congress/118/republican"><span>Republican</span></button>
 
-                <button *ngIf="party !== 'INDEPENDENT'" mat-raised-button routerLink="/congress/118/independent"><a href="/congress/118/independent" class="unstyled"><span>Independent</span></a></button>
-                <button *ngIf="party === 'INDEPENDENT'" mat-button routerLink="/congress/118/independent"><a href="/congress/118/independent" class="unstyled"><span>Independent</span></a></button>
+                <button *ngIf="party !== 'INDEPENDENT'" mat-raised-button routerLink="/congress/118/independent"><span>Independent</span></button>
+                <button *ngIf="party === 'INDEPENDENT'" mat-button routerLink="/congress/118/independent"><span>Independent</span></button>
             </div>
         </div>
 

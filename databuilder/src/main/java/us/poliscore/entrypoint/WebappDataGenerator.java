@@ -113,27 +113,32 @@ public class WebappDataGenerator implements QuarkusApplication
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/webui/src/assets/sitemap.txt");
 		val routes = new ArrayList<String>();
 		
+		// A quirk of s3 hosted websites. If you don't put the trailing slash it causes a redirect which makes the google crawler angry
+		String trailingSlash = "/";
+		
+		routes.add(url + "/about" + trailingSlash);
+		
 		// Party Stats
-		routes.add(url + "/congress/118/democrat");
-		routes.add(url + "/congress/118/republican");
-		routes.add(url + "/congress/118/independent");
+		routes.add(url + "/congress/118/democrat" + trailingSlash);
+		routes.add(url + "/congress/118/republican" + trailingSlash);
+		routes.add(url + "/congress/118/independent" + trailingSlash);
 		
 		// All states
-		Arrays.asList(states).stream().forEach(s -> routes.add(url + "/legislators/state/" + s));
+		Arrays.asList(states).stream().forEach(s -> routes.add(url + "/legislators/state/" + s + trailingSlash));
 		
 		// All legislator routes
-		routes.add(url + "/legislators");
+		routes.add(url + "/legislators" + trailingSlash);
 		memService.query(Legislator.class).stream()
 			.filter(l -> l.isMemberOfSession(CongressionalSession.S118) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
-			.forEach(l -> routes.add(url + "/legislator/" + l.getBioguideId()));
+			.forEach(l -> routes.add(url + "/legislator/" + l.getBioguideId() + trailingSlash));
 		
 		// All bills
-		routes.add(url + "/bills");
+		routes.add(url + "/bills" + trailingSlash);
 		memService.query(Bill.class).stream()
 			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
-			.forEach(b -> routes.add(url + "/bill/" + b.getCongress() + "/" + b.getType().getName().toLowerCase() + "/" + b.getNumber()));
+			.forEach(b -> routes.add(url + "/bill/" + b.getCongress() + "/" + b.getType().getName().toLowerCase() + "/" + b.getNumber() + trailingSlash));
 		
 		
 		FileUtils.write(out, String.join("\n", routes), "UTF-8");
