@@ -9,3 +9,9 @@ Building a PoliScore database is a very complicated and manual process, some of 
 6. Interpret legislators
 7. Interpret party stats
 8. Run WebappDataGenerator
+9. Configure deployment target with 'switch-deployment.sh' shell script
+10. Run 'deploy.sh backend' to update the Lambda webserver
+11. Run 'deploy.sh view' to update the S3 static site
+12. Test on deployed target
+13. Update CloudFormation to point to the deployment target
+14. Swap deployment target to prepare for next development cycle
