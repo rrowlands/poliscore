@@ -1,4 +1,4 @@
-package us.poliscore.model.stats;
+package us.poliscore.model.session;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -33,9 +33,9 @@ import us.poliscore.model.legislator.Legislator;
 @Data
 @DynamoDbBean
 @RegisterForReflection
-public class SessionStats implements Persistable {
+public class SessionInterpretation implements Persistable {
 	
-	public static final String ID_CLASS_PREFIX = "SST";
+	public static final String ID_CLASS_PREFIX = "SIT";
 	
 	protected int session;
 	
@@ -43,13 +43,13 @@ public class SessionStats implements Persistable {
 //	protected Map<Party, PartyStats> partyStats = new HashMap<Party, PartyStats>();
 	
 	@Getter(onMethod = @__({ @DdbDataPage("1"), @DynamoDbConvertedBy(CompressedPartyStatsConverter.class) }))
-	protected PartyStats democrat;
+	protected PartyInterpretation democrat;
 	
 	@Getter(onMethod = @__({ @DdbDataPage("2"), @DynamoDbConvertedBy(CompressedPartyStatsConverter.class) }))
-	protected PartyStats republican;
+	protected PartyInterpretation republican;
 	
 	@Getter(onMethod = @__({ @DdbDataPage("3"), @DynamoDbConvertedBy(CompressedPartyStatsConverter.class) }))
-	protected PartyStats independent;
+	protected PartyInterpretation independent;
 	
 	public static String generateId(int congress)
 	{
@@ -72,10 +72,12 @@ public class SessionStats implements Persistable {
 	@NoArgsConstructor
 	@RegisterForReflection
 	@AllArgsConstructor
-	public static class PartyStats {
+	public static class PartyInterpretation {
 		protected Party party;
 		
 		protected IssueStats stats;
+		
+		protected String longExplain;
 		
 		@NonNull
 		protected PartyBillSet bestBills = new PartyBillSet();
@@ -123,6 +125,12 @@ public class SessionStats implements Persistable {
 		
 		@EqualsAndHashCode.Exclude
 		protected String shortExplain;
+		
+		@DynamoDbIgnore
+		@JsonIgnore
+		public String getShortExplainForInterp() {
+			return this.name + ": " + this.shortExplain;
+		}
 		
 		@DynamoDbIgnore
 		@JsonIgnore

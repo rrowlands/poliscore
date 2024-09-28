@@ -28,8 +28,8 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.legislator.Legislator.LegislatorLegislativeTermSortedSet;
+import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
-import us.poliscore.model.stats.SessionStats.PartyStats;
 
 public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
 
@@ -165,10 +165,10 @@ public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
     	}
     }
     
-    public static class CompressedPartyStatsConverter extends CompressedJacksonAttributeConverter<PartyStats> {
+    public static class CompressedPartyStatsConverter extends CompressedJacksonAttributeConverter<PartyInterpretation> {
     	
     	public CompressedPartyStatsConverter() {
-    		super(PartyStats.class);
+    		super(PartyInterpretation.class);
     	}
     }
     

@@ -1,12 +1,21 @@
 package us.poliscore.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public enum Party {
-	REPUBLICAN,
-	DEMOCRAT,
-	INDEPENDENT;
+	REPUBLICAN("Republican"),
+	DEMOCRAT("Democrat"),
+	INDEPENDENT("Independent");
 	
-	private Party() {
-		
+	private String name;
+	
+	private Party(String name) {
+		this.name = name;
+	}
+	
+	@JsonIgnore
+	public String getName() {
+		return this.name;
 	}
 	
 	public static Party from(String p) {

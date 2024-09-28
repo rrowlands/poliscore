@@ -18,14 +18,14 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Party;
-import us.poliscore.model.stats.SessionStats.PartyStats;
+import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
 
-public class PartyStatsMapAttributeConverter implements AttributeConverter<Map<Party, PartyStats>> {
+public class PartyStatsMapAttributeConverter implements AttributeConverter<Map<Party, PartyInterpretation>> {
   protected static final ObjectMapper mapper = PoliscoreUtil.getObjectMapper();
 
   @Override
   @SneakyThrows
-  public AttributeValue transformFrom(final Map<Party, PartyStats> input) {
+  public AttributeValue transformFrom(final Map<Party, PartyInterpretation> input) {
 //    Map<String, AttributeValue> attributeValueMap = input.entrySet().stream()
 //            .collect(
 //                Collectors.toMap(
@@ -53,7 +53,7 @@ public class PartyStatsMapAttributeConverter implements AttributeConverter<Map<P
 
   @Override
   @SneakyThrows
-  public Map<Party, PartyStats> transformTo(final AttributeValue input) {
+  public Map<Party, PartyInterpretation> transformTo(final AttributeValue input) {
 //    return input.m().entrySet().stream()
 //        .collect(
 //            Collectors.toMap(
@@ -76,8 +76,8 @@ public class PartyStatsMapAttributeConverter implements AttributeConverter<Map<P
 //  }
 
   @Override
-  public EnhancedType<Map<Party, PartyStats>> type() {
-    return EnhancedType.mapOf(Party.class, PartyStats.class);
+  public EnhancedType<Map<Party, PartyInterpretation>> type() {
+    return EnhancedType.mapOf(Party.class, PartyInterpretation.class);
   }
 
   @Override

@@ -38,9 +38,6 @@ import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryPersistenceService;
 
-/**
- * This bulk importer is designed to import a full dataset built with the github.com/unitedstates/congress toolkit 
- */
 @QuarkusMain(name="BatchBillRequestGenerator")
 public class BatchBillRequestGenerator implements QuarkusApplication
 {

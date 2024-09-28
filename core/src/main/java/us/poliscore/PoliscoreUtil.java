@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
+import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.legislator.Legislator;
 
@@ -20,6 +21,8 @@ public class PoliscoreUtil {
 	{
 		APP_DATA.mkdirs();
 	}
+	
+	public static CongressionalSession SESSION = CongressionalSession.S118;
 	
 	public static List<Integer> SUPPORTED_CONGRESSES = Arrays.asList(118);
 	
