@@ -1,5 +1,6 @@
 package us.poliscore.model;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -14,10 +15,10 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.Data;
 import lombok.Getter;
 import lombok.val;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
-import us.poliscore.model.dynamodb.IssueStatsMapAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
+import us.poliscore.model.dynamodb.IssueStatsMapAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 
 @Data
 @DynamoDbBean
@@ -242,27 +243,33 @@ public class IssueStats {
 	{
 		StringBuilder sb = new StringBuilder();
 		
-	    sb.append(String.join("\n", stats.keySet().stream().map(issue ->"-" + issue.getName() + ": " + formatStatValue(getStat(issue))).toList()));
+	    sb.append(String.join("\n", stats.keySet().stream().sorted(new IssueStatsComparator()).map(issue ->"-" + issue.getName() + ": " + formatStatValue(getStat(issue))).toList()));
 		
 		return sb.toString();
 	}
 	
 	private String formatStatValue(int val)
 	{
-		final String sign = (val > 0) ? "+" : (val < 0 ? "-" : "");
-		
-//		if (Double.valueOf(Math.floor(val)).equals(Double.valueOf(val)))
-//		{
-//			return sign + String.valueOf((int)val);
-//		}
-//		
-//		return sign + String.format("%.1f", val);
-		
-		return sign + String.valueOf(val);
+		return (val > 0 ? "+" : "") + String.valueOf(val);
 	}
 
 	@JsonIgnore
 	public int getRating() {
 		return getStat(TrackedIssue.OverallBenefitToSociety);
+	}
+	
+	public class IssueStatsComparator implements Comparator<TrackedIssue> {
+
+	    @Override
+	    public int compare(TrackedIssue a, TrackedIssue b) {
+	    	if (a.equals(TrackedIssue.OverallBenefitToSociety) && !b.equals(TrackedIssue.OverallBenefitToSociety)) {
+	    		return -1;
+	    	} else if (!a.equals(TrackedIssue.OverallBenefitToSociety) && b.equals(TrackedIssue.OverallBenefitToSociety)) {
+	    		return 1;
+	    	} else {
+	    		return Integer.valueOf(getStat(b)).compareTo(getStat(a));
+	    	}
+	    }
+
 	}
 }

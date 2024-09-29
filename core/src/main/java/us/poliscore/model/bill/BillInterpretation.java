@@ -27,7 +27,7 @@ import us.poliscore.model.AISliceInterpretationMetadata;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.TrackedIssue;
-import us.poliscore.model.dynamodb.JacksonAttributeConverter.BillInterpretationMetadataConverter;
+import us.poliscore.model.dynamodb.JacksonAttributeConverter.AIInterpretationMetadataConverter;
 
 @Data
 @DynamoDbBean
@@ -62,7 +62,7 @@ public class BillInterpretation implements Persistable
 	protected List<BillInterpretation> sliceInterpretations = new ArrayList<BillInterpretation>();
 	
 	@NonNull
-	@Getter(onMethod = @__({ @DynamoDbConvertedBy(BillInterpretationMetadataConverter.class)}))
+	@Getter(onMethod = @__({ @DynamoDbConvertedBy(AIInterpretationMetadataConverter.class)}))
 	protected AIInterpretationMetadata metadata;
 	
 	@DynamoDbPartitionKey

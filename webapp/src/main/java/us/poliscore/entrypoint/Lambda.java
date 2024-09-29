@@ -37,8 +37,10 @@ import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
-import us.poliscore.model.session.SessionInterpretation;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
+import us.poliscore.model.session.SessionInterpretation;
+import us.poliscore.model.session.SessionInterpretation.PartyBillSet;
+import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 
@@ -73,10 +75,6 @@ public class Lambda {
     public SessionInterpretation getSessionStats() {
     	val op = ddb.get(SessionInterpretation.generateId(PoliscoreUtil.SUPPORTED_CONGRESSES.get(0)), SessionInterpretation.class);
     	
-    	if (op.isPresent()) {
-    		return op.get();
-    	}
-    	
     	return op.orElse(null);
     }
     
@@ -103,17 +101,6 @@ public class Lambda {
 		{
 			var exp = leg.getInterpretation().getLongExplain();
 			
-			// Standardize terminology from H.J. Res XXX -> HJRES-XXX
-//			if (leg.getTerms().last().getChamber().equals(CongressionalChamber.SENATE)) {
-//				exp = exp.replaceAll("S(\\.|-) ?(\\d{1,4})", "S-$1");
-//				exp = exp.replaceAll("S\\.?J\\.? ?(Res)?\\.? ?-?(\\d{1,4})", "SJRES-$2");
-//			} else {
-//				exp = exp.replaceAll("H\\.?J\\.? ?(Res)?\\.? ?-?(\\d{1,4})", "HJRES-$2");
-//				exp = exp.replaceAll("H\\.?R\\.? ?-?(\\d{1,4})", "HR-$1");
-//			}
-			
-			
-			// Replace 
 			for (val interact : leg.getInteractions()) {
 				val url = "/bill" + interact.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace(), "");
 				
@@ -132,8 +119,6 @@ public class Lambda {
 			    while (matcher.find()) {
 			    	exp = exp.replaceFirst(matcher.group(1), "<a href=\"" + url + "\" >" + billName + "</a>");
 			    }
-				
-//				exp = exp.replaceAll(, "<a href=\"" + url + "\" >" + billName + "</a>");
 			}
 			
 			leg.getInterpretation().setLongExplain(exp);

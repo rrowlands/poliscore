@@ -54,6 +54,8 @@
         <mat-card class="tran-div stats">
             <mat-card-content>
                 <div class="row vertical-layout">
+                    <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForParty())}">{{gradeForParty()}}</p></h1>
+
                     <!-- <div class="col-left vertical-layout">
                         <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForLegislator())}">{{gradeForLegislator()}}</p></h1>
                         <h1 class="card-title" style="text-align:center;">{{party}}</h1>
@@ -76,7 +78,7 @@
 
                 <section *ngIf="stats != null">
                     <!-- <h2>Interpretation</h2> -->
-                    <!-- <div class="leg-summary"><p *ngFor="let paragraph of leg?.interpretation?.longExplain?.split('\n')" [innerHTML]="paragraph"></p></div> -->
+                    <div class="leg-summary"><p *ngFor="let paragraph of getInterpretation()!.longExplain!.split('\n')" [innerHTML]="paragraph"></p></div>
 
                     
                 </section>

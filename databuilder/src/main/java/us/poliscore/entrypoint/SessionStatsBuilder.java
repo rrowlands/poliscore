@@ -41,6 +41,7 @@ import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
+import us.poliscore.service.OpenAIService;
 import us.poliscore.service.PartyInterpretationService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
@@ -164,7 +165,7 @@ public class SessionStatsBuilder implements QuarkusApplication
 			
 			ps.setParty(party);
 			
-			for (int i = 0; i < 10; ++i) {
+			for (int i = 0; i < 20; ++i) {
 				if (!bestBills.get(party).isEmpty()) ps.getBestBills().add(bestBills.get(party).poll());
 				if (!worstBills.get(party).isEmpty()) ps.getWorstBills().add(worstBills.get(party).poll());
 				if (!bestLegislators.get(party).isEmpty()) ps.getBestLegislators().add(bestLegislators.get(party).poll());
@@ -184,6 +185,8 @@ public class SessionStatsBuilder implements QuarkusApplication
 		sessionStats.setDemocrat(partyStats.get(Party.DEMOCRAT));
 		sessionStats.setRepublican(partyStats.get(Party.REPUBLICAN));
 		sessionStats.setIndependent(partyStats.get(Party.INDEPENDENT));
+		
+		sessionStats.setMetadata(OpenAIService.metadata());
 		
 		ddb.put(sessionStats);
 		
@@ -233,7 +236,7 @@ public class SessionStatsBuilder implements QuarkusApplication
 		messages.add(new BatchBillMessage("user", userMsg));
 		
 		requests.add(new BatchOpenAIRequest(
-				party.name(),
+				SessionInterpretation.ID_CLASS_PREFIX + "/" + party.name(),
 				new BatchOpenAIBody(messages)
 		));
 	}

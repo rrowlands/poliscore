@@ -14,7 +14,7 @@ import us.poliscore.service.storage.MemoryPersistenceService;
 @ApplicationScoped
 public class PartyInterpretationService {
 	public static final String PROMPT_TEMPLATE = """
-			You are part of a non-partisan oversight committee which has graded the {{partyName}} party for the {{session}} congressional session. The party has received the following policy area grades (scores range from -100 to 100):
+			You are part of a U.S. non-partisan oversight committee which has graded the {{partyName}} party for the {{session}} congressional session. The party has received the following policy area grades (scores range from -100 to 100):
 			
 			{{stats}}
 			

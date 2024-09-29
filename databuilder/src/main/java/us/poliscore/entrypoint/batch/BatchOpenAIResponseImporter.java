@@ -7,11 +7,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
@@ -24,6 +27,8 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIResponse;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.IssueStats;
+import us.poliscore.model.LegislativeNamespace;
+import us.poliscore.model.Party;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
@@ -33,6 +38,8 @@ import us.poliscore.model.bill.BillText;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.legislator.LegislatorInterpretation;
+import us.poliscore.model.session.SessionInterpretation;
+import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillService;
@@ -50,10 +57,10 @@ import us.poliscore.service.storage.MemoryPersistenceService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_o32fkIswzuN3OZ8Z4jpVUdS4_output.jsonl";
+	public static final String INPUT = "/Users/rrowlands/Downloads/batch_66f88783cc888190a89550966eebfff2_output.jsonl";
 	
 	// All Legislators (August 21st)
-	public static final String INPUT = "/Users/rrowlands/Downloads/batch_P8Wsivj5pgknA2QPVrK9KZJI_output.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_P8Wsivj5pgknA2QPVrK9KZJI_output.jsonl";
 	
 	// All Legislators (Aug 5th) 
 //	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
@@ -114,6 +121,8 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 					importBill(resp);
 				} else if (resp.getCustom_id().startsWith(LegislatorInterpretation.ID_CLASS_PREFIX)) {
 					importLegislator(resp);
+				} else if (resp.getCustom_id().startsWith(SessionInterpretation.ID_CLASS_PREFIX)) {
+					importParty(resp);
 				} else {
 					throw new UnsupportedOperationException("Unexpected object type " + resp.getCustom_id());
 				}
@@ -205,6 +214,69 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		ddb.put(leg);
 	}
+	
+	private void importParty(final BatchOpenAIResponse resp) {
+		val interp = ddb.get(SessionInterpretation.generateId(PoliscoreUtil.SESSION.getNumber()), SessionInterpretation.class).get();
+		
+		val interpText = resp.getResponse().getBody().getChoices().get(0).getMessage().getContent();
+		
+		PartyInterpretation partyInterp;
+		
+		if (resp.getCustom_id().contains(Party.DEMOCRAT.name())) {
+			partyInterp = interp.getDemocrat();
+		} else if (resp.getCustom_id().contains(Party.REPUBLICAN.name())) {
+			partyInterp = interp.getRepublican();
+		} else if (resp.getCustom_id().contains(Party.INDEPENDENT.name())) {
+			partyInterp = interp.getIndependent();
+		} else {
+			throw new UnsupportedOperationException();
+		}
+		
+		partyInterp.setLongExplain(interpText);
+		linkPartyBills(partyInterp);
+		
+		interp.setMetadata(OpenAIService.metadata());
+		
+		ddb.put(interp);
+	}
+	
+	private void linkPartyBills(PartyInterpretation interp) {
+		try
+		{
+			var exp = interp.getLongExplain();
+			
+			for (val bill : memService.query(Bill.class)) {
+				val bi = s3.get(BillInterpretation.generateId(bill.getId(), null), BillInterpretation.class);
+				
+				if (bi.isPresent()) {
+					bill.setInterpretation(bi.get());
+					val id = bill.getId();
+					var billName = bill.getName();
+					
+					val url = "/bill" + id.replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace(), "");
+					
+					if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);
+					billName = billName.strip();
+					if (billName.endsWith("."))
+						billName = billName.substring(0, billName.length() - 1);
+					
+					val billId = Bill.billTypeFromId(id).getName() + "-" + Bill.billNumberFromId(id);
+					
+					val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")[^\\d]";
+					
+					Pattern pattern = Pattern.compile("(?i)" + billMatchPattern + "", Pattern.CASE_INSENSITIVE);
+				    Matcher matcher = pattern.matcher(exp);
+				    while (matcher.find()) {
+				    	exp = exp.replaceFirst(matcher.group(1), "<a href=\"" + url + "\" >" + billName + "</a>");
+				    }
+				}
+			}
+			
+			interp.setLongExplain(exp);
+		} catch (Throwable t) {
+			Log.error(t);
+		}
+    }
 
 	private void importBill(final BatchOpenAIResponse resp) {
 		String billId = resp.getCustom_id().replace(BillInterpretation.ID_CLASS_PREFIX, Bill.ID_CLASS_PREFIX);

@@ -7,7 +7,7 @@ Building a PoliScore database is a very complicated and manual process, some of 
 4. Fetch bill text
 5. Interpret bills (twice), using BatchBillRequestGenerator and BathOpenAIResponseImporter 
 6. Interpret legislators, using BatchLegislatorRequestGenerator and BathOpenAIResponseImporter
-7. Interpret party stats, using SessionStatsBuilder.java
+7. Interpret party stats, using SessionStatsBuilder.java and BathOpenAIResponseImporter
 8. Run WebappDataGenerator
 9. Configure deployment target with 'switch-deployment.sh' shell script
 10. Run 'deploy.sh backend' to update the Lambda webserver

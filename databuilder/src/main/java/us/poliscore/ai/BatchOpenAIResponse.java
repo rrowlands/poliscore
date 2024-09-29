@@ -21,6 +21,8 @@ public class BatchOpenAIResponse {
 	
 	protected Response response;
 	
+	protected Usage usage;
+	
 	@Data
 	@RegisterForReflection
 	@AllArgsConstructor
@@ -89,5 +91,7 @@ public class BatchOpenAIResponse {
 		protected int completion_tokens;
 		
 		protected int total_tokens;
+		
+		protected Object completion_tokens_details;
 	}
 }

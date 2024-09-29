@@ -40,7 +40,7 @@ public class LegislatorInterpretationService
 //	private static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) critique of this history, evaluating the performance, highlighting any specific accomplishments or alarming behaviour and pointing out major focuses and priorities of the legislator. In your critique, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
 	
 	private static final String PROMPT_TEMPLATE = """
-The United States {{politicianType}} {{fullName}} has been evaluated based on recent legislative performance and has received the following policy area grades (scores range from -100 to 100):
+You are part of a U.S. non-partisan oversight committee which has graded the recent legislative performance of {{politicianType}} {{fullName}}. This legislator has received the following policy area grades (scores range from -100 to 100):
 
 {{stats}}
 

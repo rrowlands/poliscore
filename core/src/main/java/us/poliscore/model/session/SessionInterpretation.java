@@ -19,6 +19,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
+import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
@@ -27,12 +28,14 @@ import us.poliscore.model.bill.Bill.BillSponsor;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.dynamodb.DdbDataPage;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverterProvider;
+import us.poliscore.model.dynamodb.JacksonAttributeConverter.AIInterpretationMetadataConverter;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.CompressedPartyStatsConverter;
 import us.poliscore.model.legislator.Legislator;
 
 @Data
 @DynamoDbBean
 @RegisterForReflection
+@NoArgsConstructor
 public class SessionInterpretation implements Persistable {
 	
 	public static final String ID_CLASS_PREFIX = "SIT";
@@ -50,6 +53,10 @@ public class SessionInterpretation implements Persistable {
 	
 	@Getter(onMethod = @__({ @DdbDataPage("3"), @DynamoDbConvertedBy(CompressedPartyStatsConverter.class) }))
 	protected PartyInterpretation independent;
+	
+	@NonNull
+	@Getter(onMethod = @__({ @DynamoDbConvertedBy(AIInterpretationMetadataConverter.class)}))
+	protected AIInterpretationMetadata metadata;
 	
 	public static String generateId(int congress)
 	{
@@ -129,7 +136,7 @@ public class SessionInterpretation implements Persistable {
 		@DynamoDbIgnore
 		@JsonIgnore
 		public String getShortExplainForInterp() {
-			return this.name + ": " + this.shortExplain;
+			return this.name + " (" + (rating > 0 ? "+" : "") + rating + ", " + (1 + cosponsors.size()) + " sponsors" + ")" + ": " + this.shortExplain;
 		}
 		
 		@DynamoDbIgnore

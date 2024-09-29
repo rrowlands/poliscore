@@ -137,9 +137,9 @@ public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
         }
     }
     
-    public static class BillInterpretationMetadataConverter extends JacksonAttributeConverter<AIInterpretationMetadata> {
+    public static class AIInterpretationMetadataConverter extends JacksonAttributeConverter<AIInterpretationMetadata> {
     	
-    	public BillInterpretationMetadataConverter() {
+    	public AIInterpretationMetadataConverter() {
     		super(AIInterpretationMetadata.class);
     	}
     }

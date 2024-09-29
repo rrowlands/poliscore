@@ -4,7 +4,7 @@ import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, B
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { AppService } from '../app.service';
 import { Title } from '@angular/platform-browser';
-import { Bill, colorForGrade, getBenefitToSocietyIssue, issueKeyToLabel, issueKeyToLabelSmall, Legislator, SessionStats } from '../model';
+import { Bill, colorForGrade, getBenefitToSocietyIssue, gradeForStats, issueKeyToLabel, issueKeyToLabelSmall, Legislator, SessionStats } from '../model';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatCardModule } from '@angular/material/card'; 
 import { HttpClient } from '@angular/common/http';
@@ -124,6 +124,16 @@ export class SessionStatsComponent {
     }
   }
 
+  getInterpretation() {
+    if (this.party === "REPUBLICAN") {
+      return this.stats?.republican;
+    } else if (this.party === "DEMOCRAT") {
+      return this.stats?.democrat;
+    } else {
+      return this.stats?.independent;
+    }
+  }
+
   toggleSort(index: "legislators" | "bills") {
     if (index == "legislators") {
       if (this.sort == "bestLegislators") {
@@ -230,7 +240,8 @@ export class SessionStatsComponent {
   }
 
   colorForGrade(grade: any): any { return colorForGrade(grade); }
-  gradeForLegislator(leg: Legislator): any { return gradeForLegislator(leg); }
+  gradeForParty(): any { return gradeForStats(this.getInterpretation()?.stats); }
+  gradeForLegislator(leg: Legislator): string { return gradeForStats(leg.interpretation?.issueStats!); }
   subtitleForLegislator(leg: Legislator) { return subtitleForLegislator(leg); }
   descriptionForLegislator(leg: Legislator) { return descriptionForLegislator(leg, isPlatformBrowser(this._platformId) && window.innerWidth < 480); }
   upForReelection(leg: Legislator): any { return upForReelection(leg); }
