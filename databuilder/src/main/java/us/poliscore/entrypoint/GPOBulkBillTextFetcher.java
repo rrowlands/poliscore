@@ -81,7 +81,8 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 					
 					val zip = new File(typeStore, congress + "-" + billType + ".zip");
 					
-					if (zip.exists() && new Date().getTime() - zip.lastModified() > 24 * 60 * 60 * 1000) {
+					// TODO : timestamp code found not working
+					if (zip.exists()) { // && new Date().getTime() - zip.lastModified() > 24 * 60 * 60 * 1000
 						zip.delete();
 					} else if (zip.exists()) { continue; }
 					

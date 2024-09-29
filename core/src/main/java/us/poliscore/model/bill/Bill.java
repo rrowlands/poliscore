@@ -58,6 +58,8 @@ public class Bill implements Persistable {
 	
 	protected BillInterpretation interpretation;
 	
+	protected CBOBillAnalysis cboAnalysis;
+	
 	public void setInterpretation(BillInterpretation interp) {
 		this.interpretation = interp;
 		

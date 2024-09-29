@@ -48,6 +48,8 @@ public class BillInterpretation implements Persistable
 	
 	protected List<String> riders;
 	
+	protected Integer budgetChange10Yr;
+	
 	protected String shortExplain;
 	
 	protected String longExplain;

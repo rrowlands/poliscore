@@ -11,6 +11,9 @@ import jakarta.inject.Inject;
 import lombok.NonNull;
 import lombok.val;
 import us.poliscore.MissingBillTextException;
+import us.poliscore.ai.BatchOpenAIRequest;
+import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
+import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
 import us.poliscore.model.AISliceInterpretationMetadata;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.IssueStats;
@@ -19,9 +22,11 @@ import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillInterpretationParser;
 import us.poliscore.model.bill.BillSlice;
+import us.poliscore.model.bill.CBOBillAnalysis;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.storage.CachedS3Service;
+import us.poliscore.service.storage.LocalCachedS3Service;
 
 /**
  * Two different interpretation strategies were tested for interpreting very large bills in "slices".
@@ -55,6 +60,8 @@ public class BillInterpretationService {
 			
 			{issuesList}
 			
+			{{budget}}
+			
 			Bill Title:
 			Write the bill title. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content.
 			
@@ -86,6 +93,8 @@ public class BillInterpretationService {
 			Bill Title:
 			Write the bill title. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content.
 			
+			{{budget}}
+			
 			Riders:
 			- List of bill riders identified and the section they occured at, or 'None' if there are none
 			
@@ -96,6 +105,7 @@ public class BillInterpretationService {
 			A detailed, but not repetitive, report of the bill which references concrete, notable and specific text of the bill where possible. Make sure to explain: an overall summary of the bill; the high level goals the bill is attempting to achieve, and how it plans to achieve those goals; the impact to society the bill would have, if enacted. Your audience here is general public layman voters, so if you think they won't understand an acronym or a complex topic, please explain it. Should be between one and seven paragraphs long, depending on the complexity of the bill and the topics it covers. If the bill touches on controversial topics such as trans issues or guns rights, please include the advocating logic by proponents and also the advocating logic of the opposition, otherwise do not include this logic. Where relevant, cite scientific studies or the opinions of authoritative knowledge sources to provide more context. Keep in mind that we're trying to figure out how to spend U.S. taxpayer dollars: budgetary concerns are important. If there are riders in the bill, mention them in this summary, otherwise do not mention their absence. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
 			""";
 	
+	public static final String BUDGET_PROMPT_REPLACEMENT = "Budget:\\nUse the Congressional Budget Office analysis to write the difference in federal spending over the next ten years caused by the passing of the bill. Write this as a singular, standalone number, with no explanation and no units. If the bill causes a budget surplus, write the number as a negative.";
 	
 	public static final String statsPrompt;
 	public static final String slicePrompt;
@@ -109,7 +119,7 @@ public class BillInterpretationService {
 	protected OpenAIService ai;
 	
 	@Inject
-	protected CachedS3Service s3;
+	protected LocalCachedS3Service s3;
 	
 	@Inject
 	protected BillService billService;
@@ -119,124 +129,154 @@ public class BillInterpretationService {
 		return s3.get(BillInterpretation.generateId(billId, null), BillInterpretation.class);
 	}
 	
-	public BillInterpretation getOrCreate(String billId)
-	{
-		val bill = billService.getById(billId).orElseThrow();
-		val interpId = BillInterpretation.generateId(bill.getId(), null);
-		val cached = s3.get(interpId, BillInterpretation.class);
+	public String getPromptForBill(Bill bill, boolean isSlice) {
+		val op = s3.get(CBOBillAnalysis.ID_CLASS_PREFIX, CBOBillAnalysis.class);
 		
-		if (cached.isPresent())
-		{
-			return cached.get();
-		}
-		else
-		{
-			val interp = interpret(bill);
-			
-			return interp;
-		}
-	}
-	
-	protected BillInterpretation interpret(Bill bill) throws MissingBillTextException
-	{
-		Log.info("Interpreting bill " + bill.getId() + " " + bill.getName());
-		
-		val billText = billService.getBillText(bill).orElseThrow(() -> new MissingBillTextException());
-		
-		bill.setText(billText);
-		
-		if (billText.getXml().length() >= BillSlicer.MAX_SECTION_LENGTH)
-    	{
-    		List<BillSlice> slices = new XMLBillSlicer().slice(bill, bill.getText(), BillSlicer.MAX_SECTION_LENGTH);
-    		List<AISliceInterpretationMetadata> sliceMetadata = new ArrayList<AISliceInterpretationMetadata>();
-    		List<BillInterpretation> sliceInterps = new ArrayList<BillInterpretation>();
-    		
-    		if (slices.size() == 0) throw new UnsupportedOperationException("Slicer returned zero slices?");
-    		else if (slices.size() == 1) {
-    			bill.getText().setXml(slices.get(0).getText()); // TODO : Hackity hack. This achieves our goal of treating it as the bill text but it's not actually xml
-    		} else {
-    			DoubleIssueStats billStats = new DoubleIssueStats();
-    			List<String> aggregateExplain = new ArrayList<String>();
-        		
-        		for (int i = 0; i < slices.size(); ++i)
-        		{
-        			BillSlice slice = slices.get(i);
-        			
-        			BillInterpretation sliceInterp = getOrCreateInterpretation(bill, slice);
-        			
-        			billStats = billStats.sum(sliceInterp.getIssueStats().toDoubleIssueStats());
-        			sliceMetadata.add((AISliceInterpretationMetadata) sliceInterp.getMetadata());
-        			
-        			sliceInterps.add(sliceInterp);
-        			aggregateExplain.add(sliceInterp.getShortExplain());
-        		}
-        		
-        		billStats = billStats.divideByTotalSummed();
-        		
-        		var bi = getOrCreateAggregateInterpretation(bill, billStats.toIssueStats(), String.join("\n", aggregateExplain), sliceInterps);
-        		
-        		return bi;
-    		}
-    	}
-		
-		var bi = getOrCreateInterpretation(bill, null);
-		
-    	return bi;
-	}
-	
-	protected BillInterpretation getOrCreateAggregateInterpretation(Bill bill, IssueStats aggregateStats, String aggregateExplain, List<BillInterpretation> sliceInterps)
-	{
-		BillInterpretation bi = new BillInterpretation();
-		bi.setBill(bill);
-		
-		bi.setMetadata(OpenAIService.metadata());
-		bi.setSliceInterpretations(sliceInterps);
-		
-		String aiOut = ai.chat(aggregatePrompt, aggregateExplain);
-		new BillInterpretationParser(bi).parse(aiOut);
-		
-		bi.setIssueStats(aggregateStats);
-		bi.setId(BillInterpretation.generateId(bill.getId(), null));
-		
-		archive(bi);
-		
-		return bi;
-	}
-	
-	protected BillInterpretation getOrCreateInterpretation(Bill bill, BillSlice slice)
-	{
-		val id = BillInterpretation.generateId(bill.getId(), slice == null ? null : slice.getSliceIndex());
-		val cached = s3.get(id, BillInterpretation.class);
-		
-		if (cached.isPresent())
-		{
-			return cached.get();
-		}
-		else
-		{
-			BillInterpretation bi = new BillInterpretation();
-			bi.setBill(bill);
-			
-			String interpText;
-			if (slice == null)
-			{
-				interpText = ai.chat(slicePrompt, bill.getText().getXml());
-				bi.setMetadata(OpenAIService.metadata());
+		if (isSlice) {
+			if (op.isEmpty()) {
+				return statsPrompt.replace("{{budget}}", "");
+			} else {
+				return statsPrompt.replace("{{budget}}", BUDGET_PROMPT_REPLACEMENT);
 			}
-			else
-			{
-				interpText = ai.chat(statsPrompt, slice.getText());
-				bi.setMetadata(OpenAIService.metadata(slice));
+		} else {
+			if (op.isEmpty()) {
+				return statsPrompt.replace("{{budget}}", "");
+			} else {
+				return statsPrompt.replace("{{budget}}", BUDGET_PROMPT_REPLACEMENT);
 			}
-			
-			new BillInterpretationParser(bi).parse(interpText);
-			bi.setId(id);
-			
-			archive(bi);
-			
-			return bi;
 		}
 	}
+	
+	public String getUserMsgForBill(Bill bill, String billText) {
+		var userMsg = "Bill Text:\n" + billText;
+		
+		val op = s3.get(CBOBillAnalysis.ID_CLASS_PREFIX, CBOBillAnalysis.class);
+		
+		if (op.isPresent()) {
+			userMsg = "Congressional Budget Office Analysis:\n" + op.get().getSummary();
+		}
+		
+		return userMsg;
+	}
+	
+//	protected BillInterpretation getOrCreateAggregateInterpretation(Bill bill, IssueStats aggregateStats, String aggregateExplain, List<BillInterpretation> sliceInterps)
+//	{
+//		BillInterpretation bi = new BillInterpretation();
+//		bi.setBill(bill);
+//		
+//		bi.setMetadata(OpenAIService.metadata());
+//		bi.setSliceInterpretations(sliceInterps);
+//		
+//		String aiOut = ai.chat(aggregatePrompt, aggregateExplain);
+//		new BillInterpretationParser(bi).parse(aiOut);
+//		
+//		bi.setIssueStats(aggregateStats);
+//		bi.setId(BillInterpretation.generateId(bill.getId(), null));
+//		
+//		archive(bi);
+//		
+//		return bi;
+//	}
+	
+//	public BillInterpretation getOrCreate(String billId)
+//	{
+//		val bill = billService.getById(billId).orElseThrow();
+//		val interpId = BillInterpretation.generateId(bill.getId(), null);
+//		val cached = s3.get(interpId, BillInterpretation.class);
+//		
+//		if (cached.isPresent())
+//		{
+//			return cached.get();
+//		}
+//		else
+//		{
+//			val interp = interpret(bill);
+//			
+//			return interp;
+//		}
+//	}
+	
+//	protected BillInterpretation interpret(Bill bill) throws MissingBillTextException
+//	{
+//		Log.info("Interpreting bill " + bill.getId() + " " + bill.getName());
+//		
+//		val billText = billService.getBillText(bill).orElseThrow(() -> new MissingBillTextException());
+//		
+//		bill.setText(billText);
+//		
+//		if (billText.getXml().length() >= BillSlicer.MAX_SECTION_LENGTH)
+//    	{
+//    		List<BillSlice> slices = new XMLBillSlicer().slice(bill, bill.getText(), BillSlicer.MAX_SECTION_LENGTH);
+//    		List<AISliceInterpretationMetadata> sliceMetadata = new ArrayList<AISliceInterpretationMetadata>();
+//    		List<BillInterpretation> sliceInterps = new ArrayList<BillInterpretation>();
+//    		
+//    		if (slices.size() == 0) throw new UnsupportedOperationException("Slicer returned zero slices?");
+//    		else if (slices.size() == 1) {
+//    			bill.getText().setXml(slices.get(0).getText()); // TODO : Hackity hack. This achieves our goal of treating it as the bill text but it's not actually xml
+//    		} else {
+//    			DoubleIssueStats billStats = new DoubleIssueStats();
+//    			List<String> aggregateExplain = new ArrayList<String>();
+//        		
+//        		for (int i = 0; i < slices.size(); ++i)
+//        		{
+//        			BillSlice slice = slices.get(i);
+//        			
+//        			BillInterpretation sliceInterp = getOrCreateInterpretation(bill, slice);
+//        			
+//        			billStats = billStats.sum(sliceInterp.getIssueStats().toDoubleIssueStats());
+//        			sliceMetadata.add((AISliceInterpretationMetadata) sliceInterp.getMetadata());
+//        			
+//        			sliceInterps.add(sliceInterp);
+//        			aggregateExplain.add(sliceInterp.getShortExplain());
+//        		}
+//        		
+//        		billStats = billStats.divideByTotalSummed();
+//        		
+//        		var bi = getOrCreateAggregateInterpretation(bill, billStats.toIssueStats(), String.join("\n", aggregateExplain), sliceInterps);
+//        		
+//        		return bi;
+//    		}
+//    	}
+//		
+//		var bi = getOrCreateInterpretation(bill, null);
+//		
+//    	return bi;
+//	}
+	
+//	protected BillInterpretation getOrCreateInterpretation(Bill bill, BillSlice slice)
+//	{
+//		val id = BillInterpretation.generateId(bill.getId(), slice == null ? null : slice.getSliceIndex());
+//		val cached = s3.get(id, BillInterpretation.class);
+//		
+//		if (cached.isPresent())
+//		{
+//			return cached.get();
+//		}
+//		else
+//		{
+//			BillInterpretation bi = new BillInterpretation();
+//			bi.setBill(bill);
+//			
+//			String interpText;
+//			if (slice == null)
+//			{
+//				interpText = ai.chat(slicePrompt, bill.getText().getXml());
+//				bi.setMetadata(OpenAIService.metadata());
+//			}
+//			else
+//			{
+//				interpText = ai.chat(aggregatePrompt, slice.getText());
+//				bi.setMetadata(OpenAIService.metadata(slice));
+//			}
+//			
+//			new BillInterpretationParser(bi).parse(interpText);
+//			bi.setId(id);
+//			
+//			archive(bi);
+//			
+//			return bi;
+//		}
+//	}
 	
     protected void archive(BillInterpretation interp)
     {
@@ -245,7 +285,13 @@ public class BillInterpretationService {
 
 	public boolean isInterpreted(@NonNull String billId) {
 		val id = BillInterpretation.generateId(billId, null);
-		return s3.exists(id, BillInterpretation.class);
+		val exists = s3.exists(id, BillInterpretation.class);
+		
+		if (!exists) return false;
+		
+//		s3.exists(CBOBillAnalysis.ID_CLASS_PREFIX, CBOBillAnalysis.class);
+		
+		return exists;
 	}
 	
 	public boolean isInterpreted(@NonNull String billId, int sliceIndex) {

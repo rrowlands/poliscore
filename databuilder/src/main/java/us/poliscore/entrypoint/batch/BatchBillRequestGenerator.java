@@ -98,17 +98,19 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 			val billText = billService.getBillText(b).orElse(null);
 			b.setText(billText);
 			
-			if (billText.getXml().length() >= BillSlicer.MAX_SECTION_LENGTH)
+			val userMsg = billInterpreter.getUserMsgForBill(b, b.getText().getXml());
+			
+			if (userMsg.length() >= BillSlicer.MAX_SECTION_LENGTH)
 	    	{
-	    		List<BillSlice> slices = new XMLBillSlicer().slice(b, b.getText(), BillSlicer.MAX_SECTION_LENGTH);
+	    		List<BillSlice> slices = new XMLBillSlicer().slice(b, b.getText(), BillSlicer.MAX_SECTION_LENGTH - (userMsg.length() - b.getText().getXml().length()));
 	    		
 	    		if (slices.size() == 0) throw new UnsupportedOperationException("Slicer returned zero slices?");
 	    		else if (slices.size() == 1) {
 	    			b.getText().setXml(slices.get(0).getText());
 	    			
 	    			List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();
-					messages.add(new BatchBillMessage("system", BillInterpretationService.statsPrompt));
-	    			messages.add(new BatchBillMessage("user", b.getText().getXml()));
+					messages.add(new BatchBillMessage("system", billInterpreter.getPromptForBill(b, false)));
+	    			messages.add(new BatchBillMessage("user", billInterpreter.getUserMsgForBill(b, b.getText().getXml())));
 	    			
 	    			requests.add(new BatchOpenAIRequest(
 	    					BillInterpretation.generateId(b.getId(), null),
@@ -144,7 +146,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	            		
 	            		val oid = BillInterpretation.generateId(b.getId(), null);
 	            		
-	            		if (CHECK_S3_EXISTS && s3.exists(oid, BillInterpretation.class)) { continue; }
+	            		if (CHECK_S3_EXISTS && billInterpreter.isInterpreted(oid)) { continue; }
 	            		
 	            		if (String.join("\n", summaries).length() > XMLBillSlicer.MAX_SECTION_LENGTH) {
 	            			summaries = new ArrayList<String>();
@@ -158,12 +160,12 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		            		}
 	            		}
 	            		
-		    			createRequest(oid, BillInterpretationService.aggregatePrompt, String.join("\n", summaries));
+		    			createRequest(oid, billInterpreter.getPromptForBill(b, true), billInterpreter.getUserMsgForBill(b, String.join("\n", summaries)));
 	        		}
 	    		}
 	    	}
 			else {
-    			createRequest(BillInterpretation.generateId(b.getId(), null), BillInterpretationService.statsPrompt, b.getText().getXml());
+    			createRequest(BillInterpretation.generateId(b.getId(), null), billInterpreter.getPromptForBill(b, false), userMsg);
 			}
 			
 			if (tokenLen >= TOKEN_BLOCK_SIZE) {

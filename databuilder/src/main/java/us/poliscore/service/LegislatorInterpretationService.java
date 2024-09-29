@@ -117,28 +117,28 @@ Based on these scores, this legislator has received the overall letter grade: {{
 				.collect(Collectors.toList());
 	}
 	
-	protected void interpretMostRecentInteractions(Legislator leg)
-	{
-		int interpretedBills = 0;
-		for (val i : getInteractionsForInterpretation(leg))
-		{
-			if (interpretedBills >= LIMIT_BILLS) break;
-			
-			try
-			{
-				val interp = billInterpreter.getOrCreate(i.getBillId());
-				
-				i.setIssueStats(interp.getIssueStats());
-				
-				interpretedBills++;
-			}
-			catch (MissingBillTextException ex)
-			{
-				// TODO
-				Log.error("Could not find text for bill " + i.getBillId());
-			}
-		}
-	}
+//	protected void interpretMostRecentInteractions(Legislator leg)
+//	{
+//		int interpretedBills = 0;
+//		for (val i : getInteractionsForInterpretation(leg))
+//		{
+//			if (interpretedBills >= LIMIT_BILLS) break;
+//			
+//			try
+//			{
+//				val interp = billInterpreter.getOrCreate(i.getBillId());
+//				
+//				i.setIssueStats(interp.getIssueStats());
+//				
+//				interpretedBills++;
+//			}
+//			catch (MissingBillTextException ex)
+//			{
+//				// TODO
+//				Log.error("Could not find text for bill " + i.getBillId());
+//			}
+//		}
+//	}
 	
 	protected boolean isRelevant(LegislatorBillInteraction interact)
 	{
