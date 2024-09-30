@@ -105,7 +105,7 @@ public class BillInterpretationService {
 			A detailed, but not repetitive, report of the bill which references concrete, notable and specific text of the bill where possible. Make sure to explain: an overall summary of the bill; the high level goals the bill is attempting to achieve, and how it plans to achieve those goals; the impact to society the bill would have, if enacted. Your audience here is general public layman voters, so if you think they won't understand an acronym or a complex topic, please explain it. Should be between one and seven paragraphs long, depending on the complexity of the bill and the topics it covers. If the bill touches on controversial topics such as trans issues or guns rights, please include the advocating logic by proponents and also the advocating logic of the opposition, otherwise do not include this logic. Where relevant, cite scientific studies or the opinions of authoritative knowledge sources to provide more context. Keep in mind that we're trying to figure out how to spend U.S. taxpayer dollars: budgetary concerns are important. If there are riders in the bill, mention them in this summary, otherwise do not mention their absence. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
 			""";
 	
-	public static final String BUDGET_PROMPT_REPLACEMENT = "Budget:\\nUse the Congressional Budget Office analysis to write the difference in federal spending over the next ten years caused by the passing of the bill. Write this as a singular, standalone number, with no explanation and no units. If the bill causes a budget surplus, write the number as a negative.";
+	public static final String BUDGET_PROMPT_REPLACEMENT = "10 Year Budget Delta:\\nUse the Congressional Budget Office analysis to write the difference in federal spending over the next ten years caused by the passing of the bill. Write this as a singular, standalone number, with no explanation and no units. If the bill causes a budget surplus, write the number as a negative.";
 	
 	public static final String statsPrompt;
 	public static final String slicePrompt;
@@ -129,14 +129,14 @@ public class BillInterpretationService {
 		return s3.get(BillInterpretation.generateId(billId, null), BillInterpretation.class);
 	}
 	
-	public String getPromptForBill(Bill bill, boolean isSlice) {
-		val op = s3.get(CBOBillAnalysis.ID_CLASS_PREFIX, CBOBillAnalysis.class);
+	public String getPromptForBill(Bill bill, boolean isAggregate) {
+		val op = s3.get(CBOBillAnalysis.generateId(bill.getId()), CBOBillAnalysis.class);
 		
-		if (isSlice) {
+		if (isAggregate) {
 			if (op.isEmpty()) {
-				return statsPrompt.replace("{{budget}}", "");
+				return aggregatePrompt.replace("{{budget}}", "");
 			} else {
-				return statsPrompt.replace("{{budget}}", BUDGET_PROMPT_REPLACEMENT);
+				return aggregatePrompt.replace("{{budget}}", BUDGET_PROMPT_REPLACEMENT);
 			}
 		} else {
 			if (op.isEmpty()) {
@@ -150,10 +150,10 @@ public class BillInterpretationService {
 	public String getUserMsgForBill(Bill bill, String billText) {
 		var userMsg = "Bill Text:\n" + billText;
 		
-		val op = s3.get(CBOBillAnalysis.ID_CLASS_PREFIX, CBOBillAnalysis.class);
+		val op = s3.get(CBOBillAnalysis.generateId(bill.getId()), CBOBillAnalysis.class);
 		
 		if (op.isPresent()) {
-			userMsg = "Congressional Budget Office Analysis:\n" + op.get().getSummary();
+			userMsg = "Congressional Budget Office Analysis:\n" + op.get().getSummary() + "\n\n" + userMsg;
 		}
 		
 		return userMsg;
@@ -289,9 +289,9 @@ public class BillInterpretationService {
 		
 		if (!exists) return false;
 		
-//		s3.exists(CBOBillAnalysis.ID_CLASS_PREFIX, CBOBillAnalysis.class);
+		val aExists = s3.exists(CBOBillAnalysis.generateId(billId), CBOBillAnalysis.class);
 		
-		return exists;
+		return !aExists || (aExists && s3.get(id, BillInterpretation.class).get().getBudgetChange10Yr() != null);
 	}
 	
 	public boolean isInterpreted(@NonNull String billId, int sliceIndex) {

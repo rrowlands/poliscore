@@ -29,6 +29,7 @@ import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillSlice;
 import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
+import us.poliscore.model.bill.CBOBillAnalysis;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillInterpretationService;
@@ -84,6 +85,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		
 		s3.optimizeExists(BillInterpretation.class);
 		s3.optimizeExists(BillText.class);
+		s3.optimizeExists(CBOBillAnalysis.class);
 		
 //		List<String> specificFetch = Arrays.asList("BIL/us/congress/118/s/1", "BIL/us/congress/118/s/4677");
 		
