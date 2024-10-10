@@ -124,7 +124,7 @@ public class SessionStatsBuilder implements QuarkusApplication
 				
 				val sponsor = memService.get(b.getSponsor().getId(), Legislator.class).orElseThrow();
 				val party = sponsor.getTerms().last().getParty();
-				val partyCosponsors = b.getCosponsors().stream().filter(sp -> memService.get(sp.getId(), Legislator.class).get().getParty().equals(party)).toList();
+				val partyCosponsors = b.getCosponsors().stream().filter(sp -> memService.exists(sp.getId(), Legislator.class) && memService.get(sp.getId(), Legislator.class).get().getParty().equals(party)).toList();
 						
 				val pbi = new PartyBillInteraction(b.getId(), b.getName(), b.getType(), b.getIntroducedDate(), b.getSponsor(), partyCosponsors, interp.getIssueStats().getRating(), interp.getShortExplain().substring(0, 300));
 				bestBills.get(party).add(pbi);

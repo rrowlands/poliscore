@@ -114,7 +114,7 @@ public class WebappDataGenerator implements QuarkusApplication
 		val routes = new ArrayList<String>();
 		
 		// A quirk of s3 hosted websites. If you don't put the trailing slash it causes a redirect which makes the google crawler angry
-		String trailingSlash = "/";
+		String trailingSlash = "";
 		
 		routes.add(url + "/about" + trailingSlash);
 		

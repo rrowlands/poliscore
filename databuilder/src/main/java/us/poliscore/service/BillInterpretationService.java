@@ -148,15 +148,17 @@ public class BillInterpretationService {
 	}
 	
 	public String getUserMsgForBill(Bill bill, String billText) {
-		var userMsg = "Bill Text:\n" + billText;
+//		var userMsg = "Bill Text:\n" + billText;
+//		
+//		val op = s3.get(CBOBillAnalysis.generateId(bill.getId()), CBOBillAnalysis.class);
+//		
+//		if (op.isPresent()) {
+//			userMsg = "Congressional Budget Office Analysis:\n" + op.get().getSummary() + "\n\n" + userMsg;
+//		}
+//		
+//		return userMsg;
 		
-		val op = s3.get(CBOBillAnalysis.generateId(bill.getId()), CBOBillAnalysis.class);
-		
-		if (op.isPresent()) {
-			userMsg = "Congressional Budget Office Analysis:\n" + op.get().getSummary() + "\n\n" + userMsg;
-		}
-		
-		return userMsg;
+		return billText;
 	}
 	
 //	protected BillInterpretation getOrCreateAggregateInterpretation(Bill bill, IssueStats aggregateStats, String aggregateExplain, List<BillInterpretation> sliceInterps)

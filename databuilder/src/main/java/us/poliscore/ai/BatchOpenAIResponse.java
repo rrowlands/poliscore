@@ -93,5 +93,7 @@ public class BatchOpenAIResponse {
 		protected int total_tokens;
 		
 		protected Object completion_tokens_details;
+		
+		protected Object prompt_tokens_details;
 	}
 }
