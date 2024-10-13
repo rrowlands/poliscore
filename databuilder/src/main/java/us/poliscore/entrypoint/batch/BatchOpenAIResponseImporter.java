@@ -57,9 +57,9 @@ import us.poliscore.service.storage.MemoryObjectService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_66fdf656dab48190b5cb5aa8203c249c_output.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_670b2fe22c04819084faed2a01ea772a_output.jsonl";
 	
-	// All Legislators (August 21st)
+//	 All Legislators (August 21st)
 	public static final String INPUT = "/Users/rrowlands/Downloads/batch_P8Wsivj5pgknA2QPVrK9KZJI_output.jsonl";
 	
 	// All Legislators (Aug 5th) 
