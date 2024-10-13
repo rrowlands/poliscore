@@ -9,7 +9,7 @@ import us.poliscore.model.Party;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.LocalFilePersistenceService;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 
 @ApplicationScoped
 public class PartyInterpretationService {
@@ -22,7 +22,7 @@ public class PartyInterpretationService {
 			""";
 	
 	@Inject
-	private MemoryPersistenceService memService;
+	private MemoryObjectService memService;
 	
 	@Inject
 	private LocalFilePersistenceService localStore;

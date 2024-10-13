@@ -15,7 +15,7 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Persistable;
 
 @ApplicationScoped
-public class LocalFilePersistenceService implements PersistenceServiceIF
+public class LocalFilePersistenceService implements ObjectStorageServiceIF
 {
 
 	protected File getLocalStorage()

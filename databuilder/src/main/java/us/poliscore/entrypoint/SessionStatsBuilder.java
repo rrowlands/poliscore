@@ -47,13 +47,13 @@ import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.LocalFilePersistenceService;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 
 @QuarkusMain(name="SessionStatsBuilder")
 public class SessionStatsBuilder implements QuarkusApplication
 {
 	@Inject
-	private MemoryPersistenceService memService;
+	private MemoryObjectService memService;
 	
 	@Inject
 	private LocalFilePersistenceService localStore;

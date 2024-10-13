@@ -29,7 +29,7 @@ import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCosponsor;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor;
 import us.poliscore.service.storage.LocalCachedS3Service;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 import us.poliscore.service.storage.S3PersistenceService;
 import us.poliscore.view.USCBillView;
 
@@ -41,7 +41,7 @@ public class BillService {
 	private LocalCachedS3Service s3;
 	
 	@Inject
-	private MemoryPersistenceService memService;
+	private MemoryObjectService memService;
 	
 	@Inject
 	protected LegislatorService lService;
@@ -50,6 +50,8 @@ public class BillService {
 	
 	@SneakyThrows
 	public void importUscBills() {
+		if (memService.query(Bill.class).size() > 0) return;
+		
 		long totalBills = 0;
 		
 		for (File fCongress : Arrays.asList(PoliscoreUtil.USC_DATA.listFiles()).stream()

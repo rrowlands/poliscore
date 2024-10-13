@@ -19,7 +19,7 @@ import us.poliscore.model.Persistable;
 public class CachedDynamoDbService implements ApplicationDataStoreIF
 {
 	@Inject
-	private MemoryPersistenceService memory;
+	private MemoryObjectService memory;
 	
 	@Inject
 	private DynamoDbPersistenceService dynamodb;

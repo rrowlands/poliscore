@@ -30,7 +30,7 @@ import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.LocalFilePersistenceService;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 
 /**
  * TODO : This really only provides half of what we need in order to do a real budget analysis. The other half of the equation is "how much value will it provide"
@@ -52,7 +52,7 @@ public class CBODataFetcher implements QuarkusApplication
 	public static final int TIMEOUT = 4000; // in ms
 	
 	@Inject
-	private MemoryPersistenceService memService;
+	private MemoryObjectService memService;
 	
 	@Inject
 	private LocalFilePersistenceService localStore;

@@ -49,7 +49,7 @@ import us.poliscore.service.OpenAIService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.CachedDynamoDbService;
 import us.poliscore.service.storage.LocalCachedS3Service;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 
 /**
  * This bulk importer is designed to import a response from the open ai api.
@@ -86,7 +86,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	private RollCallService rollCallService;
 	
 	@Inject
-	private MemoryPersistenceService memService;
+	private MemoryObjectService memService;
 	
 	private Set<String> importedBills = new HashSet<String>();
 	

@@ -34,7 +34,7 @@ import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.RollCallService;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 import us.poliscore.service.storage.S3PersistenceService;
 
 /**
@@ -48,7 +48,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 	public static final boolean CHECK_S3_EXISTS = false;
 	
 	@Inject
-	private MemoryPersistenceService memService;
+	private MemoryObjectService memService;
 	
 	@Inject
 	private S3PersistenceService s3;

@@ -29,7 +29,7 @@ import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCos
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillVote;
 import us.poliscore.service.storage.LocalCachedS3Service;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 
 @ApplicationScoped
 public class LegislatorInterpretationService
@@ -64,7 +64,7 @@ Based on these scores, this legislator has received the overall letter grade: {{
 	private LegislatorService legService;
 	
 	@Inject
-	private MemoryPersistenceService memService;
+	private MemoryObjectService memService;
 	
 	@Inject
 	private OpenAIService ai;

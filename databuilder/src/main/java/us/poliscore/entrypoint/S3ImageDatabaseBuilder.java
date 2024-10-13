@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.LegislatorService;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 
 /**
  * Fetches images from congress.gov for all the legislators and uploads them to our S3 repository.
@@ -55,7 +55,7 @@ public class S3ImageDatabaseBuilder implements QuarkusApplication {
 	private LegislatorService legService;
 	
 	@Inject
-	private MemoryPersistenceService memService;
+	private MemoryObjectService memService;
 	
 	private S3Client client;
 	

@@ -11,12 +11,12 @@ import jakarta.inject.Inject;
 import us.poliscore.dynamodb.DdbBuilder;
 import us.poliscore.model.Persistable;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 
 public class EntrypointTest {
 	
 	@Inject
-	private MemoryPersistenceService memory;
+	private MemoryObjectService memory;
 	
 	@Inject
 	private DynamoDbPersistenceService ddb;

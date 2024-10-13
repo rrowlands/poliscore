@@ -1,5 +1,5 @@
 package us.poliscore.service.storage;
 
-public interface ApplicationDataStoreIF extends PersistenceServiceIF {
+public interface ApplicationDataStoreIF extends ObjectStorageServiceIF {
 
 }

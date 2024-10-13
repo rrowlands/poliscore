@@ -21,13 +21,13 @@ import us.poliscore.service.LegislatorService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.LocalFilePersistenceService;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 
 @QuarkusMain(name="DataSandbox")
 public class DataSandbox implements QuarkusApplication
 {
 	@Inject
-	private MemoryPersistenceService memService;
+	private MemoryObjectService memService;
 	
 	@Inject
 	private LocalFilePersistenceService localStore;

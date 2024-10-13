@@ -38,7 +38,7 @@ import us.poliscore.model.dynamodb.DdbKeyProvider;
 import us.poliscore.model.dynamodb.DdbListPage;
 
 @ApplicationScoped
-public class DynamoDbPersistenceService implements PersistenceServiceIF
+public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 {
 	public static final String TABLE_NAME = "poliscore1";
 	

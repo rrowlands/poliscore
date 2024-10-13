@@ -17,7 +17,7 @@ import us.poliscore.service.LegislatorService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 
 @QuarkusMain(name="DataCleaner")
 public class DataCleaner implements QuarkusApplication {
@@ -29,7 +29,7 @@ public class DataCleaner implements QuarkusApplication {
 	@Inject
 	private RollCallService rollCallService;
 	
-	@Inject private MemoryPersistenceService memService;
+	@Inject private MemoryObjectService memService;
 	
 	@Inject
 	private LocalCachedS3Service s3;

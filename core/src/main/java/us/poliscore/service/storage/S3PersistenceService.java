@@ -24,7 +24,7 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.Persistable;
 
 @ApplicationScoped
-public class S3PersistenceService implements PersistenceServiceIF
+public class S3PersistenceService implements ObjectStorageServiceIF
 {
 	
 	public static final String BUCKET_NAME = "poliscore-archive";

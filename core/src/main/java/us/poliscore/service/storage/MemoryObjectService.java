@@ -12,7 +12,7 @@ import us.poliscore.model.Persistable;
 import us.poliscore.model.bill.Bill;
 
 @ApplicationScoped
-public class MemoryPersistenceService implements PersistenceServiceIF {
+public class MemoryObjectService implements ObjectStorageServiceIF {
 	
 	protected static Map<String, Persistable> memoryStore = new HashMap<String,Persistable>();
 	

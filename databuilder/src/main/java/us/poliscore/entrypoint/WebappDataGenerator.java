@@ -25,7 +25,7 @@ import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.LocalCachedS3Service;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 
 /**
  * Generates static resources for consumption by the webapp project 
@@ -34,7 +34,7 @@ import us.poliscore.service.storage.MemoryPersistenceService;
 public class WebappDataGenerator implements QuarkusApplication
 {
 	@Inject
-	private MemoryPersistenceService memService;
+	private MemoryObjectService memService;
 	
 	@Inject
 	private LocalCachedS3Service s3;

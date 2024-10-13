@@ -23,18 +23,20 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorLegislativeTermSortedSet;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 import us.poliscore.view.USCLegislatorView;
 
 @ApplicationScoped
 public class LegislatorService {
 	
 	@Inject
-	private MemoryPersistenceService memService;
+	private MemoryObjectService memService;
 	
 	@SneakyThrows
 	public void importLegislators()
 	{
+		if (memService.query(Legislator.class).size() > 0) return;
+		
 		importUSCJson("/legislators-current.json");
 		importUSCJson("/legislators-historical.json");
 	}

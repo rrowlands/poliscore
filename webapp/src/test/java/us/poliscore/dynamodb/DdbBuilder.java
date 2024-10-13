@@ -19,7 +19,7 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 
 @ApplicationScoped
 public class DdbBuilder
@@ -32,7 +32,7 @@ public class DdbBuilder
 	private LegislatorService legService;
 	
 	@Inject
-	private MemoryPersistenceService memory;
+	private MemoryObjectService memory;
 	
 	@Inject
 	private DynamoDbPersistenceService ddb;

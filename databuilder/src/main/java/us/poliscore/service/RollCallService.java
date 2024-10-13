@@ -18,21 +18,25 @@ import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillVote;
-import us.poliscore.service.storage.MemoryPersistenceService;
+import us.poliscore.service.storage.MemoryObjectService;
 import us.poliscore.view.USCRollCallData;
 import us.poliscore.view.USCRollCallData.USCRollCallVote;
 
 @ApplicationScoped
 public class RollCallService {
 	
+	public static boolean memorizedRollCall = false;
+	
 	@Inject
 	protected LegislatorService lService;
 	
 	@Inject
-	protected MemoryPersistenceService memService;
+	protected MemoryObjectService memService;
 	
 	@SneakyThrows
 	public void importUscVotes() {
+		if (memorizedRollCall) return;
+		
 		long totalVotes = 0;
 		long skipped = 0;
 		
@@ -56,6 +60,8 @@ public class RollCallService {
 				}
 			}
 		}
+		
+		memorizedRollCall = true;
 		
 		Log.info("Imported " + totalVotes + " votes. Skipped " + skipped);
 	}

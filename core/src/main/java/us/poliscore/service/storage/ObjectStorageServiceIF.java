@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import us.poliscore.model.Persistable;
 
-public interface PersistenceServiceIF
+public interface ObjectStorageServiceIF
 {
 	public <T extends Persistable> Optional<T> get(String id, Class<T> clazz);
 	

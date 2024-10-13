@@ -16,7 +16,7 @@ import us.poliscore.model.Persistable;
 public class LocalCachedS3Service implements ApplicationDataStoreIF
 {
 	@Inject
-	private MemoryPersistenceService memory;
+	private MemoryObjectService memory;
 	
 	@Inject
 	private S3PersistenceService s3;
