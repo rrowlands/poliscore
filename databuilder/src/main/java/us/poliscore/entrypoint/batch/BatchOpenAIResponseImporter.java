@@ -57,10 +57,10 @@ import us.poliscore.service.storage.MemoryObjectService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_670b2fe22c04819084faed2a01ea772a_output.jsonl";
+	public static final String INPUT = "/Users/rrowlands/Downloads/batch_670b2fe22c04819084faed2a01ea772a_output.jsonl";
 	
 //	 All Legislators (August 21st)
-	public static final String INPUT = "/Users/rrowlands/Downloads/batch_P8Wsivj5pgknA2QPVrK9KZJI_output.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/Downloads/batch_P8Wsivj5pgknA2QPVrK9KZJI_output.jsonl";
 	
 	// All Legislators (Aug 5th) 
 //	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
@@ -101,7 +101,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		System.out.println("Importing " + input.getAbsolutePath());
+		Log.info("Importing " + input.getAbsolutePath());
 		
 		@Cleanup BufferedReader reader = new BufferedReader(new FileReader(input));
 		String line = reader.readLine();
@@ -138,14 +138,14 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		if (erroredLines.size() > 0) {
 			File f = new File(Environment.getDeployedPath(), "unprocessed.jsonl");
 			FileUtils.write(f, String.join("\n", erroredLines), "UTF-8");
-			System.out.println("Encountered errors on " + erroredLines.size() + " lines. Printed them to " + f.getAbsolutePath());
+			Log.error("Encountered errors on " + erroredLines.size() + " lines. Printed them to " + f.getAbsolutePath());
 		}
 		
 		// These indexes can't be created here because they might not have all the required data
 //		legService.generateLegislatorWebappIndex();
 //		billService.generateBillWebappIndex();
 		
-		System.out.println("Program complete.");
+		Log.info("Successfully imported " + input.getAbsolutePath());
 	}
 	
 	private void importLegislator(final BatchOpenAIResponse resp) {

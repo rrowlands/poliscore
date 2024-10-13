@@ -21,6 +21,7 @@ import com.theokanning.openai.completion.chat.SystemMessage;
 import com.theokanning.openai.completion.chat.UserMessage;
 import com.theokanning.openai.service.OpenAiService;
 
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
@@ -117,6 +118,8 @@ public class OpenAIService {
 		final List<File> responseFiles = new ArrayList<File>();
 		
 		for (File f : files) {
+			Log.info("Sending request batch file to OpenAI [" + f.getAbsolutePath() + "]");
+			
 			val f2 = service.uploadFile("batch", f.getAbsolutePath());
 			
 			batches.add(service.createBatch(BatchRequest.builder()
@@ -126,8 +129,10 @@ public class OpenAIService {
 					.build()));
 		}
 		
+		Log.info("Awaiting OpenAI to process our batch files (this will take a while)...");
+		
 		while (batches.size() > 0) {
-			Thread.sleep(Duration.ofMinutes(2));
+			Thread.sleep(Duration.ofMinutes(1));
 			
 			Iterator<Batch> it = batches.iterator();
 			
@@ -138,11 +143,13 @@ public class OpenAIService {
 				if (b2.getStatus().equals("completed") && StringUtils.isNotEmpty(b2.getOutputFileId())) {
 					val body = service.retrieveFileContent(b2.getOutputFileId());
 					
-					val f = new File(Environment.getDeployedPath(), b.getOutputFileId() + ".jsonl");
+					val f = new File(Environment.getDeployedPath(), b2.getOutputFileId() + ".jsonl");
 					FileUtils.writeByteArrayToFile(f, body.bytes());
 					responseFiles.add(f);
 					
 					it.remove();
+					
+					Log.info("Batch file successfully processed by OpenAI [" + f.getAbsolutePath() + "].");
 				}
 			}
 		}

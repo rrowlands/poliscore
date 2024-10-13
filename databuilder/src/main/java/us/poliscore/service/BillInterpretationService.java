@@ -289,11 +289,13 @@ public class BillInterpretationService {
 		val id = BillInterpretation.generateId(billId, null);
 		val exists = s3.exists(id, BillInterpretation.class);
 		
-		if (!exists) return false;
+		return exists;
 		
-		val aExists = s3.exists(CBOBillAnalysis.generateId(billId), CBOBillAnalysis.class);
-		
-		return !aExists || (aExists && s3.get(id, BillInterpretation.class).get().getBudgetChange10Yr() != null);
+//		if (!exists) return false;
+//		
+//		val aExists = s3.exists(CBOBillAnalysis.generateId(billId), CBOBillAnalysis.class);
+//		
+//		return !aExists || (aExists && s3.get(id, BillInterpretation.class).get().getBudgetChange10Yr() != null);
 	}
 	
 	public boolean isInterpreted(@NonNull String billId, int sliceIndex) {

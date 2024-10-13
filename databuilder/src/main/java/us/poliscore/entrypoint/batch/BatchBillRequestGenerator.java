@@ -80,6 +80,13 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	
 	public List<File> process() throws IOException
 	{
+		tokenLen = 0;
+		totalRequests = 0;
+		requests = new ArrayList<BatchOpenAIRequest>();
+		writtenFiles = new ArrayList<File>();
+		
+		Log.info("Generating batch request to interpret bills");
+		
 		legService.importLegislators();
 		billService.importUscBills();
 		

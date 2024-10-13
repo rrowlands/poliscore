@@ -121,6 +121,9 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 	@SneakyThrows
 	public <T extends Persistable> void optimizeExists(Class<T> clazz) {
 		val idClassPrefix = (String) clazz.getField("ID_CLASS_PREFIX").get(null);
+		
+		if (objectsInBucket.containsKey(idClassPrefix)) return;
+		
 		objectsInBucket.put(idClassPrefix, new HashSet<String>());
 		
 		String continuationToken = null;

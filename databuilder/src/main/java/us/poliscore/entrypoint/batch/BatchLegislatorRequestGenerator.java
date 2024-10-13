@@ -81,6 +81,8 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 	
 	public List<File> process() throws IOException
 	{
+		Log.info("Generating batch request to interpret legislators");
+		
 		legService.importLegislators();
 		billService.importUscBills();
 		rollCallService.importUscVotes();

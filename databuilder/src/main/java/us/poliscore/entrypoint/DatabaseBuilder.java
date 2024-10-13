@@ -2,10 +2,12 @@ package us.poliscore.entrypoint;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.logging.Log;
@@ -15,6 +17,7 @@ import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.val;
+import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.entrypoint.batch.BatchBillRequestGenerator;
 import us.poliscore.entrypoint.batch.BatchLegislatorRequestGenerator;
@@ -95,13 +98,12 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
-	public static void main(String[] args) {
-		Quarkus.run(DatabaseBuilder.class, args);
-	}
-	
 	protected void process() throws IOException
 	{
 		updateUscLegislators();
+		
+		s3.optimizeExists(BillInterpretation.class);
+		s3.optimizeExists(LegislatorInterpretation.class);
 		
 		legService.importLegislators();
 		billService.importUscBills();
@@ -119,9 +121,15 @@ public class DatabaseBuilder implements QuarkusApplication
 		Log.info("Poliscore database build complete.");
 	}
 	
+	@SneakyThrows
 	private void updateUscLegislators()
 	{
-		// TODO
+		Log.info("Updating USC legislators resource files");
+		
+		File dbRes = new File(Environment.getDeployedPath(), "../../databuilder/src/main/resources");
+		
+		FileUtils.copyURLToFile(URI.create("https://theunitedstates.io/congress-legislators/legislators-current.json").toURL(), new File(dbRes, "legislators-current.json"));
+		FileUtils.copyURLToFile(URI.create("https://theunitedstates.io/congress-legislators/legislators-historical.json").toURL(), new File(dbRes, "legislators-historical.json"));
 	}
 	
 	@SneakyThrows
@@ -164,7 +172,7 @@ public class DatabaseBuilder implements QuarkusApplication
 	 */
 	private void recalculateLegislators() {
 		for (var leg : memService.query(Legislator.class).stream()
-				.filter(l -> l.isMemberOfSession(PoliscoreUtil.SESSION))
+				.filter(l -> l.isMemberOfSession(PoliscoreUtil.SESSION) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
 				.collect(Collectors.toList()))
 		{
 			val opLeg = ddb.get(leg.getId(), Legislator.class);
@@ -233,4 +241,9 @@ public class DatabaseBuilder implements QuarkusApplication
         Quarkus.waitForExit();
         return 0;
     }
+	
+	public static void main(String[] args) {
+		Quarkus.run(DatabaseBuilder.class, args);
+		Quarkus.asyncExit(0);
+	}
 }
