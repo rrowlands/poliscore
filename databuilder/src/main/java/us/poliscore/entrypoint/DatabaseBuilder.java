@@ -112,6 +112,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		imageBuilder.process();
 		billTextFetcher.process();
 		
+		buildFromS3();
 		interpretBills();
 		interpretLegislators();
 		// TODO : Party Stats
@@ -119,6 +120,28 @@ public class DatabaseBuilder implements QuarkusApplication
 		webappDataGenerator.process();
 		
 		Log.info("Poliscore database build complete.");
+	}
+	
+	@SneakyThrows
+	private void buildFromS3()
+	{
+		Log.info("Making sure that our ddb bill database is up-to-date with what exists on s3.");
+		
+		long amount = 0;
+		
+		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
+		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
+			if (!ddb.exists(b.getId(), Bill.class)) {
+				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
+				b.setInterpretation(interp);
+				ddb.put(b);
+				amount++;
+			}
+		}
+		
+		Log.info("Created " + amount + " missing bills in ddb from s3");
+		
+		// We don't need to worry about legislators here because this will happen as part of "interpretLegislators"
 	}
 	
 	@SneakyThrows
