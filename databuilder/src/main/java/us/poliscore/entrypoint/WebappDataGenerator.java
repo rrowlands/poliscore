@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 import org.apache.commons.io.FileUtils;
 
+import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
@@ -58,7 +59,7 @@ public class WebappDataGenerator implements QuarkusApplication
 		Quarkus.run(WebappDataGenerator.class, args);
 	}
 	
-	protected void process() throws IOException
+	public void process() throws IOException
 	{
 		legService.importLegislators();
 		billService.importUscBills();
@@ -73,7 +74,7 @@ public class WebappDataGenerator implements QuarkusApplication
 		generateRoutes();
 		generateSiteMap();
 		
-		System.out.println("Program complete.");
+		Log.info("Webapp Data Generator complete.");
 	}
 	
 	@SneakyThrows

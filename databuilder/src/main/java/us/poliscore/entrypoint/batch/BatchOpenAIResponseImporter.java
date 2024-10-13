@@ -95,15 +95,15 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	}
 	
 	@SneakyThrows
-	protected void process()
+	public void process(File input)
 	{
 		legService.importLegislators();
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		System.out.println("Importing " + INPUT);
+		System.out.println("Importing " + input.getAbsolutePath());
 		
-		@Cleanup BufferedReader reader = new BufferedReader(new FileReader(INPUT));
+		@Cleanup BufferedReader reader = new BufferedReader(new FileReader(input));
 		String line = reader.readLine();
 		
 		val erroredLines = new ArrayList<String>();
@@ -349,7 +349,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	
 	@Override
     public int run(String... args) throws Exception {
-        process();
+        process(new File(INPUT));
         
         Quarkus.waitForExit();
         return 0;

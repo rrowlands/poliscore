@@ -13,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
@@ -23,7 +24,6 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
-import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillSlice;
@@ -70,13 +70,15 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	
 	private List<BatchOpenAIRequest> requests = new ArrayList<BatchOpenAIRequest>();
 	
+	private List<File> writtenFiles = new ArrayList<File>();
+	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
 	public static void main(String[] args) {
 		Quarkus.run(BatchBillRequestGenerator.class, args);
 	}
 	
-	protected void process() throws IOException
+	public List<File> process() throws IOException
 	{
 		legService.importLegislators();
 		billService.importUscBills();
@@ -171,28 +173,27 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 			}
 			
 			if (tokenLen >= TOKEN_BLOCK_SIZE) {
-				writeBlock(requests, block++);
-				
-				requests = new ArrayList<BatchOpenAIRequest>();
-				tokenLen = 0;
+				writeBlock(block++);
 			}
 		};
 		
-		writeBlock(requests, block++);
+		writeBlock(block++);
 		
-		if (totalRequests == 0) {
-			val mostRecent = memService.query(Bill.class).stream()
-					.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
-					.limit(100)
-					.filter(b -> (!CHECK_S3_EXISTS || !billInterpreter.isInterpreted(b.getId())))
-					.limit(10)
-					.map(b -> Arrays.asList(b.getId(), s3.exists(BillText.generateId(b.getId()), BillText.class)))
-					.toList();
-			
-			System.out.println(mostRecent);
-		}
+//		if (totalRequests == 0) {
+//			val mostRecent = memService.query(Bill.class).stream()
+//					.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
+//					.limit(100)
+//					.filter(b -> (!CHECK_S3_EXISTS || !billInterpreter.isInterpreted(b.getId())))
+//					.limit(10)
+//					.map(b -> Arrays.asList(b.getId(), s3.exists(BillText.generateId(b.getId()), BillText.class)))
+//					.toList();
+//			
+//			Log.info(mostRecent);
+//		}
 		
-		System.out.println("Program complete.");
+		Log.info("Batch bill request generator complete. Generated " + totalRequests + " requests.");
+		
+		return writtenFiles;
 	}
 	
 	private void createRequest(String oid, String sysMsg, String userMsg) {
@@ -212,8 +213,10 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		tokenLen += (userMsg.length() / 4);
 	}
 
-	private void writeBlock(List<BatchOpenAIRequest> requests, int block) throws IOException {
-		File f = new File(Environment.getDeployedPath(), "openapi-bills-bulk-" + block + ".jsonl");
+	private void writeBlock(int block) throws IOException {
+		if (requests.size() == 0) return;
+		
+		File f = requestFile(block);
 		
 		val mapper = PoliscoreUtil.getObjectMapper();
 		val s = requests.stream().map(r -> {
@@ -228,7 +231,16 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		
 		totalRequests += requests.size();
 		
-		System.out.println("Successfully wrote " + requests.size() + " requests to " + f.getAbsolutePath());
+		Log.info("Successfully wrote " + requests.size() + " requests to " + f.getAbsolutePath());
+		
+		writtenFiles.add(f);
+		
+		requests = new ArrayList<BatchOpenAIRequest>();
+		tokenLen = 0;
+	}
+	
+	public static File requestFile(int blockNum) {
+		return new File(Environment.getDeployedPath(), "openapi-bills-bulk-" + blockNum + ".jsonl");
 	}
 	
 	@Override

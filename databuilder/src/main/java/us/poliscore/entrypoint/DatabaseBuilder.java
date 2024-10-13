@@ -1,27 +1,38 @@
 package us.poliscore.entrypoint;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
+import lombok.SneakyThrows;
 import lombok.val;
-import us.poliscore.MissingBillTextException;
+import us.poliscore.PoliscoreUtil;
+import us.poliscore.entrypoint.batch.BatchBillRequestGenerator;
+import us.poliscore.entrypoint.batch.BatchLegislatorRequestGenerator;
+import us.poliscore.entrypoint.batch.BatchOpenAIResponseImporter;
+import us.poliscore.model.DoubleIssueStats;
+import us.poliscore.model.IssueStats;
+import us.poliscore.model.TrackedIssue;
+import us.poliscore.model.bill.Bill;
+import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
-import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
+import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
+import us.poliscore.service.OpenAIService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
@@ -29,11 +40,29 @@ import us.poliscore.service.storage.LocalFilePersistenceService;
 import us.poliscore.service.storage.MemoryPersistenceService;
 
 /**
- * This bulk importer is designed to import a full dataset built with the github.com/unitedstates/congress toolkit 
+ * Run this to keep a deployed server up-to-date.
  */
 @QuarkusMain(name="DatabaseBuilder")
 public class DatabaseBuilder implements QuarkusApplication
 {
+	@Inject
+	private S3ImageDatabaseBuilder imageBuilder;
+	
+	@Inject
+	private GPOBulkBillTextFetcher billTextFetcher;
+	
+	@Inject
+	private BatchBillRequestGenerator billRequestGenerator;
+	
+	@Inject
+	private BatchLegislatorRequestGenerator legislatorRequestGenerator;
+	
+	@Inject
+	private WebappDataGenerator webappDataGenerator;
+	
+	@Inject
+	private BatchOpenAIResponseImporter responseImporter;
+	
 	@Inject
 	private MemoryPersistenceService memService;
 	
@@ -59,6 +88,9 @@ public class DatabaseBuilder implements QuarkusApplication
 	private RollCallService rollCallService;
 	
 	@Inject
+	protected OpenAIService openAi;
+	
+	@Inject
 	private LegislatorInterpretationService legInterp;
 	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
@@ -69,152 +101,122 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	protected void process() throws IOException
 	{
+		updateUscLegislators();
+		
 		legService.importLegislators();
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		legService.generateLegislatorWebappIndex();
-		billService.generateBillWebappIndex();
+		imageBuilder.process();
+		billTextFetcher.process();
 		
-//		billInterpreter.getOrCreate("BIL/us/congress/118/hr/3935");
+		interpretBills();
+		interpretLegislators();
+		// TODO : Party Stats
 		
-//		val bills = memService.query(Bill.class).stream()
-//				.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
-//				.limit(400)
-//				.filter(b -> 
-//					billService.hasBillText(b)) //  && !billInterpreter.isInterpreted(b.getId())
-//				.limit(50)
-//				.toList();
-//		System.out.println("Set to interpret " + bills.stream().filter(b -> !billInterpreter.isInterpreted(b.getId())).count() + " bills.");
-//		bills.forEach(b -> {
-//			billInterpreter.getOrCreate(b.getId());
-//		});
-		
-//		interpretLegislators();
-		
-		// Write all bills to ddb
-//		memService.query(Bill.class).forEach(b -> {
-//			val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class);
-//			
-//			if (interp.isPresent()) {
-//				b.setInterpretation(interp.get());
-//				ddb.put(b);
-//			}
-//		});
-		
-		// Write all legislators to ddb
-//		long total = 535;
-//		long count = 0;
-//		for (Legislator l : memService.query(Legislator.class)) {
-////			val interacts = new LegislatorBillInteractionSet();
-////			legInterp.getInteractionsForInterpretation(l).forEach(interact -> {
-////				val billInterp = s3.get(BillInterpretation.generateId(interact.getBillId(), null), BillInterpretation.class);
-////				
-////				if (billInterp.isPresent()) {
-////					interact.setIssueStats(billInterp.get().getIssueStats());
-////					interacts.add(interact);
-////				}
-////			});
-////			
-////			l.setInteractions(interacts);
-////			l.setInterpretation(s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class).orElseThrow());
-////			ddb.put(l);
-//			
-//			val op = ddb.get(l.getId(), Legislator.class);
-//			
-//			if (op.isPresent()) {
-//				val leg = op.get();
-//				
-//				
-//				
-////				legInterp.populateInteractionStats(leg);
-////				
-////				val interacts = new LegislatorBillInteractionSet();
-////				for (val interact : legInterp.getInteractionsForInterpretation(leg))
-////				{
-////					if (interact.getIssueStats() != null)
-////					{
-////						interacts.add(interact);
-////					}
-////				}
-////				
-////				if (interacts.size() > 0) {
-////					leg.setInteractions(interacts);
-//					ddb.put(leg);
-//					Log.info("Put legislator " + leg.getId() + ". " + (total - count++));
-////				}
-//			}
-//		};
-		
-//		val legs = memService.query(Legislator.class).stream().filter(l -> l.getDate() != null).sorted(Comparator.comparing(Legislator::getDate).reversed()).limit(10).toList();
-//		System.out.println(legs);
+		webappDataGenerator.process();
 		
 		Log.info("Poliscore database build complete.");
 	}
-
-	/**
-	 * Interprets and loads a set of legislators
-	 */
-//	private void interpretLegislators() {
-//////		for (String legId : PoliscoreUtil.SPRINT_1_LEGISLATORS)
-//////			for (String legId : memService.query(Legislator.class).stream().limit(10).map(l -> l.getId()).toList())
-////			String legId = memService.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "B000825"), Legislator.class).get().getId();
-////		{
-////			interpretLegislator(legId);
-////		}
-//		
-//		memService.query(Legislator.class).stream()
-//			.filter(l -> l.getBirthday() != null && l.getInteractions().size() > 0) //  && l.getTerms().last().getState().equals("CO")
-//			.sorted(Comparator.comparing(Legislator::getBirthday).reversed())
-//	//		.limit(400)
-//	//		.filter(l -> l.getInteractions().stream().anyMatch(i -> billInterpreter.isInterpreted(i.getBillId())))
-////			.limit(200)
-//			.forEach(l -> {
-//			interpretLegislator(l.getId());
-//		});
-//	}
 	
-//	private void interpretLegislator(String legId) {
-//		val interp = legInterp.getOrCreate(legId);
-//		interp.getIssueStats().setExplanation(interp.getIssueStats().getExplanation());
-//		
-//		val legislator = memService.get(legId, Legislator.class).orElseThrow();
-//		legislator.setInterpretation(interp);
-//		
-//		val interacts = new LegislatorBillInteractionSet();
-//		for (val interact : legislator.getInteractions().stream()
-//				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
-////				.limit(100)
-//				.filter(i -> billInterpreter.isInterpreted(i.getBillId()))
-//				.collect(Collectors.toList()))
-//		{
-//			try
-//			{
-//				val billInterp = billInterpreter.getByBillId(interact.getBillId()).get();
-//				interact.setIssueStats(billInterp.getIssueStats());
-//				
-//				val bill = billService.getById(interact.getBillId()).get();
-//				bill.setInterpretation(billInterp);
-//				
-//				ddb.put(bill);
-//				interacts.add(interact);
-//			}
-//			catch (NoSuchElementException e)
-//			{
-//				Log.error("Could not find interpretation for bill " + interact.getBillId());
-//			}
-//			catch (MissingBillTextException ex)
-//			{
-//				// TODO
-//				Log.error("Could not find text for bill " + interact.getBillId());
-//			}
-//		}
-//		
-//		if (interacts.size() > 0) {
-//			legislator.setInteractions(interacts);
-//			ddb.put(legislator);
-//		}
-//	}
+	private void updateUscLegislators()
+	{
+		// TODO
+	}
+	
+	@SneakyThrows
+	private void interpretBills() {
+		List<File> requests = billRequestGenerator.process();
+		
+		if (requests.size() > 0) {
+			List<File> responses = openAi.processBatch(requests);
+			
+			for (File f : responses) {
+				responseImporter.process(f);
+			}
+			
+			interpretBills();
+		}
+	}
+	
+	@SneakyThrows
+	private void interpretLegislators() {
+		if (Boolean.TRUE) {
+			recalculateLegislators();
+		} else {
+			// TODO : We don't always want to interpret all the legislators.
+			//        This code would ideally be run on a schedule, i.e. once a month or once every 3-6 months
+			List<File> requests = legislatorRequestGenerator.process();
+		
+			if (requests.size() > 0) {
+				List<File> responses = openAi.processBatch(requests);
+				
+				for (File f : responses) {
+					responseImporter.process(f);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Recalculates all legislator stats and bill interactions without actually re-interpreting their activity. Saves on AI interpretation costs while
+	 * still allowing stats and interactions to remain up-to-date.
+	 */
+	private void recalculateLegislators() {
+		for (val leg : memService.query(Legislator.class).stream()
+				.filter(l -> l.isMemberOfSession(PoliscoreUtil.SESSION))
+				.collect(Collectors.toList()))
+		{
+			for (val i : legInterp.getInteractionsForInterpretation(leg))
+			{
+				val interp = s3.get(BillInterpretation.generateId(i.getBillId(), null), BillInterpretation.class);
+				
+				if (interp.isPresent()) {
+					i.setIssueStats(interp.get().getIssueStats());
+					
+					val bill = memService.get(i.getBillId(), Bill.class).orElseThrow();
+					bill.setInterpretation(interp.get());
+					i.setBillName(bill.getName());
+				}
+			}
+			
+			DoubleIssueStats doubleStats = new DoubleIssueStats();
+			
+			val interacts = new LegislatorBillInteractionSet();
+			for (val interact : legInterp.getInteractionsForInterpretation(leg))
+			{
+				if (interact.getIssueStats() != null)
+				{
+					val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
+					doubleStats = doubleStats.sum(weightedStats, Math.abs(interact.getJudgementWeight()));
+					
+					interacts.add(interact);
+				}
+			}
+			
+			doubleStats = doubleStats.divideByTotalSummed();
+			IssueStats stats = doubleStats.toIssueStats();
+			
+			val interp = ddb.get(LegislatorInterpretation.generateId(leg.getId()), LegislatorInterpretation.class).get();
+			interp.setHash(legInterp.calculateInterpHashCode(leg));
+			
+			interp.setIssueStats(stats);
+			
+			if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(interp.getLongExplain())) {
+				throw new RuntimeException("Unable to parse valid issue stats for legislator " + leg.getId());
+			}
+			
+//			s3.put(interp);
+			
+			// 1100 seems to be about an upper limit for a single ddb page
+			leg.setInteractions(interacts.stream().sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1100).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
+	//		leg.setInteractions(interacts);
+			
+			leg.setInterpretation(interp);
+			
+			ddb.put(leg);
+		}
+	}
 	
 	@Override
     public int run(String... args) throws Exception {

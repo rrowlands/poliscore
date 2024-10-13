@@ -1,13 +1,18 @@
 package us.poliscore.service;
 
+import java.io.File;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.theokanning.openai.batch.Batch;
+import com.theokanning.openai.batch.BatchRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
@@ -19,6 +24,8 @@ import com.theokanning.openai.service.OpenAiService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
+import lombok.val;
+import us.poliscore.Environment;
 import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.AISliceInterpretationMetadata;
 import us.poliscore.model.bill.BillSlice;
@@ -98,4 +105,48 @@ public class OpenAIService {
     	
     	return out;
     }
+	
+	/**
+	 * Submits a batch of files, awaits their processing, and then downloads the results.
+	 */
+	@SneakyThrows
+	public List<File> processBatch(List<File> files) {
+		OpenAiService service = new OpenAiService(secret.getOpenAISecret(), Duration.ofSeconds(600));
+		
+		final List<Batch> batches = new ArrayList<Batch>();
+		final List<File> responseFiles = new ArrayList<File>();
+		
+		for (File f : files) {
+			val f2 = service.uploadFile("batch", f.getAbsolutePath());
+			
+			batches.add(service.createBatch(BatchRequest.builder()
+					.inputFileId(f2.getId())
+					.endpoint("/v1/chat/completions")
+					.completionWindow("24h")
+					.build()));
+		}
+		
+		while (batches.size() > 0) {
+			Thread.sleep(Duration.ofMinutes(2));
+			
+			Iterator<Batch> it = batches.iterator();
+			
+			while (it.hasNext()) {
+				val b = it.next();
+				val b2 = service.retrieveBatch(b.getId());
+				
+				if (b2.getStatus().equals("completed") && StringUtils.isNotEmpty(b2.getOutputFileId())) {
+					val body = service.retrieveFileContent(b2.getOutputFileId());
+					
+					val f = new File(Environment.getDeployedPath(), b.getOutputFileId() + ".jsonl");
+					FileUtils.writeByteArrayToFile(f, body.bytes());
+					responseFiles.add(f);
+					
+					it.remove();
+				}
+			}
+		}
+		
+		return responseFiles;
+	}
 }

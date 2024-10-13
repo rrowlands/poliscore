@@ -5,14 +5,13 @@ Building a PoliScore database is a very complicated and manual process, some of 
 2. Fetch legislator photos (Can also be fetched on demand from USC source)
 3. Fetch bill status
 4. Fetch bill text
-5. Run CBODataFetcher
-6. Interpret bills (twice), using BatchBillRequestGenerator and BathOpenAIResponseImporter 
-7. Interpret legislators, using BatchLegislatorRequestGenerator and BathOpenAIResponseImporter
-8. Interpret party stats, using SessionStatsBuilder.java and BathOpenAIResponseImporter
-9. Run WebappDataGenerator
-10. Configure deployment target with 'switch-deployment.sh' shell script
-11. Run 'deploy.sh backend' to update the Lambda webserver
-12. Run 'deploy.sh view' to update the S3 static site
-13. Test on deployed target
-14. Update CloudFormation to point to the deployment target
-15. Swap deployment target to prepare for next development cycle
+5. Interpret bills (twice), using BatchBillRequestGenerator and BathOpenAIResponseImporter 
+6. Interpret legislators, using BatchLegislatorRequestGenerator and BathOpenAIResponseImporter
+7. Interpret party stats, using SessionStatsBuilder.java and BathOpenAIResponseImporter
+8. Run WebappDataGenerator
+9. Configure deployment target with 'switch-deployment.sh' shell script
+10. Run 'deploy.sh backend' to update the Lambda webserver
+11. Run 'deploy.sh view' to update the S3 static site
+12. Test on deployed target
+13. Update CloudFormation to point to the deployment target
+14. Swap deployment target to prepare for next development cycle

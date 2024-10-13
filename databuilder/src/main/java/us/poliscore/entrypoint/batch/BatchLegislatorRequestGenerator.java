@@ -14,6 +14,7 @@ import org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
@@ -66,7 +67,11 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 	
 	private long tokenLen = 0;
 	
+	private long totalRequests = 0;
+	
 	private List<BatchOpenAIRequest> requests = new ArrayList<BatchOpenAIRequest>();
+	
+	private List<File> writtenFiles = new ArrayList<File>();
 	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
@@ -74,7 +79,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		Quarkus.run(BatchLegislatorRequestGenerator.class, args);
 	}
 	
-	protected void process() throws IOException
+	public List<File> process() throws IOException
 	{
 		legService.importLegislators();
 		billService.importUscBills();
@@ -96,16 +101,15 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 			interpret(l);
 			
 			if (tokenLen >= TOKEN_BLOCK_SIZE) {
-				writeBlock(requests, block++);
-				
-				requests = new ArrayList<BatchOpenAIRequest>();
-				tokenLen = 0;
+				writeBlock(block++);
 			}
 		};
 		
-		writeBlock(requests, block++);
+		writeBlock(block++);
 		
-		System.out.println("Program complete.");
+		Log.info("Batch legislator request generator complete. Generated " + totalRequests + " requests.");
+		
+		return writtenFiles;
 	}
 	
 	protected void interpret(Legislator leg)
@@ -149,8 +153,10 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		tokenLen += (userMsg.length() / 4);
 	}
 
-	private void writeBlock(List<BatchOpenAIRequest> requests, int block) throws IOException {
-		File f = new File(Environment.getDeployedPath(), "openapi-legislators-bulk-" + block + ".jsonl");
+	private void writeBlock(int block) throws IOException {
+		if (requests.size() == 0) return;
+		
+		File f = requestFile(block);
 		
 		val mapper = PoliscoreUtil.getObjectMapper();
 		val s = requests.stream().map(r -> {
@@ -163,7 +169,18 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		
 		FileUtils.write(f, String.join("\n", s), "UTF-8");
 		
-		System.out.println("Successfully wrote " + requests.size() + " requests to " + f.getAbsolutePath());
+		totalRequests += requests.size();
+		
+		Log.info("Successfully wrote " + requests.size() + " requests to " + f.getAbsolutePath());
+		
+		writtenFiles.add(f);
+		
+		requests = new ArrayList<BatchOpenAIRequest>();
+		tokenLen = 0;
+	}
+	
+	public static File requestFile(int blockNum) {
+		return new File(Environment.getDeployedPath(), "openapi-legislators-bulk-" + blockNum + ".jsonl");
 	}
 	
 	@Override
