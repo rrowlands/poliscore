@@ -35,6 +35,7 @@ import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
+import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
@@ -220,7 +221,15 @@ public class Lambda {
     @Path("/getBill")
     public Bill getBill(@NonNull @RestQuery("id") String id)
     {
-    	return ddb.get(id, Bill.class).orElse(null);
+    	val b = ddb.get(id, Bill.class).orElse(null);
+    	
+    	if (b != null && b.getInterpretation() != null) {
+    		// Unfortunately the SliceInterpretations's "start" and "end" fields (e.g. /bill[1]/legis-body[1]/title[3]/section[15]) are confusing Google.
+    		// Google thinks that it's a URL and is trying to follow it. Because we don't really use this data anyway (at the moment), we're going to just null it out for now.
+    		b.getInterpretation().setSliceInterpretations(new ArrayList<BillInterpretation>());
+    	}
+    	
+    	return b;
     }
     
     @GET
