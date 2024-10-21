@@ -121,6 +121,8 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 			}
 		}
 		
+		s3.clearExistsOptimize(BillText.class);
+		
 		Log.info("Downloaded all bill text!");
 	}
 	

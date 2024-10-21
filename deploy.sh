@@ -9,7 +9,7 @@ fi
 # Exit on error
 set -e
 
-export BUCKET_NAME=poliscore-website1
+export BUCKET_NAME=poliscore-website2
 
 
 if [ "$1" != "view" ]; then

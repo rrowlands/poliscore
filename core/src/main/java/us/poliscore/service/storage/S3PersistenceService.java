@@ -144,4 +144,11 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 		while(continuationToken != null);
 	}
 	
+	@SneakyThrows
+	public <T extends Persistable> void clearExistsOptimize(Class<T> clazz) {
+		val idClassPrefix = (String) clazz.getField("ID_CLASS_PREFIX").get(null);
+		
+		objectsInBucket.remove(idClassPrefix);
+	}
+	
 }

@@ -70,4 +70,8 @@ public class LocalCachedS3Service implements ApplicationDataStoreIF
 		s3.optimizeExists(clazz);
 	}
 	
+	public <T extends Persistable> void clearExistsOptimize(Class<T> clazz) {
+		s3.clearExistsOptimize(clazz);
+	}
+	
 }
