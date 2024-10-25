@@ -3,6 +3,8 @@ package us.poliscore.parsing;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillSlice;
@@ -80,13 +82,53 @@ public class TextBillSlicer implements BillSlicer {
 	}
 
 	public static List<String> slice(String text) {
-		int aEnd = text.substring(0, (text.length() / 2) + 200).lastIndexOf("\\s");
-		int bStart = text.substring((text.length() / 2) - 200).indexOf("\\s") + 1;
+		int aEnd = lastIndexOfRegex(text.substring(0, (text.length() / 2) + 200), "\\s");
+		int bStart = ((text.length() / 2) - 200) + indexOfRegex(text.substring((text.length() / 2) - 200), "\\s") + 1;
 		
+		if (aEnd == -1 || bStart == -1) {
+			return Arrays.asList(
+				text.substring(0, text.length()/2),
+				text.substring(text.length()/2)
+			);
+		}
+				
 		return Arrays.asList(
 			text.substring(0, aEnd),
 			text.substring(bStart)
 		);
 	}
 	
+	public static int indexOfRegex(String str, String regex)
+	{
+		Pattern p = Pattern.compile(regex);  // insert your pattern here
+		Matcher m = p.matcher(str);
+		if (m.find()) {
+		   return m.start();
+		}
+		return -1;
+	}
+	
+	/**
+	 * Version of lastIndexOf that uses regular expressions for searching.
+	 * 
+	 * @param str String in which to search for the pattern.
+	 * @param toFind Pattern to locate.
+	 * @return The index of the requested pattern, if found; NOT_FOUND (-1) otherwise.
+	 */
+	public static int lastIndexOfRegex(String str, String toFind)
+	{
+	    Pattern pattern = Pattern.compile(toFind);
+	    Matcher matcher = pattern.matcher(str);
+	    
+	    // Default to the NOT_FOUND constant
+	    int lastIndex = -1;
+	    
+	    // Search for the given pattern
+	    while (matcher.find())
+	    {
+	        lastIndex = matcher.start();
+	    }
+	    
+	    return lastIndex;
+	}
 }

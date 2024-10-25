@@ -233,6 +233,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		interp.setMetadata(OpenAIService.metadata());
 		
+		s3.put(interp);
 		ddb.put(interp);
 	}
 	

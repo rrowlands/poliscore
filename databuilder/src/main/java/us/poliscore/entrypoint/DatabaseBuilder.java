@@ -36,6 +36,7 @@ import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.OpenAIService;
+import us.poliscore.service.PartyInterpretationService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
@@ -48,6 +49,10 @@ import us.poliscore.service.storage.MemoryObjectService;
 @QuarkusMain(name="DatabaseBuilder")
 public class DatabaseBuilder implements QuarkusApplication
 {
+	public static boolean REINTERPRET_LEGISLATORS = false;
+	
+	public static boolean REINTERPRET_PARTIES = false;
+	
 	@Inject
 	private S3ImageDatabaseBuilder imageBuilder;
 	
@@ -59,6 +64,9 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	@Inject
 	private BatchLegislatorRequestGenerator legislatorRequestGenerator;
+	
+	@Inject
+	private PartyInterpretationService partyInterpreter;
 	
 	@Inject
 	private WebappDataGenerator webappDataGenerator;
@@ -115,7 +123,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		buildFromS3();
 		interpretBills();
 		interpretLegislators();
-		// TODO : Party Stats
+		interpretPartyStats();
 		
 		webappDataGenerator.process();
 		
@@ -172,11 +180,7 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	@SneakyThrows
 	private void interpretLegislators() {
-		if (Boolean.TRUE) {
-			recalculateLegislators();
-		} else {
-			// TODO : We don't always want to interpret all the legislators.
-			//        This code would ideally be run on a schedule, i.e. once a month or once every 3-6 months
+		if (REINTERPRET_LEGISLATORS) {
 			List<File> requests = legislatorRequestGenerator.process();
 		
 			if (requests.size() > 0) {
@@ -186,6 +190,8 @@ public class DatabaseBuilder implements QuarkusApplication
 					responseImporter.process(f);
 				}
 			}
+		} else {
+			recalculateLegislators();
 		}
 	}
 	
@@ -254,6 +260,23 @@ public class DatabaseBuilder implements QuarkusApplication
 			} else {
 				Log.error("Legislator " + leg.getName().getOfficial_full() + " (" + leg.getBioguideId() + ") was part of session but didnt exist in ddb?");
 			}
+		}
+	}
+	
+	@SneakyThrows
+	private void interpretPartyStats() {
+		if (REINTERPRET_PARTIES) {
+			List<File> requests = partyInterpreter.process();
+			
+			if (requests.size() > 0) {
+				List<File> responses = openAi.processBatch(requests);
+				
+				for (File f : responses) {
+					responseImporter.process(f);
+				}
+			}
+		} else {
+			partyInterpreter.process();
 		}
 	}
 	

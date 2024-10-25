@@ -6,16 +6,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.val;
-import us.poliscore.PoliscoreUtil;
-import us.poliscore.model.CongressionalSession;
-import us.poliscore.model.bill.Bill;
-import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
+import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.session.SessionInterpretation;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
@@ -50,6 +50,39 @@ public class DataSandbox implements QuarkusApplication
 	{
 		legService.importLegislators();
 		billService.importUscBills();
+		
+		
+//		for(val leg : memService.query(Legislator.class))
+//		{
+//			val op = ddb.get(leg.getId(), Legislator.class);
+//			
+//			if (op.isPresent())
+//			{
+//				if (StringUtils.isBlank(op.get().getInterpretation().getLongExplain()))
+//				{
+//					System.out.println(leg.getId());
+//				}
+//			}
+//		}
+		
+		
+		val op = ddb.get(SessionInterpretation.generateId(118), SessionInterpretation.class);
+		if (StringUtils.isBlank(op.get().getDemocrat().getLongExplain()))
+		{
+			System.out.println("Democrat is blank");
+		}
+		if (StringUtils.isBlank(op.get().getRepublican().getLongExplain()))
+		{
+			System.out.println("Republican is blank");
+		}
+		if (StringUtils.isBlank(op.get().getIndependent().getLongExplain()))
+		{
+			System.out.println("Independent is blank");
+		}
+		
+		
+		
+		
 		
 //		val obj = dynamoDb.get("BIL/us/congress/118/hr/4763", Bill.class).orElseThrow();
 //		
@@ -105,18 +138,19 @@ public class DataSandbox implements QuarkusApplication
 		
 //		val out = getBills(25, Lambda.TRACKED_ISSUE_INDEX + TrackedIssue.NationalDefense.name(), false, null, null);
 		
-		s3.optimizeExists(BillInterpretation.class);
-		
-		val out = memService.query(Bill.class).stream()
-				.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
-				.toList().size();
-		
-		
-    	
-    	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));
+//		s3.optimizeExists(BillInterpretation.class);
+//		
+//		val out = memService.query(Bill.class).stream()
+//				.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
+//				.toList().size();
+//		
+//		
+//    	
+//    	System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(out));
 //		System.out.println(out);
 		
 		
+		System.out.println("Program Complete");
 	}
 	
 	public static void main(String[] args) {
