@@ -200,14 +200,16 @@ public class DatabaseBuilder implements QuarkusApplication
 	 * still allowing stats and interactions to remain up-to-date.
 	 */
 	private void recalculateLegislators() {
-		for (var leg : memService.query(Legislator.class).stream()
+		for (var memLeg : memService.query(Legislator.class).stream()
 				.filter(l -> l.isMemberOfSession(PoliscoreUtil.SESSION) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
 				.collect(Collectors.toList()))
 		{
-			val opLeg = ddb.get(leg.getId(), Legislator.class);
+			val opLeg = ddb.get(memLeg.getId(), Legislator.class);
 			
 			if (opLeg.isPresent()) {
-				leg = opLeg.get();
+				val leg = opLeg.get();
+				
+				leg.setInteractions(memLeg.getInteractions());
 				
 				for (val i : legInterp.getInteractionsForInterpretation(leg))
 				{
@@ -258,7 +260,7 @@ public class DatabaseBuilder implements QuarkusApplication
 				
 				ddb.put(leg);
 			} else {
-				Log.error("Legislator " + leg.getName().getOfficial_full() + " (" + leg.getBioguideId() + ") was part of session but didnt exist in ddb?");
+				Log.error("Legislator " + memLeg.getName().getOfficial_full() + " (" + memLeg.getBioguideId() + ") was part of session but didnt exist in ddb?");
 			}
 		}
 	}
