@@ -200,68 +200,31 @@ public class DatabaseBuilder implements QuarkusApplication
 	 * still allowing stats and interactions to remain up-to-date.
 	 */
 	private void recalculateLegislators() {
-		for (var memLeg : memService.query(Legislator.class).stream()
+		for (var leg : memService.query(Legislator.class).stream()
 				.filter(l -> l.isMemberOfSession(PoliscoreUtil.SESSION) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
 				.collect(Collectors.toList()))
 		{
-			val opLeg = ddb.get(memLeg.getId(), Legislator.class);
+			legInterp.updateInteractionsInterp(leg);
 			
-			if (opLeg.isPresent()) {
-				val leg = opLeg.get();
-				
-				leg.setInteractions(memLeg.getInteractions());
-				
-				for (val i : legInterp.getInteractionsForInterpretation(leg))
-				{
-					val interp = s3.get(BillInterpretation.generateId(i.getBillId(), null), BillInterpretation.class);
-					
-					if (interp.isPresent()) {
-						i.setIssueStats(interp.get().getIssueStats());
-						
-						val bill = memService.get(i.getBillId(), Bill.class).orElseThrow();
-						bill.setInterpretation(interp.get());
-						i.setBillName(bill.getName());
-					}
-				}
-				
-				DoubleIssueStats doubleStats = new DoubleIssueStats();
-				
-				val interacts = new LegislatorBillInteractionSet();
-				for (val interact : legInterp.getInteractionsForInterpretation(leg))
-				{
-					if (interact.getIssueStats() != null)
-					{
-						val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
-						doubleStats = doubleStats.sum(weightedStats, Math.abs(interact.getJudgementWeight()));
-						
-						interacts.add(interact);
-					}
-				}
-				
-				doubleStats = doubleStats.divideByTotalSummed();
-				IssueStats stats = doubleStats.toIssueStats();
-				
-				val interp = s3.get(LegislatorInterpretation.generateId(leg.getId()), LegislatorInterpretation.class).get();
-				interp.setHash(legInterp.calculateInterpHashCode(leg));
-				
-				interp.setIssueStats(stats);
-				
-				if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(interp.getLongExplain())) {
-					throw new RuntimeException("Unable to parse valid issue stats for legislator " + leg.getId());
-				}
-				
-	//			s3.put(interp);
-				
-				// 1100 seems to be about an upper limit for a single ddb page
-				leg.setInteractions(interacts.stream().sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1100).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
-		//		leg.setInteractions(interacts);
-				
-				leg.setInterpretation(interp);
-				
-				ddb.put(leg);
-			} else {
-				Log.error("Legislator " + memLeg.getName().getOfficial_full() + " (" + memLeg.getBioguideId() + ") was part of session but didnt exist in ddb?");
+			val interp = s3.get(LegislatorInterpretation.generateId(leg.getId()), LegislatorInterpretation.class).get();
+			interp.setHash(legInterp.calculateInterpHashCode(leg));
+			
+			DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
+			interp.setIssueStats(stats.toIssueStats());
+			
+			if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(interp.getLongExplain())) {
+				throw new RuntimeException("Unable to parse valid issue stats for legislator " + leg.getId());
 			}
+			
+			// 1100 seems to be about an upper limit for a single ddb page
+			leg.setInteractions(legInterp.getInteractionsForInterpretation(leg).stream()
+					.filter(i -> i.getIssueStats() != null)
+					.sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1100).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
+	//		leg.setInteractions(interacts);
+			
+			leg.setInterpretation(interp);
+			
+			ddb.put(leg);
 		}
 	}
 	

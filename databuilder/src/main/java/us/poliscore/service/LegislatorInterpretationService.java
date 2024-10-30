@@ -21,6 +21,7 @@ import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.VoteStatus;
+import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.CongressionalChamber;
@@ -146,7 +147,10 @@ Based on these scores, this legislator has received the overall letter grade: {{
 		&& (((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.NOT_VOTING) || ((LegislatorBillVote)interact).getVoteStatus().equals(VoteStatus.PRESENT)));
 	}
 	
-	public void populateInteractionStats(Legislator leg)
+	/**
+	 * Updates all bill interactions with the latest bill interpretation from S3.
+	 */
+	public void updateInteractionsInterp(Legislator leg)
 	{
 		for (val i : getInteractionsForInterpretation(leg))
 		{
@@ -155,6 +159,10 @@ Based on these scores, this legislator has received the overall letter grade: {{
 			if (interp.isPresent()) {
 				i.setIssueStats(interp.get().getIssueStats());
 				i.setShortExplain(interp.get().getShortExplain());
+				
+				val bill = memService.get(i.getBillId(), Bill.class).orElseThrow();
+				bill.setInterpretation(interp.get());
+				i.setBillName(bill.getName());
 			}
 		}
 	}

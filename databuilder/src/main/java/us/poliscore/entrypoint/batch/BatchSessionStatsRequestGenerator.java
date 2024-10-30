@@ -108,7 +108,7 @@ public class BatchSessionStatsRequestGenerator implements QuarkusApplication
 	
 	protected void interpret(Legislator leg)
 	{
-		legInterp.populateInteractionStats(leg);
+		legInterp.updateInteractionsInterp(leg);
 		
 		DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
 		

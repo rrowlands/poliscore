@@ -151,50 +151,17 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 //		if (ddb.exists(leg.getId(), Legislator.class)) return;
 		
-		for (val i : legInterp.getInteractionsForInterpretation(leg))
-		{
-			val interp = s3.get(BillInterpretation.generateId(i.getBillId(), null), BillInterpretation.class);
-			
-			if (interp.isPresent()) {
-				i.setIssueStats(interp.get().getIssueStats());
-				
-				val bill = memService.get(i.getBillId(), Bill.class).orElseThrow();
-				bill.setInterpretation(interp.get());
-				i.setBillName(bill.getName());
-//				ddb.put(i);
-				
-//				if (!importedBills.contains(i.getBillId())) {
-//					ddb.put(bill);
-//					importedBills.add(bill.getId());
-//				}
-			}
-		}
+		legInterp.updateInteractionsInterp(leg);
 		
-		DoubleIssueStats doubleStats = new DoubleIssueStats();
-		
-		val interacts = new LegislatorBillInteractionSet();
-		for (val interact : legInterp.getInteractionsForInterpretation(leg))
-		{
-			if (interact.getIssueStats() != null)
-			{
-				val weightedStats = interact.getIssueStats().multiply(interact.getJudgementWeight());
-				doubleStats = doubleStats.sum(weightedStats, Math.abs(interact.getJudgementWeight()));
-				
-				interacts.add(interact);
-			}
-		}
-		
-		doubleStats = doubleStats.divideByTotalSummed();
-		IssueStats stats = doubleStats.toIssueStats();
-		
-		val interp = new LegislatorInterpretation(OpenAIService.metadata(), leg, stats);
+		val interp = s3.get(LegislatorInterpretation.generateId(leg.getId()), LegislatorInterpretation.class).get();
 		interp.setHash(legInterp.calculateInterpHashCode(leg));
+		
+		DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
+		interp.setIssueStats(stats.toIssueStats());
 		
 		val interpText = resp.getResponse().getBody().getChoices().get(0).getMessage().getContent();
 //		new LegislatorInterpretationParser(interp).parse(interpText);
 		interp.setLongExplain(interpText);
-		
-		interp.setIssueStats(stats);
 		
 		if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(interp.getLongExplain())) {
 			throw new RuntimeException("Unable to parse valid issue stats for legislator " + leg.getId());
@@ -203,7 +170,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		s3.put(interp);
 		
 		// 1100 seems to be about an upper limit for a single ddb page
-		leg.setInteractions(interacts.stream().sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1100).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
+		leg.setInteractions(legInterp.getInteractionsForInterpretation(leg).stream()
+				.filter(i -> i.getIssueStats() != null)
+				.sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1100).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
 //		leg.setInteractions(interacts);
 		
 		leg.setInterpretation(interp);
