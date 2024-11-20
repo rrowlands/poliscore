@@ -66,7 +66,7 @@ public class BillInterpretationService {
 			Write the bill title. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content.
 			
 			Riders:
-			- List of bill riders identified and the section they occured at, or 'None' if there are none
+			- A bill rider is a extraneous, harmful piece of unrelated legislation added to a bill which undermines or detracts from the original intent of the bill. List the bill riders identified and the section they occured at, or 'None' if there are none
 			
 			Short Report:
 			A single paragraph, at least four sentence report which gives a detailed, but not repetitive, summary of the bill, any high level goals, and it's expected impact to society. If riders are present in the bill mention them and the section they occur at here, otherwise do not mention their absence. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
@@ -96,7 +96,7 @@ public class BillInterpretationService {
 			{{budget}}
 			
 			Riders:
-			- List of bill riders identified and the section they occured at, or 'None' if there are none
+			- A bill rider is a extraneous, harmful piece of unrelated legislation added to a bill which undermines or detracts from the original intent of the bill. List the bill riders identified and the section they occured at, or 'None' if there are none
 			
 			Short Report:
 			A single paragraph, at least four sentence report which gives a detailed, but not repetitive, summary of the bill, any high level goals, and it's expected impact to society. If riders are present in the bill mention them and the section they occur at here, otherwise do not mention their absence. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.

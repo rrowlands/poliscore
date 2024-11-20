@@ -57,7 +57,7 @@ import us.poliscore.service.storage.MemoryObjectService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-	public static final String INPUT = "/Users/rrowlands/Downloads/batch_66fdf656dab48190b5cb5aa8203c249c_output.jsonl";
+	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	
 //	 All Legislators (August 21st)
 //	public static final String INPUT = "/Users/rrowlands/Downloads/batch_P8Wsivj5pgknA2QPVrK9KZJI_output.jsonl";
@@ -134,7 +134,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		if (erroredLines.size() > 0) {
 			File f = new File(Environment.getDeployedPath(), "unprocessed.jsonl");
 			FileUtils.write(f, String.join("\n", erroredLines), "UTF-8");
-			Log.error("Encountered errors on " + erroredLines.size() + " lines. Printed them to " + f.getAbsolutePath());
+			throw new RuntimeException("Encountered errors on " + erroredLines.size() + " lines. Printed them to " + f.getAbsolutePath());
 		}
 		
 		// These indexes can't be created here because they might not have all the required data
