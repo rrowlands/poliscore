@@ -9,6 +9,7 @@ set -x
 sudo docker ps
 
 cd ../congress
+git pull
 python3 -m venv env
 source env/bin/activate
 
