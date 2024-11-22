@@ -11,4 +11,4 @@ The website is built upon the following technologies and is a fully serverless a
 - DynamoDB
 - S3
 
-The project is fully open-sourced under MIT license.
+The project is fully open-sourced under MIT license and is owned and operated by HexTech Studios LLC.
