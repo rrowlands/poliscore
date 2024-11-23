@@ -9,13 +9,15 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement, Tooltip} from 'chart.js'
 import { Title } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
+import { ConfigService } from '../config.service';
+import { HeaderComponent } from '../header/header.component';
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
 @Component({
   selector: 'app-bill',
   standalone: true,
-  imports: [MatCardModule, CommonModule, CommonModule, RouterModule, MatButtonModule],
+  imports: [HeaderComponent, MatCardModule, CommonModule, CommonModule, RouterModule, MatButtonModule],
   providers: [AppService, HttpClient],
   templateUrl: './bill.component.html',
   styleUrl: './bill.component.scss'
@@ -66,12 +68,12 @@ export class BillComponent implements OnInit {
     }
   };
 
-  constructor(private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
+  constructor(private config: ConfigService, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
 
   ngOnInit(): void {
-    this.billId = this.route.snapshot.paramMap.get('id') as string;
+    this.billId = (this.route.snapshot.paramMap.get('id') as string);
     if (!this.billId.startsWith("BIL/us/congress")) {
-      this.billId = "BIL/us/congress/" + this.billId;
+      this.billId = this.config.pathToBillId(this.billId);
     }
 
     this.service.getBill(this.billId).then(bill => {

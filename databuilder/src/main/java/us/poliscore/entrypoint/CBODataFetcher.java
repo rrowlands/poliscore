@@ -94,7 +94,7 @@ public class CBODataFetcher implements QuarkusApplication
 		
 		long count = 0;
 		
-		val doc = fetchWithRetry("https://www.cbo.gov/rss/" + PoliscoreUtil.SESSION.getNumber() + "congress-cost-estimates.xml");
+		val doc = fetchWithRetry("https://www.cbo.gov/rss/" + PoliscoreUtil.CURRENT_SESSION.getNumber() + "congress-cost-estimates.xml");
 		
 		for (val element : doc.select("response item")) {
 			if (StringUtils.isBlank(element.child(4).text()) || StringUtils.isBlank(element.child(2).text())) continue;
@@ -102,7 +102,7 @@ public class CBODataFetcher implements QuarkusApplication
 			val billType = getBillType(element.child(4).text());
 			val billNum = getBillNumber(element.child(4).text(), billType);
 			if (billType == null || billNum == null) continue;
-			val billId = Bill.generateId(PoliscoreUtil.SESSION.getNumber(), billType, billNum);
+			val billId = Bill.generateId(PoliscoreUtil.CURRENT_SESSION.getNumber(), billType, billNum);
 			
 			if (CHECK_EXISTS && s3.exists(CBOBillAnalysis.generateId(billId), CBOBillAnalysis.class)) { count++; continue; }
 			

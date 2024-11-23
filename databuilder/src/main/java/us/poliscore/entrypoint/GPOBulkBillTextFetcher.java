@@ -62,9 +62,9 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 		
 		s3.optimizeExists(BillText.class);
 		
-		for (int congress : PoliscoreUtil.SUPPORTED_CONGRESSES)
+		for (var congress : PoliscoreUtil.SUPPORTED_CONGRESSES)
 		{
-			val congressStore = new File(store, String.valueOf(congress));
+			val congressStore = new File(store, String.valueOf(congress.getNumber()));
 			congressStore.mkdir();
 			
 			for (String billType : FETCH_BILL_TYPE)
@@ -75,11 +75,11 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 				// Download and unzip
 				for (int session : FETCH_SESSION)
 				{
-					val url = URL_TEMPLATE.replaceAll("\\{\\{congress\\}\\}", String.valueOf(congress))
+					val url = URL_TEMPLATE.replaceAll("\\{\\{congress\\}\\}", String.valueOf(congress.getNumber()))
 								.replaceAll("\\{\\{session\\}\\}", String.valueOf(session))
 								.replaceAll("\\{\\{type\\}\\}", String.valueOf(billType));
 					
-					val zip = new File(typeStore, congress + "-" + billType + ".zip");
+					val zip = new File(typeStore, congress.getNumber() + "-" + billType + ".zip");
 					
 					// TODO : timestamp code found not working
 					if (zip.exists()) { // && new Date().getTime() - zip.lastModified() > 24 * 60 * 60 * 1000
@@ -99,8 +99,8 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 						.sorted(Comparator.comparing(File::getName).thenComparing((a,b) -> BillTextPublishVersion.parseFromBillTextName(a.getName()).billMaturityCompareTo(BillTextPublishVersion.parseFromBillTextName(b.getName()))))
 						.collect(Collectors.toList()))
 				{
-					String number = f.getName().replace("BILLS-" + congress + billType, "").replaceAll("\\D", "");
-					val billId = Bill.generateId(congress, BillType.valueOf(billType.toUpperCase()), Integer.parseInt(number));
+					String number = f.getName().replace("BILLS-" + congress.getNumber() + billType, "").replaceAll("\\D", "");
+					val billId = Bill.generateId(congress.getNumber(), BillType.valueOf(billType.toUpperCase()), Integer.parseInt(number));
 					
 					if (!processedBills.contains(billId) && !s3.exists(BillText.generateId(billId), BillText.class))
 					{

@@ -181,7 +181,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	}
 	
 	private void importParty(final BatchOpenAIResponse resp) {
-		val interp = ddb.get(SessionInterpretation.generateId(PoliscoreUtil.SESSION.getNumber()), SessionInterpretation.class).get();
+		val interp = ddb.get(SessionInterpretation.generateId(PoliscoreUtil.CURRENT_SESSION.getNumber()), SessionInterpretation.class).get();
 		
 		val interpText = resp.getResponse().getBody().getChoices().get(0).getMessage().getContent();
 		

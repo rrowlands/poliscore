@@ -7,21 +7,7 @@
 
         <div class="vertical-content">
 
-            <div class="content-section">
-                 <div class="title">
-                    <div class="vertical-layout">
-                        <a class="unstyled" href="/"><img class="logo" src="/images/poliscore-word.png" routerlink="/" alt="PoliScore Logo"></a>
-                        <span class="logo-subtitle">AI Political Rating Service</span>
-                    </div>
-                    <div class="horizontal-layout" style="flex-direction: row-reverse !important;">
-                        <div class="nav-buttons vertical-layout">
-                            <button mat-raised-button routerLink="/legislators"><a href="/legislators" class="unstyled"><span>Legislators</span></a></button>
-                            <button mat-raised-button routerLink="/congress"><a href="/congress" class="unstyled"><span>Party Stats</span></a></button>
-                            <button mat-raised-button routerLink="/about"><a href="/about" class="unstyled"><span>About</span></a></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <header [bills]="false" class="content-section"></header>
 
             <div *ngIf="bills" class="content-section">
                 <h1 style="display: none;">Bills</h1>
@@ -49,7 +35,7 @@
             </div>
             
             <mat-card *ngFor="let bill of bills" class="example-card" appearance="outlined">
-                <a [href]="'/bill/' + bill.id.replace('BIL/us/congress/', '')">
+                <a [routerLink]="'/bill/' + config.billIdToPath(bill.id)">
                     <mat-card-header>
                         <mat-card-title-group>
                             <h4 class="title-date"><p style="padding-left:12px;">{{bill.introducedDate}}</p></h4>

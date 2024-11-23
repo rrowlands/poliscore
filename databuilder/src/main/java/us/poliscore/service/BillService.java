@@ -59,7 +59,7 @@ public class BillService {
 				.sorted((a,b) -> a.getName().compareTo(b.getName()))
 				.collect(Collectors.toList()))
 		{
-			if (!PoliscoreUtil.SUPPORTED_CONGRESSES.contains(Integer.valueOf(fCongress.getName()))) continue;
+			if (!PoliscoreUtil.SUPPORTED_CONGRESSES_INT.contains(Integer.valueOf(fCongress.getName()))) continue;
 			
 			Log.info("Processing " + fCongress.getName() + " congress");
 			

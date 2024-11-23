@@ -138,7 +138,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		long amount = 0;
 		
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
-		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
+		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
 			if (!ddb.exists(b.getId(), Bill.class)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				b.setInterpretation(interp);
@@ -201,7 +201,7 @@ public class DatabaseBuilder implements QuarkusApplication
 	 */
 	private void recalculateLegislators() {
 		for (var leg : memService.query(Legislator.class).stream()
-				.filter(l -> l.isMemberOfSession(PoliscoreUtil.SESSION) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
+				.filter(l -> l.isMemberOfSession(PoliscoreUtil.CURRENT_SESSION) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
 				.collect(Collectors.toList()))
 		{
 			legInterp.updateInteractionsInterp(leg);

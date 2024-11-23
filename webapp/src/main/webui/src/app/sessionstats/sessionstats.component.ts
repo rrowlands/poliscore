@@ -13,13 +13,15 @@ import { gradeForLegislator, subtitleForLegislator, descriptionForLegislator, up
 import { gradeForBill, subtitleForBill, descriptionForBill } from '../bills';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatButtonModule } from '@angular/material/button';
+import { ConfigService } from '../config.service';
+import { HeaderComponent } from '../header/header.component';
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
 @Component({
   selector: 'sessionstats',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatTableModule, MatButtonToggleModule, MatButtonModule, RouterModule],
+  imports: [HeaderComponent, CommonModule, MatCardModule, MatTableModule, MatButtonToggleModule, MatButtonModule, RouterModule],
   providers: [AppService, HttpClient],
   templateUrl: './sessionstats.component.html',
   styleUrl: './sessionstats.component.scss'
@@ -31,8 +33,6 @@ export class SessionStatsComponent {
   public party: "REPUBLICAN" | "DEMOCRAT" | "INDEPENDENT" = "REPUBLICAN";
 
   public sort: "bestLegislators" | "worstLegislators" | "bestBills" | "worstBills" = "bestLegislators";
-
-  public session: string = "118";
 
   public stats?: SessionStats;
 
@@ -80,15 +80,10 @@ export class SessionStatsComponent {
     }
   };
 
-  constructor(private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
+  constructor(public config: ConfigService, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
 
   ngOnInit(): void {
     this.route.params.subscribe(newParams => {
-      let session = this.route.snapshot.paramMap.get('session') as string;
-      if (session != null) {
-        this.session = session;
-      }
-
       let party = this.route.snapshot.paramMap.get('party') as string;
       if (party != null) {
         this.party = party.toUpperCase() as "REPUBLICAN" | "DEMOCRAT" | "INDEPENDENT";
@@ -153,7 +148,7 @@ export class SessionStatsComponent {
     if (index == "legislators") { routeIndex = this.sort == "bestLegislators" ? "best-legislators" : "worst-legislators"; }
     if (index == "bills") { routeIndex = this.sort == "bestBills" ? "best-bills" : "worst-bills"; }
 
-    this.router.navigate(['/congress/' + this.session + '/' + this.party.toLowerCase() + '/' +  routeIndex]);;
+    this.router.navigate(['/congress/' + this.party.toLowerCase() + '/' +  routeIndex]);;
   }
 
   public getData() {

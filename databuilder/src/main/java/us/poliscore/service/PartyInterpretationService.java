@@ -107,7 +107,7 @@ public class PartyInterpretationService {
 	{
 		// Initialize datastructures //
 		val sessionStats = new SessionInterpretation();
-		sessionStats.setSession(PoliscoreUtil.SUPPORTED_CONGRESSES.get(0));
+		sessionStats.setSession(PoliscoreUtil.SUPPORTED_CONGRESSES.get(0).getNumber());
 		
 		val doublePartyStats = new HashMap<Party, DoubleIssueStats>();
 		val worstLegislators = new HashMap<Party, PriorityQueue<Legislator>>();
@@ -230,7 +230,7 @@ public class PartyInterpretationService {
 			}
 		}
 		
-		createRequest(interp.getParty(), PartyInterpretationService.getAiPrompt(PoliscoreUtil.SESSION, interp.getParty(), interp.getStats()), StringUtils.join(msg, "\n"));
+		createRequest(interp.getParty(), PartyInterpretationService.getAiPrompt(PoliscoreUtil.CURRENT_SESSION, interp.getParty(), interp.getStats()), StringUtils.join(msg, "\n"));
 	}
 	
 	private void createRequest(Party party, String sysMsg, String userMsg) {

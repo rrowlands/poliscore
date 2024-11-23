@@ -14,11 +14,13 @@ import { Observable, debounceTime, distinctUntilChanged, map, startWith, switchM
 import { BillComponent } from '../bill/bill.component';
 import { Title } from '@angular/platform-browser';
 import { descriptionForBill, gradeForBill, subtitleForBill } from '../bills';
+import { ConfigService } from '../config.service';
+import { HeaderComponent } from '../header/header.component';
 
 @Component({
   selector: 'bills',
   standalone: true,
-  imports: [KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule, MatAutocompleteModule, ReactiveFormsModule, MatButtonModule],
+  imports: [HeaderComponent, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule, MatAutocompleteModule, ReactiveFormsModule, MatButtonModule],
   providers: [AppService, HttpClient],
   templateUrl: './bills.component.html',
   styleUrl: './bills.component.scss'
@@ -47,7 +49,7 @@ export class BillsComponent implements OnInit {
     pageSize: 25
   };
 
-  constructor(private service: AppService, private router: Router, private route: ActivatedRoute, private titleService: Title) {}
+  constructor(public config: ConfigService, private service: AppService, private router: Router, private route: ActivatedRoute, private titleService: Title) {}
 
   ngOnInit(): void
   {
@@ -136,7 +138,7 @@ export class BillsComponent implements OnInit {
       this.fetchData();
       this.myControl.setValue("");
     } else {
-      this.router.navigate(['/bill/' + id.replace("BIL/us/congress", "")]);
+      this.router.navigate(['/bill/' + this.config.billIdToPath(id)]);
     }
   }
 

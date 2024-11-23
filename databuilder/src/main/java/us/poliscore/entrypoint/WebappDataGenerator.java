@@ -15,6 +15,7 @@ import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.val;
 import us.poliscore.Environment;
+import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
@@ -57,6 +58,7 @@ public class WebappDataGenerator implements QuarkusApplication
 	
 	public static void main(String[] args) {
 		Quarkus.run(WebappDataGenerator.class, args);
+		Quarkus.asyncExit(0);
 	}
 	
 	public void process() throws IOException
@@ -83,9 +85,9 @@ public class WebappDataGenerator implements QuarkusApplication
 		val routes = new ArrayList<String>();
 		
 		// Party Stats
-		routes.add("/congress/118/democrat");
-		routes.add("/congress/118/republican");
-		routes.add("/congress/118/independent");
+		routes.add("/congress/democrat");
+		routes.add("/congress/republican");
+		routes.add("/congress/independent");
 		
 		// All states
 		Arrays.asList(states).stream().forEach(s -> routes.add("/legislators/state/" + s));
@@ -102,7 +104,7 @@ public class WebappDataGenerator implements QuarkusApplication
 		memService.query(Bill.class).stream()
 			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
-			.forEach(b -> routes.add("/bill/" + b.getCongress() + "/" + b.getType().getName().toLowerCase() + "/" + b.getNumber()));
+			.forEach(b -> routes.add("/bill/" + b.getType().getName().toLowerCase() + "/" + b.getNumber()));
 		
 		
 		FileUtils.write(out, String.join("\n", routes), "UTF-8");
@@ -114,33 +116,34 @@ public class WebappDataGenerator implements QuarkusApplication
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/webui/src/assets/sitemap.txt");
 		val routes = new ArrayList<String>();
 		
-		// A quirk of s3 hosted websites. If you don't put the trailing slash it causes a redirect which makes the google crawler angry
-		String trailingSlash = "";
-		
-		routes.add(url + "/about" + trailingSlash);
-		
-		// Party Stats
-		routes.add(url + "/congress/118/democrat" + trailingSlash);
-		routes.add(url + "/congress/118/republican" + trailingSlash);
-		routes.add(url + "/congress/118/independent" + trailingSlash);
-		
-		// All states
-		Arrays.asList(states).stream().forEach(s -> routes.add(url + "/legislators/state/" + s + trailingSlash));
-		
-		// All legislator routes
-		routes.add(url + "/legislators" + trailingSlash);
-		memService.query(Legislator.class).stream()
-			.filter(l -> l.isMemberOfSession(CongressionalSession.S118) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
-			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
-			.forEach(l -> routes.add(url + "/legislator/" + l.getBioguideId() + trailingSlash));
-		
-		// All bills
-		routes.add(url + "/bills" + trailingSlash);
-		memService.query(Bill.class).stream()
-			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
-			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
-			.forEach(b -> routes.add(url + "/bill/" + b.getCongress() + "/" + b.getType().getName().toLowerCase() + "/" + b.getNumber() + trailingSlash));
-		
+		for (var congress : PoliscoreUtil.SUPPORTED_CONGRESSES)
+		{
+			String prefix = "/" + congress.getNumber();
+			
+			routes.add(url + prefix + "/about");
+			
+			// Party Stats
+			routes.add(url + prefix + "/congress/democrat");
+			routes.add(url + prefix + "/congress/republican");
+			routes.add(url + prefix + "/congress/independent");
+			
+			// All states
+			Arrays.asList(states).stream().forEach(s -> routes.add(url + prefix + "/legislators/state/" + s));
+			
+			// All legislator routes
+			routes.add(url + prefix + "/legislators");
+			memService.query(Legislator.class).stream()
+				.filter(l -> l.isMemberOfSession(congress) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
+				.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
+				.forEach(l -> routes.add(url + prefix + "/legislator/" + l.getBioguideId()));
+			
+			// All bills
+			routes.add(url + prefix + "/bills");
+			memService.query(Bill.class).stream()
+				.filter(b -> b.isIntroducedInSession(congress) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
+				.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
+				.forEach(b -> routes.add(url + prefix + "/bill/" + b.getType().getName().toLowerCase() + "/" + b.getNumber()));
+		}
 		
 		FileUtils.write(out, String.join("\n", routes), "UTF-8");
 	}

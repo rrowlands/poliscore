@@ -2,7 +2,7 @@
     <span class="purplebg"></span> <!-- There's a bug on Moible Chrome browsers where when the nav bar hides, it reveals the white bg. -->
 <div class="stripedbg">
     <div *ngIf="loading" class="loader"></div>
-    <h1 *ngIf="!loading && stats == null" class="object-not-found"><a href="/">Stats not found!</a></h1>
+    <h1 *ngIf="!loading && stats == null" class="object-not-found"><a [routerLink]="'/'">Stats not found!</a></h1>
 
     <!--
     <div style="width:800px; height:800px">
@@ -13,41 +13,18 @@
 <!---->
     <div class="vertical-layout">
         <div class="vertical-content">
-        <!-- <div class="breadcrumb">
-            <a href="/">Home</a>
-            /
-            <a href="/congress">Party Stats</a>
-
-            <a class="float-right" href="/about">About</a>
-        </div> -->
-
-        <div class="content-section">
-            <!-- <h1 class="poliscore" href="#" routerLink="/">poliscore.us</h1> -->
-             <div class="title">
-                <div class="vertical-layout">
-                    <a class="unstyled" href="/"><img class="logo" src="/images/poliscore-word.png" routerLink="/" alt="PoliScore Logo"></a>
-                    <span class="logo-subtitle">AI Political Rating Service</span>
-                </div>
-                <div class="horizontal-layout" style="flex-direction: row-reverse !important;">
-                    <div class="nav-buttons vertical-layout">
-                        <button mat-raised-button routerLink="/legislators"><a href="/legislators" class="unstyled"><span>Legislators</span></a></button>
-                        <button mat-raised-button routerLink="/bills"><a href="/bills" class="unstyled"><span>Bills</span></a></button>
-                        <button mat-raised-button routerLink="/about" class="about-button"><a href="/about" routerLink="/about" class="unstyled"><span>About</span></a></button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <header [congress]="false" class="content-section"></header>
 
         <div class="content-section vertical-layout">
             <div class="col-left horizontal-layout party-selector">
-                <button *ngIf="party !== 'DEMOCRAT'" mat-raised-button routerLink="/congress/118/democrat"><span>Democrat</span></button>
-                <button *ngIf="party === 'DEMOCRAT'" mat-button routerLink="/congress/118/democrat"><span>Democrat</span></button>
+                <button *ngIf="party !== 'DEMOCRAT'" mat-raised-button [routerLink]="'/congress/democrat'"><span>Democrat</span></button>
+                <button *ngIf="party === 'DEMOCRAT'" mat-button [routerLink]="'/congress/democrat'"><span>Democrat</span></button>
 
-                <button *ngIf="party !== 'REPUBLICAN'" mat-raised-button routerLink="/congress/118/republican"><span>Republican</span></button>
-                <button *ngIf="party === 'REPUBLICAN'" mat-button routerLink="/congress/118/republican"><span>Republican</span></button>
+                <button *ngIf="party !== 'REPUBLICAN'" mat-raised-button [routerLink]="'/congress/republican'"><span>Republican</span></button>
+                <button *ngIf="party === 'REPUBLICAN'" mat-button [routerLink]="'/congress/republican'"><span>Republican</span></button>
 
-                <button *ngIf="party !== 'INDEPENDENT'" mat-raised-button routerLink="/congress/118/independent"><span>Independent</span></button>
-                <button *ngIf="party === 'INDEPENDENT'" mat-button routerLink="/congress/118/independent"><span>Independent</span></button>
+                <button *ngIf="party !== 'INDEPENDENT'" mat-raised-button [routerLink]="'/congress/independent'"><span>Independent</span></button>
+                <button *ngIf="party === 'INDEPENDENT'" mat-button [routerLink]="'/congress/independent'"><span>Independent</span></button>
             </div>
         </div>
 
@@ -109,7 +86,7 @@
 
         <ng-container *ngIf="stats && sort.indexOf('Legislators') !== -1">
             <mat-card *ngFor="let leg of getData()" class="legs" appearance="outlined">
-                <a [href]="'/legislator/' + leg.id.replace('LEG/us/congress/', '')">
+                <a [routerLink]="'/legislator/' + leg.id.replace('LEG/us/congress/', '')">
                     <div class="left">
                         <img *ngIf="!leg.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" (error)="leg.photoError = true;" >
                         <img *ngIf="leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>
@@ -135,7 +112,7 @@
 
         <ng-container *ngIf="stats && sort.indexOf('Bills') !== -1">
             <mat-card *ngFor="let bill of getData()" class="bills" appearance="outlined">
-                <a [href]="'/bill/' + bill.id.replace('BIL/us/congress/', '')">
+                <a [routerLink]="'/bill/' + config.billIdToPath(bill.id)">
                     <mat-card-header>
                         <mat-card-title-group>
                             <mat-card-title>{{bill.name}}</mat-card-title>

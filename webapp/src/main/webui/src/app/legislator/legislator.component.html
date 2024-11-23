@@ -21,21 +21,7 @@
             <a class="float-right" href="/about">About</a>
         </div> -->
 
-        <div class="content-section">
-             <div class="title">
-                <div class="vertical-layout">
-                    <a class="unstyled" href="/"><img class="logo" src="/images/poliscore-word.png" routerLink="/" alt="PoliScore Logo"></a>
-                    <span class="logo-subtitle">AI Political Rating Service</span>
-                </div>
-                <div class="horizontal-layout" style="flex-direction: row-reverse !important;">
-                    <div class="nav-buttons vertical-layout">
-                        <button mat-raised-button routerLink="/legislators"><a href="/legislators" class="unstyled"><span>Legislators</span></a></button>
-                        <button mat-raised-button routerLink="/bills"><a href="/bills" class="unstyled"><span>Bills</span></a></button>
-                        <button mat-raised-button routerLink="/about" class="about-button"><a href="/about" routerLink="/about" class="unstyled"><span>About</span></a></button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <header [congress]="false" class="content-section"></header>
 
         <mat-card class="tran-div">
             <mat-card-content>
@@ -75,7 +61,7 @@
                             <td mat-cell *matCellDef="let element">
                                 {{element.billName}}
 
-                                <a fxFlexFill [href]="'/bill/' + element.billId.replace('BIL/us/congress/', '')" class="mat-row-link"></a>
+                                <a fxFlexFill [href]="'/bill/' + config.billIdToPath(element.billId)" class="mat-row-link"></a>
                             </td>
                         </ng-container>
 
@@ -95,7 +81,7 @@
                         </ng-container>
 
                         <tr mat-header-row *matHeaderRowDef="getDisplayedColumns()"></tr>
-                        <tr mat-row *matRowDef="let row; columns: getDisplayedColumns();" [routerLink]="'/bill/' + row.billId.replace('BIL/us/congress/', '')" class="mat-row"></tr>
+                        <tr mat-row *matRowDef="let row; columns: getDisplayedColumns();" [routerLink]="'/bill/' + config.billIdToPath(row.billId)" class="mat-row"></tr>
                     </table>
                 </section>
             </mat-card-content>

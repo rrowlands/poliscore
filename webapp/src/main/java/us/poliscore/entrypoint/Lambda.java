@@ -40,8 +40,6 @@ import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.session.SessionInterpretation;
-import us.poliscore.model.session.SessionInterpretation.PartyBillSet;
-import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 
@@ -74,7 +72,7 @@ public class Lambda {
     @GET
     @Path("getSessionStats")
     public SessionInterpretation getSessionStats() {
-    	val op = ddb.get(SessionInterpretation.generateId(PoliscoreUtil.SUPPORTED_CONGRESSES.get(0)), SessionInterpretation.class);
+    	val op = ddb.get(SessionInterpretation.generateId(PoliscoreUtil.CURRENT_SESSION.getNumber()), SessionInterpretation.class);
     	
     	return op.orElse(null);
     }
@@ -100,10 +98,11 @@ public class Lambda {
     private void linkInterpBills(Legislator leg) {
 		try
 		{
+			final String year = "2024";
 			var exp = leg.getInterpretation().getLongExplain();
 			
 			for (val interact : leg.getInteractions()) {
-				val url = "/bill" + interact.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace(), "");
+				val url = "/" + year + "/bill/" + interact.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber() + "/", "");
 				
 				var billName = interact.getBillName();
 				if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);

@@ -1,0 +1,16 @@
+<div>
+    <div class="title">
+       <div class="vertical-layout">
+           <a class="unstyled" [routerLink]="'/'"><img class="logo" src="images/poliscore-word.png" alt="PoliScore Logo"></a>
+           <span class="logo-subtitle">AI Political Rating Service</span>
+       </div>
+       <div class="horizontal-layout" style="flex-direction: row-reverse !important;">
+           <div class="nav-buttons vertical-layout">
+               <button *ngIf="legislators" mat-raised-button [routerLink]="'/legislators'"><a [routerLink]="'/legislators'" class="unstyled"><span>Legislators</span></a></button>
+               <button *ngIf="bills" mat-raised-button [routerLink]="'/bills'"><a [routerLink]="'/bills'" class="unstyled"><span>Bills</span></a></button>
+               <button *ngIf="congress" mat-raised-button [routerLink]="'/congress'"><a [routerLink]="'/congress'" class="unstyled"><span>Party Stats</span></a></button>
+               <button *ngIf="about" mat-raised-button [routerLink]="'/about'" class="about-button"><a [routerLink]="'/about'" class="unstyled"><span>About</span></a></button>
+           </div>
+       </div>
+   </div>
+</div>

@@ -10,6 +10,7 @@ fi
 set -e
 
 export BUCKET_NAME=poliscore-website2
+export YEAR=2024
 
 
 if [ "$1" != "view" ]; then
@@ -28,9 +29,9 @@ fi
 
 if [ "$1" != "backend" ]; then
   cd webapp/src/main/webui
-  ng build
+  ng build --base-href /$YEAR/
   cd ../../../../
 
   aws s3 rm s3://$BUCKET_NAME --recursive
-  aws s3 cp webapp/src/main/webui/dist/poliscore/browser s3://$BUCKET_NAME --recursive
+  aws s3 cp webapp/src/main/webui/dist/poliscore/browser s3://$BUCKET_NAME/$YEAR --recursive
 fi
