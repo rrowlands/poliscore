@@ -90,7 +90,7 @@ public class WebappDataGenerator implements QuarkusApplication
 		routes.add("/congress/independent");
 		
 		// All states
-		Arrays.asList(states).stream().forEach(s -> routes.add("/legislators/state/" + s));
+		Arrays.asList(states).stream().forEach(s -> routes.add("/legislators/state/" + s.toLowerCase()));
 		
 		// All legislator routes
 		routes.add("/legislators");
@@ -118,7 +118,8 @@ public class WebappDataGenerator implements QuarkusApplication
 		
 		for (var congress : PoliscoreUtil.SUPPORTED_CONGRESSES)
 		{
-			String prefix = "/" + congress.getNumber();
+			int lastYearOfSession = 1789 + (congress.getNumber() * 2) - 1;
+			String prefix = "/" + lastYearOfSession;
 			
 			routes.add(url + prefix + "/about");
 			
@@ -128,7 +129,7 @@ public class WebappDataGenerator implements QuarkusApplication
 			routes.add(url + prefix + "/congress/independent");
 			
 			// All states
-			Arrays.asList(states).stream().forEach(s -> routes.add(url + prefix + "/legislators/state/" + s));
+			Arrays.asList(states).stream().forEach(s -> routes.add(url + prefix + "/legislators/state/" + s.toLowerCase()));
 			
 			// All legislator routes
 			routes.add(url + prefix + "/legislators");

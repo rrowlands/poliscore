@@ -59,8 +59,8 @@ export class LegislatorsComponent implements OnInit {
     if (routeIndex === "state") {
       this.page.index = "ObjectsByLocation";
       this.page.ascending = true;
-      this.myLocation = routeAscending;
-      this.titleService.setTitle(convertStateCodeToName(this.myLocation) + " Legislators - PoliScore: non-partisan political rating service");
+      this.myLocation = routeAscending.toLowerCase();
+      this.titleService.setTitle(convertStateCodeToName(this.myLocation.toUpperCase()) + " Legislators - PoliScore: non-partisan political rating service");
       this.fetchLegislatorPageData(false, this.myLocation);
     } else {
       this.titleService.setTitle("Legislators - PoliScore: non-partisan political rating service");

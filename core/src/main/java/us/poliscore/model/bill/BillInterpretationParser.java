@@ -32,9 +32,9 @@ public class BillInterpretationParser {
 			this.regex = Arrays.asList(regex);
 		}
 		
-		public boolean matches(String line) {
-			return regex.stream().map(r -> line.matches(r)).reduce(false, (a,b) -> a || b);
-		}
+//		public boolean matches(String line) {
+//			return regex.stream().map(r -> line.matches(r)).reduce(false, (a,b) -> a || b);
+//		}
 	}
 	
 	public BillInterpretationParser(BillInterpretation interp) {
@@ -55,22 +55,26 @@ public class BillInterpretationParser {
 			  
 			  if (StringUtils.isBlank(line) || setState(line) || state == null) continue;
 			  
-			  if (State.STATS.equals(state)) {
-				  processStat(line);
-			  } else if (State.TITLE.equals(state)) {
-				  processTitle(line);
-			  } else if (State.RIDERS.equals(state)) {
-				  processRider(line);
-			  } else if (State.SHORT_REPORT.equals(state)) {
-				  processShortForm(line);
-			  } else if (State.LONG_REPORT.equals(state)) {
-				  processLongForm(line);
-			  }
+			  processContent(line);
 			}
 		}
 		
 		
 		// TODO : Clean?
+	}
+	
+	private void processContent(String line) {
+		if (State.STATS.equals(state)) {
+			processStat(line);
+		} else if (State.TITLE.equals(state)) {
+			processTitle(line);
+		} else if (State.RIDERS.equals(state)) {
+			processRider(line);
+		} else if (State.SHORT_REPORT.equals(state)) {
+			processShortForm(line);
+		} else if (State.LONG_REPORT.equals(state)) {
+			processLongForm(line);
+		}
 	}
 	
 	private void clean(String dirty) {
@@ -118,15 +122,35 @@ public class BillInterpretationParser {
 		interp.setShortExplain(interp.getShortExplain() + "\n" + line);
 	}
 	
+//	private boolean setState(String line) {
+//		for (State s : State.values()) {
+//			if (s.matches(line)) {
+//				state = s;
+//				return true;
+//			}
+//		}
+//		
+//		return false;
+//	}
+	
 	private boolean setState(String line) {
-		for (State s : State.values()) {
-			if (s.matches(line)) {
-				state = s;
-				return true;
-			}
-		}
-		
-		return false;
+	    for (State s : State.values()) {
+	        for (String regex : s.regex) {
+	            if (line.matches(regex + ".*")) {
+	                state = s;
+
+	                // Handle inline content (e.g., "Title: This is a title")
+	                String inlineContent = line.replaceFirst(regex, "").strip();
+	                if (!inlineContent.isEmpty()) {
+	                    processContent(inlineContent);
+	                }
+
+	                return true;
+	            }
+	        }
+	    }
+
+	    return false;
 	}
 	
 }
