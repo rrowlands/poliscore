@@ -139,10 +139,10 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 	@SneakyThrows
 	public Optional<String> getBillText(Bill bill)
 	{
-		val parent = new File(PoliscoreUtil.APP_DATA, "bill-text/" + bill.getCongress() + "/" + bill.getType());
+		val parent = new File(PoliscoreUtil.APP_DATA, "bill-text/" + bill.getSession() + "/" + bill.getType());
 		
 		val text = Arrays.asList(parent.listFiles()).stream()
-				.filter(f -> f.getName().contains(bill.getCongress() + bill.getType().getName().toLowerCase() + bill.getNumber()))
+				.filter(f -> f.getName().contains(bill.getSession() + bill.getType().getName().toLowerCase() + bill.getNumber()))
 				.sorted((a,b) -> BillTextPublishVersion.parseFromBillTextName(a.getName()).billMaturityCompareTo(BillTextPublishVersion.parseFromBillTextName(b.getName())))
 				.findFirst();
 		

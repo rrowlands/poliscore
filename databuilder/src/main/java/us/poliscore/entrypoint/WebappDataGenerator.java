@@ -95,7 +95,7 @@ public class WebappDataGenerator implements QuarkusApplication
 		// All legislator routes
 		routes.add("/legislators");
 		memService.query(Legislator.class).stream()
-			.filter(l -> l.isMemberOfSession(CongressionalSession.S118) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
+			.filter(l -> l.isMemberOfSession(CongressionalSession.S118) && s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 			.forEach(l -> routes.add("/legislator/" + l.getBioguideId()));
 		
@@ -134,7 +134,7 @@ public class WebappDataGenerator implements QuarkusApplication
 			// All legislator routes
 			routes.add(url + prefix + "/legislators");
 			memService.query(Legislator.class).stream()
-				.filter(l -> l.isMemberOfSession(congress) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
+				.filter(l -> l.isMemberOfSession(congress) && s3.exists(LegislatorInterpretation.generateId(l.getId(), congress.getNumber()), LegislatorInterpretation.class))
 				.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 				.forEach(l -> routes.add(url + prefix + "/legislator/" + l.getBioguideId()));
 			

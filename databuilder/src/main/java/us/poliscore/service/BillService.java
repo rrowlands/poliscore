@@ -61,6 +61,8 @@ public class BillService {
 		{
 			if (!PoliscoreUtil.SUPPORTED_CONGRESSES_INT.contains(Integer.valueOf(fCongress.getName()))) continue;
 			
+			val session = CongressionalSession.of(Integer.valueOf(fCongress.getName()));
+			
 			Log.info("Processing " + fCongress.getName() + " congress");
 			
 			for (val bt : PROCESS_BILL_TYPE)
@@ -71,7 +73,7 @@ public class BillService {
 				{
 					try (var fos = new FileInputStream(data))
 					{
-						importUscBill(fos);
+						importUscBill(fos, String.valueOf(session.getNumber()));
 						totalBills++;
 					}
 				}
@@ -82,7 +84,7 @@ public class BillService {
 	}
 	
 	@SneakyThrows
-	protected void importUscBill(FileInputStream fos) {
+	protected void importUscBill(FileInputStream fos, String session) {
 		val view = PoliscoreUtil.getObjectMapper().readValue(fos, USCBillView.class);
 		
 //		String text = fetchBillText(view.getUrl());
@@ -90,17 +92,17 @@ public class BillService {
     	val bill = new Bill();
 //    	bill.setText(text);
     	bill.setName(view.getBillName());
-    	bill.setCongress(Integer.parseInt(view.getCongress()));
+    	bill.setSession(Integer.parseInt(view.getCongress()));
     	bill.setType(BillType.valueOf(view.getBill_type().toUpperCase()));
     	bill.setNumber(Integer.parseInt(view.getNumber()));
 //    	bill.setStatusUrl(view.getUrl());
     	bill.setIntroducedDate(view.getIntroduced_at());
-    	bill.setSponsor(view.getSponsor() == null ? null : view.getSponsor().convert());
-    	bill.setCosponsors(view.getCosponsors().stream().map(s -> s.convert()).collect(Collectors.toList()));
+    	bill.setSponsor(view.getSponsor() == null ? null : view.getSponsor().convert(session));
+    	bill.setCosponsors(view.getCosponsors().stream().map(s -> s.convert(session)).collect(Collectors.toList()));
     	
     	if (view.getSponsor() != null && !StringUtils.isBlank(view.getSponsor().getBioguide_id()))
     	{
-			val leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, view.getSponsor().getBioguide_id()));
+			val leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber(), view.getSponsor().getBioguide_id()));
 			
 			if (leg.isPresent()) {
 				LegislatorBillSponsor interaction = new LegislatorBillSponsor();
@@ -116,7 +118,7 @@ public class BillService {
     	
     	view.getCosponsors().stream().filter(cs -> view.getSponsor() == null || !view.getSponsor().getBioguide_id().equals(cs.getBioguide_id())).forEach(cs -> {
     		if (!StringUtils.isBlank(cs.getBioguide_id())) {
-	    		val leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, cs.getBioguide_id()));
+	    		val leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber(), cs.getBioguide_id()));
 				
 	    		if (leg.isPresent()) {
 					LegislatorBillCosponsor interaction = new LegislatorBillCosponsor();

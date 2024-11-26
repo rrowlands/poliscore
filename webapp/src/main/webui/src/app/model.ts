@@ -26,7 +26,7 @@ export interface BillInterpretation {
 
 export interface BillSponsor {
   name: string;
-  bioguide_id: string;
+  legislatorId: string;
 }
 
 export interface BillInteraction {

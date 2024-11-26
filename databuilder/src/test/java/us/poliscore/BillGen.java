@@ -26,7 +26,7 @@ public class BillGen {
 		val bill = new Bill();
 
 		// TODO : Sponsor and cosponsor
-		bill.setCongress(118);
+		bill.setSession(118);
 		bill.setType(BillType.HR);
 		bill.setNumber(8580);
 		bill.setName("The Best Bill Ever");

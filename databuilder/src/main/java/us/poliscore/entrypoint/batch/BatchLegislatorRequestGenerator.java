@@ -95,7 +95,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 				.filter(l -> 
 					l.getInteractions().size() > 0
 //					&& (l.getBioguideId().equals("F000476") || l.getBioguideId().equals("O000172"))
-					&& (!CHECK_S3_EXISTS || !s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
+					&& (!CHECK_S3_EXISTS || !s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class))
 				)
 				.sorted(Comparator.comparing(Legislator::getDate).reversed())
 //				.limit(2)
@@ -139,7 +139,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 			}
 		}
 		
-		createRequest(LegislatorInterpretation.generateId(leg.getId()), LegislatorInterpretationService.getAiPrompt(leg, stats.toIssueStats()), String.join("\n", billMsgs));
+		createRequest(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretationService.getAiPrompt(leg, stats.toIssueStats()), String.join("\n", billMsgs));
 	}
 
 	private void createRequest(String oid, String sysMsg, String userMsg) {

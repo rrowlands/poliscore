@@ -153,7 +153,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		legInterp.updateInteractionsInterp(leg);
 		
-		val interp = s3.get(LegislatorInterpretation.generateId(leg.getId()), LegislatorInterpretation.class).get();
+		val interp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class).get();
 		interp.setHash(legInterp.calculateInterpHashCode(leg));
 		
 		DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);

@@ -93,7 +93,7 @@ public class RollCallService {
 		Legislator leg;
 		try
 		{
-			leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, vote.getId())).orElseThrow();
+			leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber(), vote.getId())).orElseThrow();
 		}
 		catch (NoSuchElementException ex)
 		{

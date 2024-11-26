@@ -15,7 +15,7 @@ import { HeaderComponent } from '../header/header.component';
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
 @Component({
-  selector: 'app-bill',
+  selector: 'bill',
   standalone: true,
   imports: [HeaderComponent, MatCardModule, CommonModule, CommonModule, RouterModule, MatButtonModule],
   providers: [AppService, HttpClient],
@@ -68,7 +68,7 @@ export class BillComponent implements OnInit {
     }
   };
 
-  constructor(private config: ConfigService, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
+  constructor(public config: ConfigService, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
 
   ngOnInit(): void {
     this.billId = (this.route.snapshot.paramMap.get('id') as string);
@@ -89,10 +89,6 @@ export class BillComponent implements OnInit {
       this.titleService.setTitle(bill.name + " - Bill - PoliScore: non-partisan political rating service");
       this.buildBarChartData();
     });
-  }
-
-  onClickSponsor() {
-    this.router.navigate(['/legislator/' + this.bill?.sponsor?.bioguide_id]);
   }
 
   getCongressGovBillType() {

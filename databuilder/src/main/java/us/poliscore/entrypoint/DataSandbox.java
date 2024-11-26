@@ -13,8 +13,10 @@ import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.val;
+import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.model.session.SessionInterpretation;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorService;
@@ -52,33 +54,47 @@ public class DataSandbox implements QuarkusApplication
 		billService.importUscBills();
 		
 		
+		
+		
 //		for(val leg : memService.query(Legislator.class))
 //		{
-//			val op = ddb.get(leg.getId(), Legislator.class);
+//			val op = s3.get(leg.getId().replace(Legislator.ID_CLASS_PREFIX, LegislatorInterpretation.ID_CLASS_PREFIX), LegislatorInterpretation.class);
 //			
 //			if (op.isPresent())
 //			{
-//				if (StringUtils.isBlank(op.get().getInterpretation().getLongExplain()))
-//				{
-//					System.out.println(leg.getId());
-//				}
+////				val old = op.get().getId();
+//				
+//				op.get().setId(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()));
+//				
+////				System.out.println(old + " migrated to " + op.get().getId());
+////				s3.put(op.get());
+////				System.out.println(PoliscoreUtil.getObjectMapper().writeValueAsString(op.get()));
+//				
+//				
+////				op.get()
 //			}
 //		}
 		
 		
-		val op = ddb.get(SessionInterpretation.generateId(118), SessionInterpretation.class);
-		if (StringUtils.isBlank(op.get().getDemocrat().getLongExplain()))
-		{
-			System.out.println("Democrat is blank");
-		}
-		if (StringUtils.isBlank(op.get().getRepublican().getLongExplain()))
-		{
-			System.out.println("Republican is blank");
-		}
-		if (StringUtils.isBlank(op.get().getIndependent().getLongExplain()))
-		{
-			System.out.println("Independent is blank");
-		}
+		
+		
+		
+		/*
+		 * 
+		 */
+//		val op = ddb.get(SessionInterpretation.generateId(118), SessionInterpretation.class);
+//		if (StringUtils.isBlank(op.get().getDemocrat().getLongExplain()))
+//		{
+//			System.out.println("Democrat is blank");
+//		}
+//		if (StringUtils.isBlank(op.get().getRepublican().getLongExplain()))
+//		{
+//			System.out.println("Republican is blank");
+//		}
+//		if (StringUtils.isBlank(op.get().getIndependent().getLongExplain()))
+//		{
+//			System.out.println("Independent is blank");
+//		}
 		
 		
 		

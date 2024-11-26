@@ -110,7 +110,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.legId = this.route.snapshot.paramMap.get('id') as string;
     if (!this.legId.startsWith("LEG/us/congress")) {
-      this.legId = "LEG/us/congress/" + this.legId;
+      this.legId = this.config.pathToLegislatorId(this.legId);
     }
 
     this.service.getLegislator(this.legId).then(leg => {

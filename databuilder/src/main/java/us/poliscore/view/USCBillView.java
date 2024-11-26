@@ -8,7 +8,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.Data;
 import software.amazon.awssdk.utils.StringUtils;
+import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.bill.Bill.BillSponsor;
+import us.poliscore.model.legislator.Legislator;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -58,9 +60,9 @@ public class USCBillView {
 		
 		protected String type;
 		
-		public BillSponsor convert()
+		public BillSponsor convert(String session)
 		{
-			return new BillSponsor(bioguide_id, name);
+			return new BillSponsor(Legislator.generateId(LegislativeNamespace.US_CONGRESS, session, bioguide_id), name);
 		}
 		
 	}

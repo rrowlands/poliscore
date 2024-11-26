@@ -52,4 +52,14 @@ export class ConfigService {
   {
     return "BIL/us/congress/" + this.congress + "/" + path;
   }
+
+  public legislatorIdToPath(legislatorId: string): string
+  {
+    return legislatorId.replace('LEG/us/congress/' + this.congress + "/", '');
+  }
+
+  public pathToLegislatorId(path: string): string
+  {
+    return "LEG/us/congress/" + this.congress + "/" + path;
+  }
 }

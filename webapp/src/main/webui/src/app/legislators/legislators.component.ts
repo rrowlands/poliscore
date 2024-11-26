@@ -14,6 +14,7 @@ import { Observable, map, startWith } from 'rxjs';
 import { Title } from '@angular/platform-browser';
 import { descriptionForLegislator, gradeForLegislator, subtitleForLegislator, upForReelection } from '../legislators';
 import { HeaderComponent } from '../header/header.component';
+import { ConfigService } from '../config.service';
 
 @Component({
   selector: 'legislators',
@@ -49,7 +50,7 @@ export class LegislatorsComponent implements OnInit {
     pageSize: 25
   };
 
-  constructor(private service: AppService, private router: Router, private route: ActivatedRoute, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) {}
+  constructor(public config: ConfigService, private service: AppService, private router: Router, private route: ActivatedRoute, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) {}
 
   ngOnInit(): void
   {

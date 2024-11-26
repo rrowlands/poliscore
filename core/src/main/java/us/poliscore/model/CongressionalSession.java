@@ -20,4 +20,15 @@ public enum CongressionalSession {
 		this.startDate = startDate;
 		this.endDate = endDate;
 	}
+	
+	public static CongressionalSession of(Integer session)
+	{
+		if (session == 118) {
+			return S118;
+		} else if (session == 117) {
+			return S117;
+		} else {
+			throw new UnsupportedOperationException("Unsupported session [" + String.valueOf(session) + "].");
+		}
+	}
 }

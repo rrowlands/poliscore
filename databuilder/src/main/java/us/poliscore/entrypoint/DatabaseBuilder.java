@@ -117,8 +117,8 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		imageBuilder.process();
-		billTextFetcher.process();
+//		imageBuilder.process();
+//		billTextFetcher.process();
 		
 		buildFromS3();
 		interpretBills();
@@ -200,13 +200,15 @@ public class DatabaseBuilder implements QuarkusApplication
 	 * still allowing stats and interactions to remain up-to-date.
 	 */
 	private void recalculateLegislators() {
+		Log.info("Recalculating legislators");
+		
 		for (var leg : memService.query(Legislator.class).stream()
-				.filter(l -> l.isMemberOfSession(PoliscoreUtil.CURRENT_SESSION) && s3.exists(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class))
+				.filter(l -> l.isMemberOfSession(PoliscoreUtil.CURRENT_SESSION) && s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class))
 				.collect(Collectors.toList()))
 		{
 			legInterp.updateInteractionsInterp(leg);
 			
-			val interp = s3.get(LegislatorInterpretation.generateId(leg.getId()), LegislatorInterpretation.class).get();
+			val interp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class).get();
 			interp.setHash(legInterp.calculateInterpHashCode(leg));
 			
 			DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);

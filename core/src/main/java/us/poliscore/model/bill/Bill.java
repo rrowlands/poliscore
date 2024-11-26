@@ -8,10 +8,13 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
@@ -19,8 +22,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Persistable;
-import us.poliscore.model.TrackedIssue;
-import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorLegislativeTermSortedSetConverter;
+import us.poliscore.model.legislator.Legislator.LegislatorLegislativeTermSortedSet;
 
 @Data
 @DynamoDbBean
@@ -34,7 +37,7 @@ public class Bill implements Persistable {
 	
 	protected LegislativeNamespace namespace = LegislativeNamespace.US_CONGRESS;
 	
-	protected int congress;
+	protected Integer session;
 	
 	protected BillType type;
 	
@@ -58,6 +61,7 @@ public class Bill implements Persistable {
 	
 	protected BillInterpretation interpretation;
 	
+	@JsonIgnore
 	protected CBOBillAnalysis cboAnalysis;
 	
 	public void setInterpretation(BillInterpretation interp) {
@@ -79,13 +83,13 @@ public class Bill implements Persistable {
 	@DynamoDbIgnore
 	public String getPoliscoreId()
 	{
-		return generateId(congress, type, number);
+		return generateId(session, type, number);
 	}
 	
 	@JsonIgnore
 	public String getUSCId()
 	{
-		return type.getName().toLowerCase() + number + "-" + congress;
+		return type.getName().toLowerCase() + number + "-" + session;
 	}
 	
 	@DynamoDbPartitionKey
@@ -97,7 +101,7 @@ public class Bill implements Persistable {
 	public void setId(String id) { }
 	
 	public boolean isIntroducedInSession(CongressionalSession session) {
-		return Integer.valueOf(session.getNumber()).equals(this.congress);
+		return Integer.valueOf(session.getNumber()).equals(this.session);
 	}
 	
 	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
@@ -124,17 +128,23 @@ public class Bill implements Persistable {
 	
 	@Data
 	@DynamoDbBean
-	@AllArgsConstructor
+	@RequiredArgsConstructor
 	@NoArgsConstructor
 	public static class BillSponsor {
 		
+		@JsonIgnore
+		@Getter(onMethod = @__({ @DynamoDbIgnore }))
 		protected String bioguide_id;
 		
+		@NonNull
+		protected String legislatorId;
+		
+		@NonNull
 		protected String name;
 		
 		@JsonIgnore
 		public String getId() {
-			return Legislator.generateId(LegislativeNamespace.US_CONGRESS, bioguide_id);
+			return legislatorId;
 		}
 		
 	}

@@ -35,7 +35,7 @@
             </div>
             
             <mat-card *ngFor="let leg of legs" class="example-card" appearance="outlined">
-                <a [routerLink]="['/legislator', leg.id.replace('LEG/us/congress/', '')]">
+                <a [routerLink]="['/legislator', config.legislatorIdToPath(leg.id)]">
                     <div class="left">
                         <img *ngIf="!leg.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" (error)="leg.photoError = true;" >
                         <img *ngIf="leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>

@@ -78,9 +78,9 @@ public class Sandbox implements QuarkusApplication
 		
 		
 		// TEST legislator bill linking
-		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "R000614"), Legislator.class).orElseThrow();
-		linkInterpBills(leg);
-		val out = leg.getInterpretation().getLongExplain();
+//		val leg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, "R000614"), Legislator.class).orElseThrow();
+//		linkInterpBills(leg);
+//		val out = leg.getInterpretation().getLongExplain();
 		
 		
 		
@@ -95,7 +95,7 @@ public class Sandbox implements QuarkusApplication
 //		System.out.println(PoliscoreUtil.getObjectMapper().valueToTree(leg));
 		
 		
-//		val out = getLegislatorPageData();
+		val out = getLegislatorPageData();
 		
 		
 //		String sourceIp = "71.56.241.71";
@@ -272,6 +272,7 @@ public class Sandbox implements QuarkusApplication
 	
 	public static void main(String[] args) {
 		Quarkus.run(Sandbox.class, args);
+		Quarkus.asyncExit(0);
 	}
 	
 	@Override

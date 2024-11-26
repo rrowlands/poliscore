@@ -107,7 +107,7 @@ public class PartyInterpretationService {
 	{
 		// Initialize datastructures //
 		val sessionStats = new SessionInterpretation();
-		sessionStats.setSession(PoliscoreUtil.SUPPORTED_CONGRESSES.get(0).getNumber());
+		sessionStats.setSession(PoliscoreUtil.CURRENT_SESSION.getNumber());
 		
 		val doublePartyStats = new HashMap<Party, DoubleIssueStats>();
 		val worstLegislators = new HashMap<Party, PriorityQueue<Legislator>>();
@@ -140,7 +140,7 @@ public class PartyInterpretationService {
 			}
 		}
 		for (val l : memService.query(Legislator.class).stream().filter(leg -> leg.isMemberOfSession(CongressionalSession.S118)).toList()) {
-			val op = s3.get(LegislatorInterpretation.generateId(l.getId()), LegislatorInterpretation.class);
+			val op = s3.get(LegislatorInterpretation.generateId(l.getId(), sessionStats.getSession()), LegislatorInterpretation.class);
 			
 			if (op.isPresent()) {
 				val interp = op.get();

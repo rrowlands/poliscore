@@ -59,8 +59,13 @@ public class LegislatorService {
 			leg.setBirthday(view.getBio().getBirthday());
 			leg.setTerms(view.getTerms().stream().map(t -> t.convert()).collect(Collectors.toCollection(LegislatorLegislativeTermSortedSet::new)));
 			
-			memService.put(leg);
-			count++;
+			if (leg.isMemberOfSession(PoliscoreUtil.CURRENT_SESSION))
+			{
+				leg.setSession(String.valueOf(PoliscoreUtil.CURRENT_SESSION.getNumber()));
+				
+				memService.put(leg);
+				count++;
+			}
 		}
 		
 		Log.info("Imported " + count + " politicians");

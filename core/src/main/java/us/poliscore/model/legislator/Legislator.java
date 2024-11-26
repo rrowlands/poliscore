@@ -40,6 +40,8 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	@NonNull
 	protected LegislatorName name;
 	
+	protected String session;
+	
 	protected String bioguideId;
 	
 	protected String thomasId;
@@ -62,8 +64,8 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	@DynamoDbPartitionKey
 	public String getId()
 	{
-		if (bioguideId != null) return generateId(LegislativeNamespace.US_CONGRESS, bioguideId);
-		if (thomasId != null) return generateId(LegislativeNamespace.US_CONGRESS, thomasId);
+		if (bioguideId != null) return generateId(LegislativeNamespace.US_CONGRESS, session, bioguideId);
+		if (thomasId != null) return generateId(LegislativeNamespace.US_CONGRESS, session, thomasId);
 		
 		throw new NullPointerException();
 	}
@@ -97,9 +99,14 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 				&& (term.getEndDate().isAfter(session.getStartDate()) || term.getEndDate().equals(session.getStartDate()));
 	}
 	
-	public static String generateId(LegislativeNamespace ns, String bioguideId)
+	public static String generateId(LegislativeNamespace ns, Integer session, String bioguideId)
 	{
-		return ID_CLASS_PREFIX + "/" + ns.getNamespace() + "/" + bioguideId;
+		return generateId(ns, session.toString(), bioguideId);
+	}
+	
+	public static String generateId(LegislativeNamespace ns, String session, String bioguideId)
+	{
+		return ID_CLASS_PREFIX + "/" + ns.getNamespace() + "/" + session + "/" + bioguideId;
 	}
 	
 	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }

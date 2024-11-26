@@ -48,6 +48,8 @@ public class BillInterpretation implements Persistable
 	
 	protected List<String> riders;
 	
+	@JsonIgnore
+	@Getter(onMethod = @__({ @DynamoDbIgnore }))
 	protected Integer budgetChange10Yr;
 	
 	protected String shortExplain;
