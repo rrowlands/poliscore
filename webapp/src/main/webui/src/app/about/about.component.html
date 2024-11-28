@@ -75,6 +75,29 @@
 			<!-- Two -->
 			<section id="two" class="wrapper">
 				<div class="inner alt">
+					<section class="spotlight" id="motivations">
+						<div class="image">
+                            <a [routerLink]="'/about'" fragment="motivations"><img src="images/robot-speaker.png" alt="A robot speaking to a crowd" /></a>
+                        </div>
+						<div class="content">
+							<h3 class="content-header"><a [routerLink]="'/about'" fragment="motivations">Motivations</a></h3>
+
+							<p>PoliScore is a highly experimental science project born out of deep concern for the state of modern politics leading up to the 2024 election. It was created to answer the fundamental question: "What would happen if we used AI to grade bills and then aggregated those grades to evaluate legislators?" Over time, it has grown to encompass the following goals:</p>
+
+							<ol>
+								<li>To explore and expose the political opinions inherent within AI to the world.</li>
+								<li>To make congressional legislation more readable and accessible using AI.</li>
+								<li>To encourage accountability and traceability between legislators and their legislation.</li>
+							</ol>
+
+							<!-- <p>The primary driving question behind PoliScore is: is it possible, perhaps using AI, to create an algorithm which, similar to what we have here for judges in Colorado, provides a non-paristan performance analysis for legislators in congress, thereby creating a private sector non-partisan congressional oversight comittee. Such an algorithm could be open-source and accountable to the public at large.</p> -->
+
+							<p>A continual driving force behind the project is the desire to create an open-source, non-partisan congressional oversight algorithm, which grades legislators on their performance.</p>
+
+							<!-- <p>PoliScore does not at all intend to in any way diminish the work done by the courageous and vital members of the press or other investigative journalists. In contrast, PoliSocre's mission would be to take the insights gathered by the press, aggregate them, and produce regular reports which can be consumed by the public at large as a tool for more informed voting.</p> -->
+						</div>
+					</section>
+
 					<section class="spotlight" id="how-it-works">
 						<div class="image">
                             <a [routerLink]="'/about'" fragment="how-it-works"><img src="images/robot-judge.png" alt="A Robot Judge" /></a>
@@ -102,6 +125,7 @@
 						</div>
 					</section>
 
+					<!--
 					<section class="spotlight" id="ai-bias">
 						<div class="image">
                             <a [routerLink]="'/about'" fragment="ai-bias"><img src="images/robot-speaker.png" alt="A robot speaking to a crowd" /></a>
@@ -132,9 +156,10 @@
 
 							<p>If AI does have a bias, it does appear to be "biased" towards the majority of public and scientific opinion, which is useful when considering that legislation enacted at the federal level would impact all Americans and ideally would be backed by credible scientific research. Finally, there are plenty of examples of AI grading legislators of either party favorably</p>
 
-							<!-- <p>While interesting, this question is ultimately a little out of scope for the original goals of PoliScore. PoliScore as a project is about using AI to rate bills and legislators. In order to properly rate bills, AI is forced to decide whether or not certain stances on these issues will produce a better or worse society for us all to live in. If you disagree with the conclusions of AI, that will always be your right as a citizen. Our goal is simply to make it known what AI's opinions are, and if we can, get it to explain why.</p> -->
+							!-- <p>While interesting, this question is ultimately a little out of scope for the original goals of PoliScore. PoliScore as a project is about using AI to rate bills and legislators. In order to properly rate bills, AI is forced to decide whether or not certain stances on these issues will produce a better or worse society for us all to live in. If you disagree with the conclusions of AI, that will always be your right as a citizen. Our goal is simply to make it known what AI's opinions are, and if we can, get it to explain why.</p> --
 						</div>
 					</section>
+					-->
 
 					<section class="spotlight" id="local-data">
 						<div class="image">
@@ -278,6 +303,26 @@ Based on these scores, this legislator has received the overall letter grade: {{
 								<li>behavior: One of 'specific accomplishments', 'specific accomplishments or alarming behaviour', or 'alarming behaviour', dependent upon the legislator's previously calculated letter grade. A's and B's are assigned as 'specific accomplishments'. C's and D's are assigned as 'specific accomplishments or alarming behaviour'. F's are assigned as 'alarming behaviour'.</li>
 								<li>billInteractions: A list of previously calculated bill summaries of the legislator's bill interactions. The bill interactions are first grouped by the policy areas, and then they are sorted by the absolute value of the score magnitude multiplied by the interaction weight. We then rotate through the policy areas, including the top bills for each policy area until we run out of token space in the prompt.</li>
 							</ul>
+						</div>
+					</section>
+
+					<section class="spotlight" id="roadmap">
+						<div class="image">
+                            <a [routerLink]="'/about'" fragment="roadmap"><img src="images/roadmap.png" alt="A robot conquering a mountain" /></a>
+                        </div>
+						<div class="content">
+							<h3 class="content-header"><a [routerLink]="'/about'" fragment="roadmap">Roadmap</a></h3>
+
+							<p>The project opens the door to many additional exciting questions that we would love to explore at some point, such as:</p>
+
+							<ol>
+								<li>Would the public be interested in discussing or contributing to bill interpretations? While AI provides a good starting point, it's expected to make mistakes, which is where policy experts can offer valuable insights.</li>
+								<li>Are there additional metrics we can use to grade legislators, such as attendance?</li>
+								<li>Include information about whether or not a bill passed, and if it didn't pass, why not?</li>
+								<li>Recognizing that much of the useful information comes from the courageous work of the press and investigative journalists, is it possible to link directly to source news articles and collaborate more closely with them to give back?</li>
+								<li>Somehow expose the guiding values behind AI's interpretations. This would create a little more room to debate a particular issue, such as for example immigration, in a way where all "downstream" immigration bills could be rooted within an agreed-upon guiding ethos or principles.</li>
+								<li>Include higher level information about the political parties such as: what are the larger accompishments of this legislative session? What sorts of things did they work to accompish and what sort of roadblocks did they encounter?</li>
+							</ol>
 						</div>
 					</section>
 

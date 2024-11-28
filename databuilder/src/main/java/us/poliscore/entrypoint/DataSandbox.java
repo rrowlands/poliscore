@@ -6,18 +6,21 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import lombok.val;
 import us.poliscore.PoliscoreUtil;
+import us.poliscore.model.TrackedIssue;
+import us.poliscore.model.bill.Bill;
+import us.poliscore.model.bill.BillInterpretation;
+import us.poliscore.model.bill.BillSlice;
+import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
-import us.poliscore.model.legislator.Legislator;
-import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.model.session.SessionInterpretation;
+import us.poliscore.parsing.BillSlicer;
+import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
@@ -54,6 +57,57 @@ public class DataSandbox implements QuarkusApplication
 		billService.importUscBills();
 		
 		
+//		val sessionStats = new SessionInterpretation();
+//		sessionStats.setSession(PoliscoreUtil.CURRENT_SESSION.getNumber());
+//		val stats = s3.get(sessionStats.getId(), SessionInterpretation.class).get();
+//		stats.getDemocrat().getStats().getStats().remove(TrackedIssue.SocialEquity);
+//		stats.getRepublican().getStats().getStats().remove(TrackedIssue.SocialEquity);
+//		stats.getIndependent().getStats().getStats().remove(TrackedIssue.SocialEquity);
+//		
+//		s3.put(sessionStats);
+		
+		
+//		s3.optimizeExists(BillInterpretation.class);
+//		s3.optimizeExists(BillText.class);
+//		for(val bill : memService.query(Bill.class))
+//		{
+//			if (!s3.exists(bill.getId().replace(Bill.ID_CLASS_PREFIX, BillInterpretation.ID_CLASS_PREFIX), BillInterpretation.class)
+//				|| !s3.exists(bill.getId().replace(Bill.ID_CLASS_PREFIX, BillText.ID_CLASS_PREFIX), BillText.class))
+//				continue;
+//			
+//			val interp = s3.get(bill.getId().replace(Bill.ID_CLASS_PREFIX, BillInterpretation.ID_CLASS_PREFIX), BillInterpretation.class).get();
+//			
+//			for (var sliceInterp : interp.getSliceInterpretations())
+//			{
+//				sliceInterp.getIssueStats().getStats().remove(TrackedIssue.SocialEquity);
+//				s3.put(sliceInterp);
+//			}
+//			
+//			interp.getIssueStats().getStats().remove(TrackedIssue.SocialEquity);
+//			
+//			s3.put(interp);
+//		}
+		
+		
+//		for(val bill : memService.query(Bill.class))
+//		{
+//			val op = s3.get(bill.getId().replace(Bill.ID_CLASS_PREFIX, BillInterpretation.ID_CLASS_PREFIX), BillInterpretation.class);
+//			
+//			if (op.isPresent())
+//			{
+////				val old = op.get().getId();
+//				
+////				op.get().setId(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()));
+//				op.get().getIssueStats().getStats().remove(TrackedIssue.SocialEquity);
+//				
+////				System.out.println(old + " migrated to " + op.get().getId());
+//				s3.put(op.get());
+////				System.out.println(PoliscoreUtil.getObjectMapper().writeValueAsString(op.get()));
+//				
+//				
+////				op.get()
+//			}
+//		}
 		
 		
 //		for(val leg : memService.query(Legislator.class))
@@ -64,10 +118,11 @@ public class DataSandbox implements QuarkusApplication
 //			{
 ////				val old = op.get().getId();
 //				
-//				op.get().setId(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()));
+////				op.get().setId(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()));
+//				op.get().getIssueStats().getStats().remove(TrackedIssue.SocialEquity);
 //				
 ////				System.out.println(old + " migrated to " + op.get().getId());
-////				s3.put(op.get());
+//				s3.put(op.get());
 ////				System.out.println(PoliscoreUtil.getObjectMapper().writeValueAsString(op.get()));
 //				
 //				
@@ -171,6 +226,7 @@ public class DataSandbox implements QuarkusApplication
 	
 	public static void main(String[] args) {
 		Quarkus.run(DataSandbox.class, args);
+		Quarkus.asyncExit(0);
 	}
 	
 	@Override

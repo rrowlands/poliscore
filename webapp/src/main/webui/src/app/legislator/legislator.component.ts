@@ -13,6 +13,7 @@ import { Title } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { ConfigService } from '../config.service';
 import { HeaderComponent } from '../header/header.component';
+import { DisclaimerComponent } from '../disclaimer/disclaimer.component';
 
 /*
 const floatingLabelsPlugin = {
@@ -45,7 +46,7 @@ export const CHART_COLORS = {
 @Component({
   selector: 'app-legislator',
   standalone: true,
-  imports: [HeaderComponent, KeyValuePipe, CommonModule, BaseChartDirective, MatCardModule, MatTableModule, DatePipe, RouterModule, MatButtonModule],
+  imports: [DisclaimerComponent, HeaderComponent, KeyValuePipe, CommonModule, BaseChartDirective, MatCardModule, MatTableModule, DatePipe, RouterModule, MatButtonModule],
   providers: [AppService, HttpClient],
   templateUrl: './legislator.component.html',
   styleUrl: './legislator.component.scss'

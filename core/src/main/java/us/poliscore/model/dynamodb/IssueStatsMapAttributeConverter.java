@@ -23,7 +23,7 @@ public class IssueStatsMapAttributeConverter implements AttributeConverter<Map<T
 
   @Override
   public Map<TrackedIssue, Integer> transformTo(final AttributeValue input) {
-    return input.m().entrySet().stream()
+    return input.m().entrySet().stream().filter(e -> !e.getKey().equals("SocialEquity"))
         .collect(
             Collectors.toMap(
                 k -> getEnumClassKeyByString(k.getKey()), v -> Integer.parseInt(v.getValue().n())));

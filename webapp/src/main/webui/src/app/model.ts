@@ -3,7 +3,7 @@ export interface Bill {
   name: string;
   number: number;
   type: string;
-  congress: number;
+  session: number;
   sponsor: BillSponsor;
   cosponsors: BillSponsor[];
   introducedDate: string;

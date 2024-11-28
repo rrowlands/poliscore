@@ -42,6 +42,7 @@
                         </div>
                     </div>
                 </div>
+                
                 <div class="row">
                     
                 </div>
@@ -49,6 +50,8 @@
                 <section *ngIf="leg != null">
                     <!-- <h2>Interpretation</h2> -->
                     <div class="leg-summary"><p *ngFor="let paragraph of leg?.interpretation?.longExplain?.split('\n')" [innerHTML]="paragraph"></p></div>
+
+                    <!-- <disclaimer></disclaimer> -->
 
                     <h2>Bill History</h2>
                     <table mat-table [dataSource]="billData" class="bill-history-table mat-elevation-z8">

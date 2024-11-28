@@ -189,13 +189,13 @@ public class PartyInterpretationService {
 		
 		sessionStats.setMetadata(OpenAIService.metadata());
 		
-		val op = s3.get(sessionStats.getId(), SessionInterpretation.class);
-		if (op.isPresent()) {
-			sessionStats.getDemocrat().setLongExplain(op.get().getDemocrat().getLongExplain());
-			sessionStats.getRepublican().setLongExplain(op.get().getRepublican().getLongExplain());
-			sessionStats.getIndependent().setLongExplain(op.get().getIndependent().getLongExplain());
-		}
-		ddb.put(sessionStats);
+//		val op = s3.get(sessionStats.getId(), SessionInterpretation.class);
+//		if (op.isPresent()) {
+//			sessionStats.getDemocrat().setLongExplain(op.get().getDemocrat().getLongExplain());
+//			sessionStats.getRepublican().setLongExplain(op.get().getRepublican().getLongExplain());
+//			sessionStats.getIndependent().setLongExplain(op.get().getIndependent().getLongExplain());
+//		}
+//		ddb.put(sessionStats);
 		
 		return sessionStats;
 	}

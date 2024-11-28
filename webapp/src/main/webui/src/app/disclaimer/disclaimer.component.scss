@@ -1,0 +1,60 @@
+
+.disclaimer-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0056b3; /* Subtle blue for hoverable text */
+    text-decoration: underline;
+}
+
+.disclaimer-container:hover {
+    color: #003d7a; /* Darker shade on hover */
+}
+
+.disclaimer-popup {
+    display: none;
+    position: absolute;
+    bottom: 110%; /* Position the popup above the text */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 320px; /* Wider box for better readability */
+    padding: 12px 16px;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    font-size: 13px;
+    line-height: 1.6;
+    color: #333333;
+    z-index: 1000;
+    border-radius: 8px;
+    font-family: 'Arial', sans-serif;
+    text-align: justify;
+    letter-spacing: 0.02em;
+}
+
+.disclaimer-popup:before {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 8px;
+    border-style: solid;
+    border-color: #ffffff transparent transparent transparent; /* Arrow points downward */
+}
+
+.disclaimer-container:hover .disclaimer-popup {
+    display: block;
+}
+
+/* Optional: Add a fade-in effect */
+.disclaimer-popup {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.disclaimer-container:hover .disclaimer-popup {
+    opacity: 1;
+}

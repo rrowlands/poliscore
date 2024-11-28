@@ -22,6 +22,8 @@ public class PoliscoreUtil {
 		APP_DATA.mkdirs();
 	}
 	
+	public static String DEPLOYMENT_YEAR = "2024";
+	
 	public static CongressionalSession CURRENT_SESSION = CongressionalSession.S118;
 	
 	public static List<CongressionalSession> SUPPORTED_CONGRESSES = Arrays.asList(CongressionalSession.S118);

@@ -8,7 +8,7 @@ public enum TrackedIssue
 	Transportation,
 	EconomicsAndCommerce,
 	ForeignRelations,
-	SocialEquity,
+//	SocialEquity,
 	Government,
 	Healthcare,
 	Housing,
@@ -45,10 +45,10 @@ public enum TrackedIssue
 		{
 			return "Foreign Relations";
 		}
-		else if (this.equals(SocialEquity))
-		{
-			return "Social Equity";
-		}
+//		else if (this.equals(SocialEquity))
+//		{
+//			return "Social Equity";
+//		}
 		else if (this.equals(Government))
 		{
 			return "Government Efficiency and Management";

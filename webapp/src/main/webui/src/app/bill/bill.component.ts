@@ -11,13 +11,14 @@ import { Title } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { ConfigService } from '../config.service';
 import { HeaderComponent } from '../header/header.component';
+import { DisclaimerComponent } from '../disclaimer/disclaimer.component';
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
 @Component({
   selector: 'bill',
   standalone: true,
-  imports: [HeaderComponent, MatCardModule, CommonModule, CommonModule, RouterModule, MatButtonModule],
+  imports: [DisclaimerComponent, HeaderComponent, MatCardModule, CommonModule, CommonModule, RouterModule, MatButtonModule],
   providers: [AppService, HttpClient],
   templateUrl: './bill.component.html',
   styleUrl: './bill.component.scss'

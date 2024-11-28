@@ -198,7 +198,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		}
 		
 		partyInterp.setLongExplain(interpText);
-		linkPartyBills(partyInterp);
+		linkPartyBills(partyInterp, interp);
 		
 		interp.setMetadata(OpenAIService.metadata());
 		
@@ -206,7 +206,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		ddb.put(interp);
 	}
 	
-	private void linkPartyBills(PartyInterpretation interp) {
+	private void linkPartyBills(PartyInterpretation interp, SessionInterpretation sessionInterp) {
 		try
 		{
 			var exp = interp.getLongExplain();
@@ -219,7 +219,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 					val id = bill.getId();
 					var billName = bill.getName();
 					
-					val url = "/bill" + id.replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace(), "");
+					val url = "/" + PoliscoreUtil.DEPLOYMENT_YEAR + "/bill/" + id.replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber() + "/", "");
 					
 					if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);
 					billName = billName.strip();

@@ -98,11 +98,10 @@ public class Lambda {
     private void linkInterpBills(Legislator leg) {
 		try
 		{
-			final String year = "2024";
 			var exp = leg.getInterpretation().getLongExplain();
 			
 			for (val interact : leg.getInteractions()) {
-				val url = "/" + year + "/bill/" + interact.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber() + "/", "");
+				val url = "/" + PoliscoreUtil.DEPLOYMENT_YEAR + "/bill/" + interact.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber() + "/", "");
 				
 				var billName = interact.getBillName();
 				if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);

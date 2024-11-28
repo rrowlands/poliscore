@@ -6,11 +6,11 @@
 
         <div class="vertical-layout">
             <div class="vertical-content">
-                <header [legislators]="false" class="content-section"></header>
+                <header [congress]="false" class="content-section"></header>
 
                 <mat-card *ngIf="bill != null" class="tran-div">
                     <mat-card-content class="vertical-layout">
-                        <h1 class="card-title" style="text-align:center;"><a [href]="'https://www.congress.gov/bill/' + bill.congress + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
+                        <h1 class="card-title" style="text-align:center;"><a [href]="'https://www.congress.gov/bill/' + bill.session + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
                         <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForBill())}">{{gradeForBill()}}</p></h1>
                         <h3 class="date"><p >{{ bill.introducedDate }}</p></h3>
                         <h3 class="card-subtitle">Sponsor: <a [routerLink]="'/legislator/' + config.legislatorIdToPath(bill.sponsor.legislatorId)">{{bill.sponsor.name}}</a></h3>
@@ -28,6 +28,8 @@
                         <!-- <div class="bill-section"><h2>Short Summary</h2><p *ngFor="let paragraph of bill.interpretation.shortExplain?.split('\n')" [innerHTML]="paragraph"></p></div> -->
 
                         <div class="bill-section"><h2 *ngIf="bill.interpretation.riders.length > 0">Summary</h2><p *ngFor="let paragraph of bill.interpretation.longExplain?.split('\n')" [innerHTML]="paragraph"></p></div>
+
+                        <disclaimer small="What am I looking at?"></disclaimer>
                     </mat-card-content>
                 </mat-card>
             </div>
