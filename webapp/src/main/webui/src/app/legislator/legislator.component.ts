@@ -78,7 +78,6 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
     Transportation: 'Transportation',
     EconomicsAndCommerce: 'Economics and Commerce',
     ForeignRelations: 'Foreign Relations',
-    SocialEquity: 'Social Equity',
     Government: 'Government Efficiency and Management',
     Healthcare: 'Healthcare',
     Housing: 'Housing',

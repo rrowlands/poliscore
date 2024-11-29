@@ -1,6 +1,6 @@
 <div>
     <span class="purplebg"></span> <!-- There's a bug on Moible Chrome browsers where when the nav bar hides, it reveals the white bg. -->
-<div class="stripedbg" [style.padding-bottom.px]="leg && leg.interactions && leg.interactions.length < 7 ? 30 : null"> <!-- This padding-bottom is only here to fix a bug with the tracked issues sort dropdown positioning which happens when a legislator only has a few bills which pertain to a particular issue -->
+<div class="stripedbg">
     <div *ngIf="loading" class="loader"></div>
     <h1 *ngIf="!loading && leg == null" class="object-not-found"><a href="/legislators">Legislator not found!</a></h1>
 
