@@ -63,7 +63,7 @@ export class Legislator {
     bioguideId?: string;
     thomasId?: string;
     interpretation?: LegislatorInterpretation;
-    interactions?: [BillInteraction];
+    interactions?: BillInteraction[];
     terms!: [{
       chamber: string,
       startDate: string,
@@ -95,7 +95,7 @@ export interface IssueStats {
 }
 
 export class Page {
-  index?: "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating";
+  index?: "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue";
   ascending?: boolean;
   pageSize?: number;
   exclusiveStartKey?: string | number;

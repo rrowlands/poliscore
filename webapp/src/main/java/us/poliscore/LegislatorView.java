@@ -1,20 +1,15 @@
 package us.poliscore;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.legislator.Legislator;
-import us.poliscore.model.legislator.LegislatorBillInteraction;
-import us.poliscore.model.legislator.LegislatorInterpretation;
-import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
+import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
 import us.poliscore.model.legislator.Legislator.LegislatorLegislativeTermSortedSet;
 import us.poliscore.model.legislator.Legislator.LegislatorName;
+import us.poliscore.model.legislator.LegislatorInterpretation;
 
 @Data
 @AllArgsConstructor
@@ -34,7 +29,7 @@ public class LegislatorView {
 	
 	protected LegislatorInterpretation interpretation;
 	
-	protected LegislatorBillInteractionSet interactions = new LegislatorBillInteractionSet();
+	protected LegislatorBillInteractionList interactions = new LegislatorBillInteractionList();
 	
 //	protected Map<TrackedIssue, List<LegislatorBillInteraction>> topInteractions = new HashMap<TrackedIssue, List<LegislatorBillInteraction>>();
 	

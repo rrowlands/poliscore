@@ -23,19 +23,55 @@ export class AppService {
         return firstValueFrom(this.http.get<SessionStats>(backendUrl + "/getSessionStats", { params: params }));
     }
 
-    getLegislator(id: string): Promise<Legislator | undefined> {
+    getLegislator(id: string, page: Page): Promise<Legislator | undefined> {
         let params: HttpParams = new HttpParams();
         params = params.set("id", id);
+
+        if (page.index!= null) {
+            params = params.set("index", page.index);
+        }
+        
+        if (page.pageSize!= null) {
+            params = params.set("pageSize", page.pageSize.toString());
+        }
+
+        if (page.exclusiveStartKey!= null) {
+            params = params.set("exclusiveStartKey", page.exclusiveStartKey);
+        }
+
+        if (page.ascending!= null) {
+            params = params.set("ascending", page.ascending.toString());
+        }
+
+        if (page.sortKey!= null) {
+            params = params.set("sortKey", page.sortKey);
+        }
 
         return firstValueFrom(this.http.get<Legislator>(backendUrl + "/getLegislator", { params: params }));
     }
 
-    getLegislatorInteractions(id: string, exclusiveStartKey: number | null = null): Promise<AppDataPage> {
+    getLegislatorInteractions(id: string, page: Page): Promise<AppDataPage> {
         let params: HttpParams = new HttpParams();
         params = params.set("id", id);
 
-        if (exclusiveStartKey!= null) {
-            params = params.set("exclusiveStartKey", exclusiveStartKey);
+        if (page.index!= null) {
+            params = params.set("index", page.index);
+        }
+        
+        if (page.pageSize!= null) {
+            params = params.set("pageSize", page.pageSize.toString());
+        }
+
+        if (page.exclusiveStartKey!= null) {
+            params = params.set("exclusiveStartKey", page.exclusiveStartKey);
+        }
+
+        if (page.ascending!= null) {
+            params = params.set("ascending", page.ascending.toString());
+        }
+
+        if (page.sortKey!= null) {
+            params = params.set("sortKey", page.sortKey);
         }
 
         return firstValueFrom(this.http.get<AppDataPage>(backendUrl + "/getLegislatorInteractions", { params: params }));

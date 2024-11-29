@@ -37,6 +37,7 @@ import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.session.SessionInterpretation;
@@ -79,7 +80,12 @@ public class Lambda {
     
     @GET
     @Path("getLegislator")
-    public Legislator getLegislator(@NonNull @RestQuery String id) {
+    public Legislator getLegislator(@NonNull @RestQuery String id, @RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") Integer _exclusiveStartKey, @RestQuery String sortKey) {
+    	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
+    	var pageSize = _pageSize == null ? 25 : _pageSize;
+    	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
+    	int exclusiveStartKey = (_exclusiveStartKey == null) ? -1 : _exclusiveStartKey;
+    	
     	val op = ddb.get(id, Legislator.class);
     	
     	if (op.isPresent()) {
@@ -87,9 +93,13 @@ public class Lambda {
     		
     		linkInterpBills(leg);
     		
-    		leg.setInteractions(leg.getInteractions().stream()
-    				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
-    				.limit(20).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
+//    		leg.setInteractions(leg.getInteractions().stream()
+//    				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
+//    				.limit(25).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
+    		
+    		var page = filterInteractions(leg, index, sortKey, pageSize, ascending, exclusiveStartKey);
+    		
+    		leg.setInteractions(page.getData().get(0));
     	}
     	
     	return op.orElse(null);
@@ -128,33 +138,66 @@ public class Lambda {
     
     @GET
     @Path("/getLegislatorInteractions")
-    public Page<LegislatorBillInteractionSet> getLegislatorInteractions(@RestQuery("id") String id, @RestQuery("exclusiveStartKey") Integer exclusiveStartKey) {
-    	val pageSize = 20;
-    	
-    	if (exclusiveStartKey == null) exclusiveStartKey = -1;
+    public Page<LegislatorBillInteractionList> getLegislatorInteractions(@RestQuery("id") String id, @RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") Integer _exclusiveStartKey, @RestQuery String sortKey) {
+    	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
+    	var pageSize = _pageSize == null ? 25 : _pageSize;
+    	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
+    	int exclusiveStartKey = (_exclusiveStartKey == null) ? -1 : _exclusiveStartKey;
 
-    	val set = new LegislatorBillInteractionSet();
-    	Page<LegislatorBillInteractionSet> page = new Page<LegislatorBillInteractionSet>();
-    	page.setData(Arrays.asList(set));
-    	page.setExclusiveStartKey(exclusiveStartKey);
-    	
     	val op = ddb.get(id, Legislator.class);
     	
     	if (op.isPresent()) {
     		val leg = op.get();
     		
-    		val allInteracts = leg.getInteractions().stream()
-				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
-				.collect(Collectors.toList());
-    		
-			for (int i = exclusiveStartKey + 1; i < Math.min(allInteracts.size(), exclusiveStartKey + 1 + pageSize); ++i) {
-				set.add(allInteracts.get(i));
-			}
-			
-			page.setHasMoreData((set.size() + 1 + exclusiveStartKey) < leg.getInteractions().size());
+    		return filterInteractions(leg, index, sortKey, pageSize, ascending, exclusiveStartKey);
     	}
     	
+    	Page<LegislatorBillInteractionList> page = new Page<LegislatorBillInteractionList>();
+    	page.setData(Arrays.asList());
+    	page.setExclusiveStartKey(exclusiveStartKey);
+    	page.setHasMoreData(false);
     	return page;
+    }
+    
+    private Page<LegislatorBillInteractionList> filterInteractions(Legislator leg, String index, String sortKey, Integer pageSize, Boolean ascending, Integer exclusiveStartKey)
+    {
+    	Page<LegislatorBillInteractionList> page = new Page<LegislatorBillInteractionList>();
+    	page.setData(Arrays.asList());
+    	page.setExclusiveStartKey(exclusiveStartKey);
+    	
+    	val interacts = new LegislatorBillInteractionList();
+    	page.setData(Arrays.asList(interacts));
+    	
+    	var stream = leg.getInteractions().stream();
+		
+		Comparator<LegislatorBillInteraction> comparator;
+		if (index.equals(Persistable.OBJECT_BY_DATE_INDEX)) {
+			comparator = Comparator.comparing(LegislatorBillInteraction::getDate);
+		} else if (index.equals(Persistable.OBJECT_BY_RATING_INDEX)) {
+			comparator = Comparator.comparing(LegislatorBillInteraction::getRating);
+		} else if (index.equals("TrackedIssue")) {
+			var issue = TrackedIssue.valueOf(sortKey);
+			stream = stream.filter(lbi -> lbi.getIssueStats().hasStat(issue));
+			comparator = (LegislatorBillInteraction a, LegislatorBillInteraction b) -> a.getIssueStats().getStat(issue).compareTo(b.getIssueStats().getStat(issue));
+		} else {
+			throw new UnsupportedOperationException(index);
+		}
+		
+		if (ascending) {
+			stream = stream.sorted(comparator);
+		} else {
+			stream = stream.sorted(comparator.reversed());
+		}
+		
+		var allInteracts = stream.collect(Collectors.toList());
+		
+		for (int i = exclusiveStartKey + 1; i < Math.min(allInteracts.size(), exclusiveStartKey + 1 + pageSize); ++i) {
+			interacts.add(allInteracts.get(i));
+		}
+		
+		page.setHasMoreData((interacts.size() + 1 + exclusiveStartKey) < leg.getInteractions().size());
+		
+		return page;
     }
     
     @GET
@@ -171,7 +214,7 @@ public class Lambda {
     	
     	val legs = ddb.query(Legislator.class, pageSize, index, ascending, startKey, sortKey);
     	
-    	legs.forEach(l -> l.setInteractions(new LegislatorBillInteractionSet()));
+    	legs.forEach(l -> l.setInteractions(new LegislatorBillInteractionList()));
     	
     	if (cacheable) {
     		cachedLegislators.put(cacheKey, legs);

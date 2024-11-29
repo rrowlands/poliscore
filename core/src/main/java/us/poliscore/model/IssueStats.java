@@ -112,7 +112,7 @@ public class IssueStats {
 	}
 	
 	@JsonIgnore
-	public int getStat(TrackedIssue issue)
+	public Integer getStat(TrackedIssue issue)
 	{
 		return getStat(issue, 0);
 	}

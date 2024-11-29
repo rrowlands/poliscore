@@ -26,6 +26,27 @@ function idPathMatcher(path: string) {
   };
 }
 
+// function legislatorPathMatcher(path: string) {
+//   let p = path;
+  
+//   return (segments: UrlSegment[], 
+//     group: UrlSegmentGroup, 
+//     route: Route) => {
+//       if (segments.length > 0 && segments[0].path == p) {
+//         return {
+//           consumed: segments,
+//           posParams: {
+//             id: new UrlSegment(segments.slice(1,2).join("/"), {}),
+//             index: new UrlSegment(segments.slice(2,3).join("/"), {}),
+//             ascending: new UrlSegment(segments.slice(3,4).join("/"), {})
+//           }
+//         };
+//       }
+      
+//       return null;
+//   };
+// }
+
 export const routes: Routes = [
   { path: "", component: LegislatorsComponent, data: { animation: 'legislatorsPage' } },
   { matcher: idPathMatcher('legislator'), component: LegislatorComponent, data: { animation: 'legislatorPage' } },

@@ -18,17 +18,17 @@ export class ConfigService {
   // }
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.congress = this.yearToCongress(this.getYear());
+  }
+
+  public getYear(): number
+  {
     if (isPlatformBrowser(this.platformId)) {
       const baseHref = document.querySelector('base')?.getAttribute('href') || '/';
       const yearMatch = baseHref.match(/^\/(\d{4})\/$/); // Match "/2024/" or similar
-      const year = yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear(); // Default to current year
-
-      // Calculate congressional session from the year
-      this.congress = this.yearToCongress(year);
+      return yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear(); // Default to current year
     } else {
-      // Default to the current congressional session based on current year
-      const currentYear = new Date().getFullYear();
-      this.congress = this.yearToCongress(currentYear);
+      return new Date().getFullYear();
     }
   }
 

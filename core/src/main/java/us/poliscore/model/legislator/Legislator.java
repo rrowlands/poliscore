@@ -1,7 +1,7 @@
 package us.poliscore.model.legislator;
 
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.TreeSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,7 +24,7 @@ import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
 import us.poliscore.model.Persistable;
-import us.poliscore.model.dynamodb.JacksonAttributeConverter.CompressedLegislatorBillInteractionSetConverter;
+import us.poliscore.model.dynamodb.JacksonAttributeConverter.CompressedLegislatorBillInteractionListConverter;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverterProvider;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorLegislativeTermSortedSetConverter;
 import us.poliscore.model.dynamodb.DdbDataPage;
@@ -58,8 +58,8 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	protected LegislatorLegislativeTermSortedSet terms;
 	
 	@NonNull
-	@Getter(onMethod = @__({ @DynamoDbConvertedBy(CompressedLegislatorBillInteractionSetConverter.class), @DdbDataPage }))
-	protected LegislatorBillInteractionSet interactions = new LegislatorBillInteractionSet();
+	@Getter(onMethod = @__({ @DynamoDbConvertedBy(CompressedLegislatorBillInteractionListConverter.class), @DdbDataPage }))
+	protected LegislatorBillInteractionList interactions = new LegislatorBillInteractionList();
 	
 	@DynamoDbPartitionKey
 	public String getId()
@@ -169,7 +169,10 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	}
 	
 	@DynamoDbBean(converterProviders = LegislatorBillInteractionSetConverterProvider.class)
-	public static class LegislatorBillInteractionSet extends HashSet<LegislatorBillInteraction> {}
+	public static class LegislatorBillInteractionList extends ArrayList<LegislatorBillInteraction> {}
+	
+	@DynamoDbBean(converterProviders = LegislatorBillInteractionSetConverterProvider.class)
+	public static class LegislatorBillInteractionSet extends TreeSet<LegislatorBillInteraction> {}
 	
 	@DynamoDbBean
 	public static class LegislatorLegislativeTermSortedSet extends TreeSet<LegislativeTerm> {}

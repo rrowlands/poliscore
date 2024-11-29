@@ -21,15 +21,14 @@ import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.val;
 import us.poliscore.entrypoint.Lambda;
-import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.bill.Bill;
-import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
-import us.poliscore.model.legislator.LegislatorBillInteraction;
+import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
+import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
@@ -257,7 +256,7 @@ public class Sandbox implements QuarkusApplication
     	
     	val legs = ddb.query(Legislator.class, pageSize, index, ascending, startKey, sortKey);
     	
-    	legs.forEach(l -> l.setInteractions(new LegislatorBillInteractionSet()));
+    	legs.forEach(l -> l.setInteractions(new LegislatorBillInteractionList()));
     	
     	return legs;
     }

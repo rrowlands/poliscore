@@ -26,7 +26,6 @@ import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIResponse;
 import us.poliscore.model.DoubleIssueStats;
-import us.poliscore.model.IssueStats;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
 import us.poliscore.model.TrackedIssue;
@@ -36,7 +35,7 @@ import us.poliscore.model.bill.BillInterpretationParser;
 import us.poliscore.model.bill.BillSlice;
 import us.poliscore.model.bill.BillText;
 import us.poliscore.model.legislator.Legislator;
-import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
+import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
 import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.model.session.SessionInterpretation;
 import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
@@ -172,7 +171,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		// 1100 seems to be about an upper limit for a single ddb page
 		leg.setInteractions(legInterp.getInteractionsForInterpretation(leg).stream()
 				.filter(i -> i.getIssueStats() != null)
-				.sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1100).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
+				.sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1100).collect(Collectors.toCollection(LegislatorBillInteractionList::new)));
 //		leg.setInteractions(interacts);
 		
 		leg.setInterpretation(interp);

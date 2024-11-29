@@ -84,7 +84,7 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	
 	@Override
 	public int compareTo(LegislatorBillInteraction interact) {
-		return this.date.compareTo(interact.date);
+		return interact.date.compareTo(this.date);
 	}
 	
 	public boolean supercedes(LegislatorBillInteraction similar)
