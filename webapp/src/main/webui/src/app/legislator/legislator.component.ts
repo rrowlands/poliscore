@@ -72,6 +72,8 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
 
   private hasMoreData: boolean = true;
 
+  private chart: any = null;
+
   issueMap = {
     AgricultureAndFood: 'Agriculture and Food',
     Education: 'Education',
@@ -86,9 +88,9 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
     Immigration: 'Immigration',
     NationalDefense: 'National Defense',
     CrimeAndLawEnforcement: 'Crime and Law Enforcement',
-    WildlifeAndForestManagement: 'Wildlife and Forest Management',
-    PublicLandsAndNaturalResources: 'Public Lands and Natural Resources',
-    EnvironmentalManagementAndClimateChange: 'Environmental Management and Climate Change'
+    WildlifeAndForestManagement: 'Wildlife And Forest Management',
+    PublicLandsAndNaturalResources: 'Public Lands And Natural Resources',
+    EnvironmentalManagementAndClimateChange: 'Environmental Management And Climate Change'
   };
 
   selectedOption: string = '';
@@ -119,6 +121,26 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
           return context?.chart?.data?.labels![context.dataIndex];
         },
         // font: { weight: "bold" }
+      }
+    },
+    onClick: (event, elements) => {
+      if (elements.length > 0) {
+        const element = elements[0];
+        const datasetIndex = element.datasetIndex;
+        const dataIndex = element.index;
+
+        var issue = Object.entries(this.issueMap).filter(i => i[1].toLowerCase() === this.chart.data.labels[dataIndex].toLowerCase())[0][0];
+
+        // console.log('Clicked Element:', issue);
+
+        if (this.page.sortKey !== issue) {
+          this.togglePage("TrackedIssue", issue);
+          // scrollTo()
+
+          document.querySelector('.interactions-table')!.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } else {
+        console.log('No element clicked');
       }
     },
     scales: {
@@ -309,7 +331,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   }
 
   renderBarChart() {
-    new Chart(
+    this.chart = new Chart(
       (this.barChart as any).nativeElement,
       {
         type: 'bar',
