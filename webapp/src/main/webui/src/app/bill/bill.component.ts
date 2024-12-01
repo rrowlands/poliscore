@@ -87,7 +87,7 @@ export class BillComponent implements OnInit {
       }
 
       this.loading = false;
-      this.titleService.setTitle(bill.name + " - Bill - PoliScore: non-partisan political rating service");
+      this.titleService.setTitle(bill.name + " - Bill - PoliScore: AI Political Rating Service");
       this.buildBarChartData();
     });
   }

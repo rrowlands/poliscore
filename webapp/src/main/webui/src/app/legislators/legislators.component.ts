@@ -61,10 +61,10 @@ export class LegislatorsComponent implements OnInit {
       this.page.index = "ObjectsByLocation";
       this.page.ascending = true;
       this.myLocation = routeAscending.toLowerCase();
-      this.titleService.setTitle(convertStateCodeToName(this.myLocation.toUpperCase()) + " Legislators - PoliScore: non-partisan political rating service");
+      this.titleService.setTitle(convertStateCodeToName(this.myLocation.toUpperCase()) + " Legislators - PoliScore: AI Political Rating Service");
       this.fetchLegislatorPageData(false, this.myLocation);
     } else {
-      this.titleService.setTitle("Legislators - PoliScore: non-partisan political rating service");
+      this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
       if (isPlatformBrowser(this._platformId)) { // This is here at the moment because we want to always force the request so that it's personalized by location
         this.isRequestingData = true;
         let routeParams = false;
@@ -169,7 +169,7 @@ export class LegislatorsComponent implements OnInit {
 
     this.legs = [];
 
-    this.titleService.setTitle("Legislators - PoliScore: non-partisan political rating service");
+    this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
 
     let routeIndex = "";
     if (this.page.index === "ObjectsByDate") {

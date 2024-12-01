@@ -58,5 +58,5 @@ export const routes: Routes = [
   { path: 'congress', component: SessionStatsComponent, data: { animation: 'sessionStatsPage' } },
   { path: 'congress/:party', component: SessionStatsComponent, data: { animation: 'sessionStatsPage' } },
   { path: 'congress/:party/:sort', component: SessionStatsComponent, data: { animation: 'sessionStatsPage' } },
-  { path: 'about', component: AboutComponent, title: "About - PoliScore: non-partisan political rating service", data: { animation: 'about' } }
+  { path: 'about', component: AboutComponent, title: "About - PoliScore: AI Political Rating Service", data: { animation: 'about' } }
 ];

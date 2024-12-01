@@ -112,7 +112,7 @@ export class SessionStatsComponent {
   
         if (stats == null) { return; }
   
-        this.titleService.setTitle(stats?.session + "th Congress Stats - PoliScore: non-partisan political rating service");
+        this.titleService.setTitle(stats?.session + "th Congress Stats - PoliScore: AI Political Rating Service");
   
         this.buildBarChartData();
       });

@@ -193,7 +193,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
       if (leg == null) return;
   
       this.titleService.setTitle(
-        leg.name.official_full + " - PoliScore: non-partisan political rating service"
+        leg.name.official_full + " - PoliScore: AI Political Rating Service"
       );
   
       this.refreshBillData();

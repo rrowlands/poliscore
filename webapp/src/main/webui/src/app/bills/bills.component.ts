@@ -53,7 +53,7 @@ export class BillsComponent implements OnInit {
 
   ngOnInit(): void
   {
-    this.titleService.setTitle("Bills - PoliScore: non-partisan political rating service");
+    this.titleService.setTitle("Bills - PoliScore: AI Political Rating Service");
 
     let routeIndex = this.route.snapshot.paramMap.get('index') as string;
     let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;

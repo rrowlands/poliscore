@@ -24,7 +24,7 @@ public class PoliscoreUtil {
 	
 	public static String DEPLOYMENT_YEAR = "2024";
 	
-	public static CongressionalSession CURRENT_SESSION = CongressionalSession.S118;
+	public static CongressionalSession CURRENT_SESSION = CongressionalSession.of((int)Math.floor((Integer.parseInt(DEPLOYMENT_YEAR) - 1789) / 2) + 1);
 	
 	public static List<CongressionalSession> SUPPORTED_CONGRESSES = Arrays.asList(CongressionalSession.S118);
 	
