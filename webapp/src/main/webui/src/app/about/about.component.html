@@ -2,34 +2,39 @@
 
 <!-- Header -->
 			<header id="header">
-				<div class="content">
-					<h1 style="text-align:center;"><a href="#">poliscore.us</a></h1>
-					<!-- <img class="poliscore-full" src="/images/full.png" style="width:250px; margin-top: -190px;"> -->
-                	<!-- <div class="poliscore-logo-bg vertical-layout">
-						<span class="horizontal-layout">
-							<img class="poliscore-logo" src="/images/poliscore-word.png">
+				<div class="header-col">
+					<div class="content">
+						<h1 style="text-align:center;"><a href="#">poliscore.us</a></h1>
+						<!-- <img class="poliscore-full" src="/images/full.png" style="width:250px; margin-top: -190px;"> -->
+						<!-- <div class="poliscore-logo-bg vertical-layout">
+							<span class="horizontal-layout">
+								<img class="poliscore-logo" src="/images/poliscore-word.png">
+							</span>
+						</div> -->
+						<span>
+							<p style="text-align:center">The World's First AI Legislative Rating Service</p>
+							<div class="vertical-layout">
+							<ul>
+								<li>Fully Open-Source</li>
+								<li>Rooted in Policy</li>
+								<li>Non-Partisan AI Prompts</li>
+							</ul>
+							</div>
 						</span>
-					</div> -->
-					<span>
-						<p style="text-align:center">The World's First AI Legislative Rating Service</p>
-						<div class="vertical-layout">
-						<ul>
-							<li>Fully Open-Source</li>
-							<li>Rooted in Policy</li>
-							<li>Non-Partisan AI Prompts</li>
-						</ul>
-						</div>
-					</span>
-					<!-- <ul class="actions">
-						<li><a href="#" class="button primary icon solid fa-download">Press Kit</a></li>
-						<li><a href="#one" class="button icon solid fa-chevron-down scrolly">Email List</a></li>
-					</ul> -->
-                    <!--<p style="text-align:center; font-size: 1em;">coming soon</p>-->
+						<!-- <ul class="actions">
+							<li><a href="#" class="button primary icon solid fa-download">Press Kit</a></li>
+							<li><a href="#one" class="button icon solid fa-chevron-down scrolly">Email List</a></li>
+						</ul> -->
+						<!--<p style="text-align:center; font-size: 1em;">coming soon</p>-->
+					</div>
+					<button class="button primary icon solid show-me image" style="min-width: 180px; padding: 0; width: 180px;"><a [routerLink]="'/legislators'" class="unstyled" style="color: #81548f">Show me <i class="icon solid fa-solid fa-arrow-right" style="margin-right:-10px; margin-left:10px; color: #81548f !important;"></i></a></button>
+					<!-- <div class="image phone"><div class="inner"><img src="images/screen.jpg" alt="" /></div></div> -->
 				</div>
-				<button class="button primary icon solid show-me image" style="min-width: 180px; padding: 0; width: 180px;"><a [routerLink]="'/legislators'" class="unstyled" style="color: #81548f">Show me <i class="icon solid fa-solid fa-arrow-right" style="margin-right:-10px; margin-left:10px; color: #81548f !important;"></i></a></button>
-				<!-- <div class="image phone"><div class="inner"><img src="images/screen.jpg" alt="" /></div></div> -->
 
 				<a class="fork-me" href="https://github.com/rrowlands/poliscore"><img decoding="async" width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_gray_6d6d6d.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" loading="lazy" data-recalc-dims="1"></a>
+
+				<div class="scroll-for-more"><i class="icon solid fa-solid fa-angle-down"></i> <label>scroll for more</label> <i class="icon solid fa-solid fa-angle-down"></i></div>
+				<div class="privacy-policy"><label><a (click)="clickPrivacyPolicy()">privacy policy</a></label></div>
 			</header>
 
 		<!-- One -->

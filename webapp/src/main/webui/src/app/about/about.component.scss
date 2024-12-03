@@ -65,15 +65,15 @@ button {
 }
 
 @media screen and (max-width: 550px) {
-	div > header#header {
+	div > header#header .header-col {
 		flex-direction: column;
 	}
 
-	header#header .content {
+	header#header .header-col .content {
 		margin-bottom: 0;
 	}
 
-	header#header button {
+	header#header .header-col button {
 		margin-bottom: 2em;
 	}
 }
@@ -442,28 +442,47 @@ input, select, textarea {
 /* Header */
 
 #header {
-	position: relative;
-	background-color: #81548f;
-	color: #d1e5f9;
-	padding: 4.5em 0 2.5em 0 ;
-	-moz-align-items: center;
-	-webkit-align-items: center;
-	-ms-align-items: center;
-	align-items: center;
-	display: -moz-flex;
-	display: -webkit-flex;
-	display: -ms-flex;
-	display: flex;
-	-moz-justify-content: center;
-	-webkit-justify-content: center;
-	-ms-justify-content: center;
-	justify-content: center;
 	background-image: url("/images/overlay.png"), url("/images/pattern-size1.svg");
 	background-position: top left, center center;
 	background-attachment: fixed, fixed;
 	background-size: auto, cover;
-	height: 100vh;
+	height: 100dvh;
 	min-height: 35em;
+	position: relative;
+	background-color: #81548f;
+	color: #d1e5f9;
+	// padding: 4.5em 0 2.5em 0 ;
+	padding: 0;
+	-moz-align-items: center;
+	-webkit-align-items: center;
+	-ms-align-items: center;
+	align-items: center;
+	-moz-justify-content: center;
+	-webkit-justify-content: center;
+	-ms-justify-content: center;
+	justify-content: center;
+
+	display: flex;
+	flex-direction: column;
+}
+
+.header-col {
+	
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: -ms-flex;
+	display: flex;
+	flex-direction: row;
+	-moz-align-items: center;
+	-webkit-align-items: center;
+	-ms-align-items: center;
+	align-items: center;
+	-moz-justify-content: center;
+	-webkit-justify-content: center;
+	-ms-justify-content: center;
+	justify-content: center;
+	padding: 10px;
+	
 }
 
 #header .fork-me {
@@ -684,7 +703,7 @@ input, select, textarea {
 		margin-bottom: 0.5em;
 	}
 
-	#header > * {
+	#header .header-col > * {
 		font-size: 1.5em;
 		line-height: 1.35em;
 		color: white;
@@ -711,7 +730,7 @@ input, select, textarea {
 		justify-content: flex-end;
 	}
 
-	#header > button {
+	#header button {
 		-moz-transition: opacity 1s ease, -moz-transform 1s ease;
 		-webkit-transition: opacity 1s ease, -webkit-transform 1s ease;
 		-ms-transition: opacity 1s ease, -ms-transform 1s ease;
@@ -734,8 +753,38 @@ input, select, textarea {
 			transition-delay: 0.75s;
 			opacity: 1;
 		}
-			
+	
+	.scroll-for-more {
+		position: absolute;
+		bottom: 3em;
+		padding-top:40px;
+	}
 
+	.scroll-for-more label {
+		padding: 0 20px 0 20px;
+		display: inline;
+	}
+
+	.scroll-for-more i {
+		color: #e0e0e0;
+	}
+
+	.scroll-for-more label,i {
+		color: rgba(255, 255, 255, 0.3) !important;
+	}
+
+	.privacy-policy {
+		position: absolute;
+		top: 1.5em;
+		left: 1.5em;
+	}
+
+	.privacy-policy label a {
+		color: rgb(0, 82, 170) !important;
+		cursor: pointer;
+		font-size: 14px;
+		font-weight: 600;
+	}
 
 	@media screen and (max-width: 1280px) {
 
@@ -748,7 +797,7 @@ input, select, textarea {
 	@media screen and (max-width: 980px) {
 
 		#header {
-			height: auto;
+			// height: auto;
 			min-height: 0;
 		}
 
@@ -763,12 +812,16 @@ input, select, textarea {
 			justify-content: center;
 		}
 
+		.scroll-for-more {
+			// display: none;
+		}
+
 	}
 
 	@media screen and (max-width: 980px) and (orientation: portrait) {
 
 		#header {
-			padding: 6em 3em 4em 3em ;
+			// padding: 6em 3em 4em 3em ;
 			/*
 			-moz-flex-direction: column-reverse;
 			-webkit-flex-direction: column-reverse;
@@ -810,7 +863,7 @@ input, select, textarea {
 	@media screen and (max-width: 736px) and (orientation: landscape) {
 
 		#header {
-			padding: 2em 2em 0.1em 2em ;
+			// padding: 2em 2em 0.1em 2em ;
 		}
 
 			#header .content {
@@ -832,7 +885,7 @@ input, select, textarea {
 	@media screen and (max-width: 736px) and (orientation: portrait) {
 
 		#header {
-			padding: 3em 1.5em 1em 1.5em ;
+			// padding: 3em 1.5em 1em 1.5em ;
 		}
 
 	}
@@ -856,7 +909,7 @@ input, select, textarea {
 @media screen and (max-width: 480px) and (orientation: portrait) {
 
 	#header {
-		padding: 2em 1em 0.1em 1em ;
+		// padding: 2em 1em 0.1em 1em ;
 	}
 
 }
