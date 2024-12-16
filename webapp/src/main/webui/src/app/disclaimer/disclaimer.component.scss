@@ -34,6 +34,11 @@
     letter-spacing: 0.02em;
 }
 
+.disclaimer-popup.below {
+    top: 60%; /* Position the popup below the text */
+    bottom: auto;
+}
+
 .disclaimer-popup:before {
     content: "";
     position: absolute;

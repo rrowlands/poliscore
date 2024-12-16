@@ -110,8 +110,19 @@ export class BillComponent implements OnInit {
 
   colorForGrade(grade: string): string { return colorForGrade(this.gradeForBill()); }
 
-  public getCosponsors() {
-    return this.bill?.cosponsors.map(s => s.name).join(", ");
+  public getCosponsorSmall() {
+    var plural = (this.bill!.cosponsors.length > 1 ? "s" : "");
+
+    // if (this.bill!.cosponsors.length <= 2)
+    //   return "Cosponsor" + plural + ": " + this.bill?.cosponsors.map(s => s.name).join(", ");
+    // else
+    return this.bill!.cosponsors.length + " cosponsor" + plural;
+  }
+
+  public getCosponsorLarge() {
+    var plural = (this.bill!.cosponsors.length > 1 ? "s" : "");
+
+    return "Cosponsor" + plural + ":\n\n" + this.bill?.cosponsors.map(s => "- <a href='/" + this.config.getYear() + "/legislator/" + this.config.legislatorIdToPath(s.legislatorId) + "'>" + s.name + "</a>").join("\n");
   }
 
   async buildBarChartData() {

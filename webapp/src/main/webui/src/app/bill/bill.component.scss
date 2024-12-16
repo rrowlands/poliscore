@@ -58,6 +58,15 @@ p.interp-text {
     right: 6px;
 }
 
+@media screen and (max-width: 900px) {
+    .date p,disclaimer {
+        display: inline;
+    }
+    .date p {
+        margin-right: 25px;
+    }
+}
+
 .card-title {
     padding-top: 20px;
 }

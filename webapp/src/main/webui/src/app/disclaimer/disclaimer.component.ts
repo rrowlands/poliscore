@@ -15,6 +15,8 @@ export class DisclaimerComponent {
 
   @Input() public large: string = "";
 
+  @Input() public positionBelow: boolean = false;
+
   public tooltipVisible = true;
 
   constructor(public dialog: MatDialog) {}
@@ -33,10 +35,15 @@ export class DisclaimerComponent {
   imports: [CommonModule, MatDialogModule, MatButtonModule],
   template: `
     <div mat-dialog-content>
-        <p>The data on this page was generated using OpenAI's GPT-4o. Studies have shown GPT-4 to have a left-wing political bias. Additionally, LLMs work by parroting back training data and do not necessarily root all opinions in concrete morals or logically consistent world views. Please consider this information as part of an experimental AI analysis rather than definitive or authoritative guidance.
-        <br/><br/>
-        For verification, you can cross-reference details with the official Congress website by clicking on the bill title. You can also explore aggregated data by clicking on the bill sponsor or <a href="/">viewing all legislators</a>. For more information about our methods, including the prompts used and the goals of this project, <a href="/about">visit the About page.</a>
-        </p>
+        <span *ngIf="data.large == ''">
+          <p>The data on this page was generated using OpenAI's GPT-4o. Studies have shown GPT-4 to have a left-wing political bias. Additionally, LLMs work by parroting back training data and do not necessarily root all opinions in concrete morals or logically consistent world views. Please consider this information as part of an experimental AI analysis rather than definitive or authoritative guidance.
+          <br/><br/>
+          For verification, you can cross-reference details with the official Congress website by clicking on the bill title. You can also explore aggregated data by clicking on the bill sponsor or <a href="/">viewing all legislators</a>. For more information about our methods, including the prompts used and the goals of this project, <a href="/about">visit the About page.</a>
+          </p>
+        </span>
+        <span *ngIf="data.large != ''" style="white-space: pre-line">
+          <p [innerHtml]="data.large"></p>
+        </span>
     </div>
     <div mat-dialog-actions align="center">
       <button mat-button (click)="onClose()">Close</button>
