@@ -30,11 +30,11 @@ import us.poliscore.model.bill.BillSlice;
 import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.bill.CBOBillAnalysis;
-import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorService;
+import us.poliscore.service.OpenAIService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryObjectService;
@@ -111,9 +111,9 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 			
 			val userMsg = billInterpreter.getUserMsgForBill(b, b.getText().getXml());
 			
-			if (userMsg.length() >= BillSlicer.MAX_SECTION_LENGTH)
+			if (userMsg.length() >= OpenAIService.MAX_REQUEST_LENGTH)
 	    	{
-	    		List<BillSlice> slices = new XMLBillSlicer().slice(b, b.getText(), BillSlicer.MAX_SECTION_LENGTH - (userMsg.length() - b.getText().getXml().length()));
+	    		List<BillSlice> slices = new XMLBillSlicer().slice(b, b.getText(), OpenAIService.MAX_REQUEST_LENGTH - (userMsg.length() - b.getText().getXml().length()));
 	    		
 	    		if (slices.size() == 0) throw new UnsupportedOperationException("Slicer returned zero slices?");
 	    		else if (slices.size() == 1) {
@@ -159,7 +159,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	            		
 	            		if (CHECK_S3_EXISTS && billInterpreter.isInterpreted(oid)) { continue; }
 	            		
-	            		if (String.join("\n", summaries).length() > XMLBillSlicer.MAX_SECTION_LENGTH) {
+	            		if (String.join("\n", summaries).length() > OpenAIService.MAX_REQUEST_LENGTH) {
 	            			summaries = new ArrayList<String>();
 	            			for (int i = 0; i < slices.size(); ++i)
 		            		{
@@ -204,8 +204,8 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	}
 	
 	private void createRequest(String oid, String sysMsg, String userMsg) {
-		if (userMsg.length() >= XMLBillSlicer.MAX_SECTION_LENGTH) {
-			throw new RuntimeException("Max user message length exceeded on " + oid + " (" + userMsg.length() + " > " + XMLBillSlicer.MAX_SECTION_LENGTH);
+		if (userMsg.length() >= OpenAIService.MAX_REQUEST_LENGTH) {
+			throw new RuntimeException("Max user message length exceeded on " + oid + " (" + userMsg.length() + " > " + OpenAIService.MAX_REQUEST_LENGTH);
 		}
 		
 		List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();

@@ -29,10 +29,10 @@ import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.LegislatorInterpretation;
-import us.poliscore.parsing.BillSlicer;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
+import us.poliscore.service.OpenAIService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.MemoryObjectService;
 import us.poliscore.service.storage.S3PersistenceService;
@@ -129,7 +129,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 				if (topInteractions.get(issue).size() > i && !includedBills.contains(topInteractions.get(issue).get(i).getBillId())) {
 					val interact = topInteractions.get(issue).get(i);
 					val billMsg = interact.describe() + " \"" + interact.getBillName() + "\": " + interact.getShortExplain();
-					if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+					if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < OpenAIService.MAX_REQUEST_LENGTH ) {
 						billMsgs.add(billMsg);
 						includedBills.add(interact.getBillId());
 					} else {

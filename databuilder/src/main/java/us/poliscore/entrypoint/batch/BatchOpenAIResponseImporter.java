@@ -26,6 +26,7 @@ import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIResponse;
 import us.poliscore.model.DoubleIssueStats;
+import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
 import us.poliscore.model.TrackedIssue;
@@ -247,14 +248,23 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		String billId = resp.getCustom_id().replace(BillInterpretation.ID_CLASS_PREFIX, Bill.ID_CLASS_PREFIX);
 		
 		Integer sliceIndex = null;
-		if (billId.contains("-")) {
-			sliceIndex = Integer.parseInt(billId.split("-")[1]);
-			billId = billId.split("-")[0];
+		val dashSplit = billId.split("-");
+		if (dashSplit.length == 2) {
+			sliceIndex = Integer.parseInt(dashSplit[1]);
+			billId = dashSplit[0];
+		} else if (dashSplit.length == 3) {
+			sliceIndex = Integer.parseInt(dashSplit[2]);
+			billId = dashSplit[0];
 		}
 		
 		val bill = ddb.get(billId, Bill.class).orElseThrow();
+		var bi = ddb.get(resp.getCustom_id(), BillInterpretation.class).orElse(null);
 		
-		BillInterpretation bi = new BillInterpretation();
+		if (bi == null)
+		{
+			bi = new BillInterpretation();
+		}
+		
 		bi.setBill(bill);
 		
 		if (sliceIndex == null)
@@ -267,7 +277,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			val billText = s3.get(BillText.generateId(bill.getId()), BillText.class).orElseThrow();
 			bill.setText(billText);
 			
-			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, BillSlicer.MAX_SECTION_LENGTH);
+			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, OpenAIService.MAX_REQUEST_LENGTH);
 			
 			bi.setMetadata(OpenAIService.metadata(slices.get(sliceIndex)));
 			bi.setId(BillInterpretation.generateId(billId, sliceIndex));
@@ -280,7 +290,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			
 			val billText = s3.get(BillText.generateId(bill.getId()), BillText.class).orElseThrow();
 			
-			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, BillSlicer.MAX_SECTION_LENGTH);
+			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, OpenAIService.MAX_REQUEST_LENGTH);
 			
 			if (slices.size() <= 1) { throw new RuntimeException("Expected multiple slices on [" + billId + "] since OpenAI did not include benefit to society issue stat"); }
 			

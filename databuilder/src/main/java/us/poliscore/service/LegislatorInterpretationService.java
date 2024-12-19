@@ -243,7 +243,7 @@ Based on these scores, this legislator has received the overall letter grade: {{
 //				stats = stats.sum(weightedStats, Math.abs(interact.getJudgementWeight()));
 //				
 //				val billMsg = interact.describe() + ": " + interact.getIssueStats().getExplanation();
-//				if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+//				if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < OpenAIService.MAX_REQUEST_LENGTH ) {
 //					billMsgs.add(billMsg);
 //					periodStart = (periodStart == null) ? interact.getDate() : (periodStart.isAfter(interact.getDate()) ? interact.getDate() : periodStart);
 //				}

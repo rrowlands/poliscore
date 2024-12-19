@@ -32,7 +32,6 @@ import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.model.session.SessionInterpretation;
 import us.poliscore.model.session.SessionInterpretation.PartyBillInteraction;
 import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
-import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.LocalFilePersistenceService;
@@ -210,22 +209,22 @@ public class PartyInterpretationService {
 		if (grade.equals("A") || grade.equals("B")) {
 			msg.add(StringUtils.join(interp.getBestBills().stream().map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
 			
-			while (!best.isEmpty() && StringUtils.join(msg, "\n").length() + best.peek().getShortExplainForInterp().length() < XMLBillSlicer.MAX_SECTION_LENGTH) {
+			while (!best.isEmpty() && StringUtils.join(msg, "\n").length() + best.peek().getShortExplainForInterp().length() < OpenAIService.MAX_REQUEST_LENGTH) {
 				msg.add(best.poll().getShortExplainForInterp());
 			}
 		} else if (grade.equals("C") || grade.equals("D")) {
 			msg.add(StringUtils.join(interp.getBestBills().stream().map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
 			msg.add(StringUtils.join(interp.getWorstBills().stream().map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
 			
-			while (!best.isEmpty() && StringUtils.join(msg, "\n").length() + best.peek().getShortExplainForInterp().length() < XMLBillSlicer.MAX_SECTION_LENGTH) {
-				while (!worst.isEmpty() && StringUtils.join(msg, "\n").length() + worst.peek().getShortExplainForInterp().length() < XMLBillSlicer.MAX_SECTION_LENGTH) {
+			while (!best.isEmpty() && StringUtils.join(msg, "\n").length() + best.peek().getShortExplainForInterp().length() < OpenAIService.MAX_REQUEST_LENGTH) {
+				while (!worst.isEmpty() && StringUtils.join(msg, "\n").length() + worst.peek().getShortExplainForInterp().length() < OpenAIService.MAX_REQUEST_LENGTH) {
 					msg.add(worst.poll().getShortExplainForInterp());
 				}
 			}
 		} else {
 			msg.add(StringUtils.join(interp.getWorstBills().stream().map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
 			
-			while (!worst.isEmpty() && StringUtils.join(msg, "\n").length() + worst.peek().getShortExplainForInterp().length() < XMLBillSlicer.MAX_SECTION_LENGTH) {
+			while (!worst.isEmpty() && StringUtils.join(msg, "\n").length() + worst.peek().getShortExplainForInterp().length() < OpenAIService.MAX_REQUEST_LENGTH) {
 				msg.add(worst.poll().getShortExplainForInterp());
 			}
 		}
@@ -234,8 +233,8 @@ public class PartyInterpretationService {
 	}
 	
 	private void createRequest(Party party, String sysMsg, String userMsg) {
-		if (userMsg.length() >= XMLBillSlicer.MAX_SECTION_LENGTH) {
-			throw new RuntimeException("Max user message length exceeded on " + party.getName() + " (" + userMsg.length() + " > " + XMLBillSlicer.MAX_SECTION_LENGTH);
+		if (userMsg.length() >= OpenAIService.MAX_REQUEST_LENGTH) {
+			throw new RuntimeException("Max user message length exceeded on " + party.getName() + " (" + userMsg.length() + " > " + OpenAIService.MAX_REQUEST_LENGTH);
 		}
 		
 		List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();

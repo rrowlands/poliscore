@@ -2,9 +2,7 @@ package us.poliscore.model.bill;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -14,19 +12,17 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.val;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
-import software.amazon.awssdk.utils.Pair;
 import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.AISliceInterpretationMetadata;
+import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Persistable;
-import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.AIInterpretationMetadataConverter;
 
 @Data
@@ -62,10 +58,11 @@ public class BillInterpretation implements Persistable
 	@NonNull
 	protected String billId;
 	
+	protected InterpretationOrigin origin = InterpretationOrigin.POLISCORE;
+	
 	@NonNull
 	protected List<BillInterpretation> sliceInterpretations = new ArrayList<BillInterpretation>();
 	
-	@NonNull
 	@Getter(onMethod = @__({ @DynamoDbConvertedBy(AIInterpretationMetadataConverter.class)}))
 	protected AIInterpretationMetadata metadata;
 	
@@ -105,7 +102,14 @@ public class BillInterpretation implements Persistable
 	
 	public static String generateId(String billId, Integer sliceIndex)
 	{
+		return generateId(billId, InterpretationOrigin.POLISCORE, sliceIndex);
+	}
+	
+	public static String generateId(String billId, InterpretationOrigin origin, Integer sliceIndex)
+	{
 		var id = billId.replace(Bill.ID_CLASS_PREFIX, ID_CLASS_PREFIX);
+		
+		id += "-" + origin.getIdHash();
 		
 		if (sliceIndex != null)
 		{

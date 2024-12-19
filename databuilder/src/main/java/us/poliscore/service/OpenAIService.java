@@ -35,6 +35,8 @@ import us.poliscore.parsing.BillSlicer;
 @ApplicationScoped
 public class OpenAIService {
 	
+	public static final int MAX_REQUEST_LENGTH = 80000; //450000;
+	
 	public static final String PROVIDER = "openai";
 	
 	public static final String MODEL = "gpt-4o";
@@ -63,7 +65,7 @@ public class OpenAIService {
 	@SneakyThrows
 	public String chat(String systemMsg, String userMsg)
     {
-		if (userMsg.length() > BillSlicer.MAX_SECTION_LENGTH) {
+		if (userMsg.length() > OpenAIService.MAX_REQUEST_LENGTH) {
 			throw new IndexOutOfBoundsException();
 		}
 		if (StringUtils.isEmpty(systemMsg) || StringUtils.isEmpty(userMsg)) {
@@ -102,7 +104,7 @@ public class OpenAIService {
     		out += ". FINISH_REASON: " + choice.getFinishReason();
     	}
     	
-    	nextCallTime = LocalDateTime.now().plusSeconds(Math.round(((double)userMsg.length() / (double)BillSlicer.MAX_SECTION_LENGTH) * (double)WAIT_BETWEEN_CALLS)).plusSeconds(2);
+    	nextCallTime = LocalDateTime.now().plusSeconds(Math.round(((double)userMsg.length() / (double)OpenAIService.MAX_REQUEST_LENGTH) * (double)WAIT_BETWEEN_CALLS)).plusSeconds(2);
     	
     	return out;
     }

@@ -3,12 +3,10 @@ package us.poliscore.entrypoint.batch;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 
@@ -25,13 +23,12 @@ import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
 import us.poliscore.model.DoubleIssueStats;
-import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.LegislatorInterpretation;
-import us.poliscore.parsing.BillSlicer;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
+import us.poliscore.service.OpenAIService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.MemoryObjectService;
 import us.poliscore.service.storage.S3PersistenceService;
@@ -121,7 +118,7 @@ public class BatchSessionStatsRequestGenerator implements QuarkusApplication
 				if (topInteractions.get(issue).size() > i && !includedBills.contains(topInteractions.get(issue).get(i).getBillId())) {
 					val interact = topInteractions.get(issue).get(i);
 					val billMsg = interact.describe() + " \"" + interact.getBillName() + "\": " + interact.getShortExplain();
-					if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+					if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < OpenAIService.MAX_REQUEST_LENGTH ) {
 						billMsgs.add(billMsg);
 						includedBills.add(interact.getBillId());
 					} else {

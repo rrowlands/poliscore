@@ -1,31 +1,16 @@
 package us.poliscore.service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
-import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.NonNull;
 import lombok.val;
-import us.poliscore.MissingBillTextException;
-import us.poliscore.ai.BatchOpenAIRequest;
-import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
-import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
-import us.poliscore.model.AISliceInterpretationMetadata;
-import us.poliscore.model.DoubleIssueStats;
-import us.poliscore.model.IssueStats;
+import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
-import us.poliscore.model.bill.BillInterpretationParser;
-import us.poliscore.model.bill.BillSlice;
-import us.poliscore.model.bill.CBOBillAnalysis;
-import us.poliscore.parsing.BillSlicer;
-import us.poliscore.parsing.XMLBillSlicer;
-import us.poliscore.service.storage.CachedS3Service;
 import us.poliscore.service.storage.LocalCachedS3Service;
 
 /**
@@ -60,8 +45,6 @@ public class BillInterpretationService {
 			
 			{issuesList}
 			
-			{{budget}}
-			
 			Bill Title:
 			Write the bill title. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content.
 			
@@ -93,8 +76,6 @@ public class BillInterpretationService {
 			Bill Title:
 			Write the bill title. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content.
 			
-			{{budget}}
-			
 			Riders:
 			- A bill rider is a extraneous, harmful piece of unrelated legislation added to a bill which undermines or detracts from the original intent of the bill. List the bill riders identified and the section they occured at, or 'None' if there are none
 			
@@ -104,8 +85,6 @@ public class BillInterpretationService {
 			Long Report:
 			A detailed, but not repetitive, report of the bill which references concrete, notable and specific text of the bill where possible. Make sure to explain: an overall summary of the bill; the high level goals the bill is attempting to achieve, and how it plans to achieve those goals; the impact to society the bill would have, if enacted. Your audience here is general public layman voters, so if you think they won't understand an acronym or a complex topic, please explain it. Should be between one and seven paragraphs long, depending on the complexity of the bill and the topics it covers. If the bill touches on controversial topics such as trans issues or guns rights, please include the advocating logic by proponents and also the advocating logic of the opposition, otherwise do not include this logic. Where relevant, cite scientific studies or the opinions of authoritative knowledge sources to provide more context. Keep in mind that we're trying to figure out how to spend U.S. taxpayer dollars: budgetary concerns are important. If there are riders in the bill, mention them in this summary, otherwise do not mention their absence. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
 			""";
-	
-	public static final String BUDGET_PROMPT_REPLACEMENT = "10 Year Budget Delta:\\nUse the Congressional Budget Office analysis to write the difference in federal spending over the next ten years caused by the passing of the bill. Write this as a singular, standalone number, with no explanation and no units. If the bill causes a budget surplus, write the number as a negative.";
 	
 	public static final String statsPrompt;
 	public static final String slicePrompt;
@@ -126,24 +105,19 @@ public class BillInterpretationService {
 	
 	public Optional<BillInterpretation> getByBillId(String billId)
 	{
-		return s3.get(BillInterpretation.generateId(billId, null), BillInterpretation.class);
+		return getByBillId(billId, InterpretationOrigin.POLISCORE);
+	}
+	
+	public Optional<BillInterpretation> getByBillId(String billId, InterpretationOrigin origin)
+	{
+		return s3.get(BillInterpretation.generateId(billId, origin, null), BillInterpretation.class);
 	}
 	
 	public String getPromptForBill(Bill bill, boolean isAggregate) {
-		val op = s3.get(CBOBillAnalysis.generateId(bill.getId()), CBOBillAnalysis.class);
-		
 		if (isAggregate) {
-			if (op.isEmpty()) {
-				return aggregatePrompt.replace("{{budget}}", "");
-			} else {
-				return aggregatePrompt.replace("{{budget}}", BUDGET_PROMPT_REPLACEMENT);
-			}
+			return aggregatePrompt;
 		} else {
-			if (op.isEmpty()) {
-				return statsPrompt.replace("{{budget}}", "");
-			} else {
-				return statsPrompt.replace("{{budget}}", BUDGET_PROMPT_REPLACEMENT);
-			}
+			return statsPrompt;
 		}
 	}
 	
@@ -206,9 +180,9 @@ public class BillInterpretationService {
 //		
 //		bill.setText(billText);
 //		
-//		if (billText.getXml().length() >= BillSlicer.MAX_SECTION_LENGTH)
+//		if (billText.getXml().length() >= OpenAIService.MAX_REQUEST_LENGTH)
 //    	{
-//    		List<BillSlice> slices = new XMLBillSlicer().slice(bill, bill.getText(), BillSlicer.MAX_SECTION_LENGTH);
+//    		List<BillSlice> slices = new XMLBillSlicer().slice(bill, bill.getText(), OpenAIService.MAX_REQUEST_LENGTH);
 //    		List<AISliceInterpretationMetadata> sliceMetadata = new ArrayList<AISliceInterpretationMetadata>();
 //    		List<BillInterpretation> sliceInterps = new ArrayList<BillInterpretation>();
 //    		
@@ -286,7 +260,7 @@ public class BillInterpretationService {
     }
 
 	public boolean isInterpreted(@NonNull String billId) {
-		val id = BillInterpretation.generateId(billId, null);
+		val id = BillInterpretation.generateId(billId, InterpretationOrigin.POLISCORE, null);
 		val exists = s3.exists(id, BillInterpretation.class);
 		
 		return exists;
@@ -299,7 +273,7 @@ public class BillInterpretationService {
 	}
 	
 	public boolean isInterpreted(@NonNull String billId, int sliceIndex) {
-		val id = BillInterpretation.generateId(billId, sliceIndex);
+		val id = BillInterpretation.generateId(billId, InterpretationOrigin.POLISCORE, sliceIndex);
 		return s3.exists(id, BillInterpretation.class);
 	}
 }
