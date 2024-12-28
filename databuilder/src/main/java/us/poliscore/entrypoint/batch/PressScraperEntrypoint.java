@@ -7,8 +7,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -32,13 +35,13 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
-import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
-import us.poliscore.model.bill.BillType;
+import us.poliscore.model.bill.BillText;
 import us.poliscore.press.GoogleSearchResponse;
+import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
@@ -94,6 +97,9 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 		PRESS_INTERPRETATION_PROMPT = PRESS_INTERPRETATION_PROMPT_TEMPLATE.replaceFirst("\\{issuesList\\}", issues);
 	}
 	
+	public static final long TOKEN_BLOCK_SIZE = 30000000;
+	
+	public static final boolean CHECK_S3_EXISTS = true;
 	
 	@Inject
 	private MemoryObjectService memService;
@@ -109,6 +115,9 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 	
 	@Inject
 	private BillService billService;
+	
+	@Inject
+	private BillInterpretationService billInterpreter;
 	
 	@Inject
 	private LegislatorService legService;
@@ -145,11 +154,26 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 		requests = new ArrayList<BatchOpenAIRequest>();
 		writtenFiles = new ArrayList<File>();
 		
+		s3.optimizeExists(BillInterpretation.class);
+		s3.optimizeExists(BillText.class);
 		
-		Bill b = memService.get(Bill.generateId(CongressionalSession.S118.getNumber(), BillType.HR, 6951), Bill.class).get();
+		val bills = memService.query(Bill.class).stream()
+//				.filter(b -> specificFetch.contains(b.getId()))
+//				.filter(b -> (!CHECK_S3_EXISTS || !s3.exists(b.getId().replace(Bill.ID_CLASS_PREFIX, BillInterpretation.ID_CLASS_PREFIX), BillInterpretation.class)))
+				.filter(b -> !CHECK_S3_EXISTS || !billInterpreter.isInterpreted(b.getId()))
+				.filter(b -> b.getIntroducedDate().isBefore(LocalDate.now().minus(1, ChronoUnit.MONTHS)))
+				.filter(b -> s3.exists(BillText.generateId(b.getId()), BillText.class))
+				.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
+				.limit(10)
+				.toList();
 		
-		processBill(b);
-//		processOriginFetch(b, new InterpretationOrigin("url", "title"), Jsoup.parse(new File("/Users/rrowlands/dev/projects/poliscore/databuilder/src/main/resources/ace-ccr.html")));
+		Log.info("Processing " + bills.size() + " bills.");
+		
+		for (Bill b : bills) {
+//			Bill b = memService.get(Bill.generateId(CongressionalSession.S118.getNumber(), BillType.HR, 6951), Bill.class).get();
+			
+			processBill(b);
+		}
 		
 		writeBlock(block++);
 		
@@ -158,11 +182,25 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 		return writtenFiles;
 	}
 	
+	private String getQuery(Bill b)
+	{
+		String nameAndNumber = b.getType().getName().toUpperCase() + " " + b.getNumber();
+		
+		if (b.getName().contains(String.valueOf(b.getNumber())))
+		{
+			return nameAndNumber;
+		}
+		
+		return b.getType().getName().toUpperCase() + " " + b.getNumber() + " " + b.getName();
+	}
+	
 	@SneakyThrows
 	private void processBill(Bill b)
 	{
-		final String query = b.getType().getName().toUpperCase() + " " + b.getNumber() + " " + b.getName();
+		final String query = getQuery(b);
 		val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+		
+		Log.info("Querying " + query);
 		
 		final String url = "https://customsearch.googleapis.com/customsearch/v1?key=" + secretService.getGoogleSearchSecret() + "&cx=" + GOOGLE_CUSTOM_SEARCH_ENGINE_ID + "&q=" + encodedQuery;
 		String sResp = fetchUrl(url);
@@ -209,11 +247,12 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 		
 		createRequest(oid, PRESS_INTERPRETATION_PROMPT, text);
 		
-		val bi = new BillInterpretation();
-		bi.setOrigin(origin);
-		bi.setId(oid);
-		bi.setBillId(b.getId());
-		ddb.put(bi);
+//		val bi = new BillInterpretation();
+//		bi.setOrigin(origin);
+//		bi.setId(oid);
+//		bi.setBillId(b.getId());
+//		bi.setMetadata(OpenAIService.metadata());
+//		ddb.put(bi);
 	}
 	
 	private void createRequest(String oid, String sysMsg, String userMsg) {
