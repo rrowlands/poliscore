@@ -21,13 +21,14 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import us.poliscore.model.CongressionalSession;
+import us.poliscore.model.LegislativeChamber;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.CompressedLegislatorBillInteractionListConverter;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverterProvider;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorLegislativeTermSortedSetConverter;
-import us.poliscore.model.dynamodb.DdbDataPage;
+import us.poliscore.model.dynamodb.*;
 
 @Data
 @DynamoDbBean
@@ -152,19 +153,12 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 		
 		protected Party party;
 		
-		protected CongressionalChamber chamber;
+		protected LegislativeChamber chamber;
 
 		@Override
 		public int compareTo(LegislativeTerm o) {
 			return this.startDate.compareTo(o.startDate);
 		}
-		
-	}
-	
-	public static enum CongressionalChamber {
-		
-		SENATE,
-		HOUSE
 		
 	}
 	

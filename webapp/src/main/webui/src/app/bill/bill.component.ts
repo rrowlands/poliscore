@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, HostListener, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { AppService } from '../app.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Bill, colorForGrade, getBenefitToSocietyIssue, gradeForStats, issueKeyToLabel, issueKeyToLabelSmall } from '../model';
@@ -30,6 +30,8 @@ export class BillComponent implements OnInit {
   public billId?: string;
 
   public loading: boolean = true;
+
+  public isSmallScreen = false;
 
   public barChartData: ChartConfiguration<'bar'>['data'] = {
     labels: [],
@@ -71,7 +73,15 @@ export class BillComponent implements OnInit {
 
   constructor(public config: ConfigService, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
 
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    // Check screen width on resize
+    this.isSmallScreen = window.innerWidth < 600;
+  }
+
   ngOnInit(): void {
+    this.isSmallScreen = window.innerWidth < 600;
+
     this.billId = (this.route.snapshot.paramMap.get('id') as string);
     if (!this.billId.startsWith("BIL/us/congress")) {
       this.billId = this.config.pathToBillId(this.billId);

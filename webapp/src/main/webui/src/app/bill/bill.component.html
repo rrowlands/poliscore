@@ -10,14 +10,81 @@
 
                 <mat-card *ngIf="bill != null" class="tran-div">
                     <mat-card-content class="vertical-layout">
-                        <h1 class="card-title" style="text-align:center;"><a [href]="'https://www.congress.gov/bill/' + bill.session + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
-                        <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForBill())}">{{gradeForBill()}}</p></h1>
-                        <h3 class="date">
-                            <p style="margin-bottom: 0px;">{{ bill.introducedDate }}</p>
-                            <!-- <p>{{ getCosponsors() }}</p> -->
-                            <disclaimer [small]="getCosponsorSmall()" [large]="getCosponsorLarge()" [positionBelow]="true"></disclaimer>
-                        </h3>
-                        <h3 class="card-subtitle">Sponsor: <a [routerLink]="'/legislator/' + config.legislatorIdToPath(bill.sponsor.legislatorId)">{{bill.sponsor.name}}</a></h3>
+                        <div class="title-row">
+                            <!-- <div class="title-left">
+                                <p style="font: 400 24px/32px Roboto,sans-serif; margin-bottom: 4px;" [ngStyle]="{'color': colorForGrade(gradeForBill())}">{{gradeForBill()}}</p>
+                                <disclaimer [small]="getCosponsorSmall()" [large]="getCosponsorLarge()" [positionBelow]="true"></disclaimer>
+                            </div>
+                            <div class="title-middle">
+                                <h1 class="card-title"><a [href]="'https://www.congress.gov/bill/' + bill.session + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
+                                <h3 class="card-subtitle">Sponsor: <a [routerLink]="'/legislator/' + config.legislatorIdToPath(bill.sponsor.legislatorId)">{{bill.sponsor.name}}</a></h3>
+                            </div>
+                            <div class="title-right">
+                                <h3>
+                                    <p style="margin-bottom: 0px;">{{ bill.introducedDate }}</p>
+                                    <p [ngClass]="{'highlight-law': bill.status.description.trim().toLowerCase() === 'law'}">{{ bill.status.description }}</p>
+                                </h3>
+                            </div> -->
+
+
+                            <!-- title-layout.component.html -->
+
+                            <!-- If it's a small screen, use the "small screen" layout -->
+                            <div *ngIf="isSmallScreen; else bigScreen">
+                                <!-- SMALL SCREEN LAYOUT -->
+                                <!-- 
+                                Goal: Left & Right remain on one line, 
+                                Middle is on its own line below, 
+                                but we want Middle to still stretch to fill the width.
+                                -->
+                                <div class="title-row-small">
+                                <div class="title-left">
+                                    <p style="font: 400 24px/32px Roboto,sans-serif; margin-bottom: 4px;" [ngStyle]="{'color': colorForGrade(gradeForBill())}">{{gradeForBill()}}</p>
+                                    <disclaimer [small]="getCosponsorSmall()" [large]="getCosponsorLarge()" [positionBelow]="true"></disclaimer>
+                                </div>
+                                <div class="title-right">
+                                    <h3>
+                                        <p style="margin-bottom: 0px;">{{ bill.introducedDate }}</p>
+                                        <p [ngClass]="{'highlight-law': bill.status.description.trim().toLowerCase() === 'law'}">{{ bill.status.description }}</p>
+                                    </h3>
+                                </div>
+                                </div>
+                                <div class="title-middle-stretch">
+                                    <h1 class="card-title"><a [href]="'https://www.congress.gov/bill/' + bill.session + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
+                                    <h3 class="card-subtitle">Sponsor: <a [routerLink]="'/legislator/' + config.legislatorIdToPath(bill.sponsor.legislatorId)">{{bill.sponsor.name}}</a></h3>
+                                </div>
+                            </div>
+                            
+                            <!-- If it's not a small screen, show the "big screen" layout instead -->
+                            <ng-template #bigScreen>
+                                <!-- BIG SCREEN LAYOUT -->
+                                <!-- 
+                                Goal: Left pinned left (fixed width), 
+                                Right pinned right (fixed width), 
+                                Middle grows in between.
+                                -->
+                                <div class="title-row-big">
+                                    <div class="title-left">
+                                        <p style="font: 400 24px/32px Roboto,sans-serif; margin-bottom: 4px;" [ngStyle]="{'color': colorForGrade(gradeForBill())}">{{gradeForBill()}}</p>
+                                        <disclaimer [small]="getCosponsorSmall()" [large]="getCosponsorLarge()" [positionBelow]="true"></disclaimer>
+                                    </div>
+                                    <div class="title-middle">
+                                        <h1 class="card-title"><a [href]="'https://www.congress.gov/bill/' + bill.session + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
+                                        <h3 class="card-subtitle">Sponsor: <a [routerLink]="'/legislator/' + config.legislatorIdToPath(bill.sponsor.legislatorId)">{{bill.sponsor.name}}</a></h3>
+                                    </div>
+                                    <div class="title-right">
+                                        <h3>
+                                            <p style="margin-bottom: 0px;">{{ bill.introducedDate }}</p>
+                                            <p [ngClass]="{'highlight-law': bill.status.description.trim().toLowerCase() === 'law'}">{{ bill.status.description }}</p>
+                                        </h3>
+                                    </div>
+                                </div>
+                            </ng-template>
+  
+                        </div>
+
+
+                        
                         <div class="chart-container">
                             <canvas id="barChart"></canvas>
                         </div>

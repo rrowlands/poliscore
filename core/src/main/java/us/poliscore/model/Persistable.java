@@ -8,6 +8,8 @@ public interface Persistable {
 	
 	public static final String OBJECT_BY_LOCATION_INDEX = "ObjectsByLocation";
 	
+	public static final String OBJECT_BY_IMPORTANCE_INDEX = "ObjectsByImportance";
+	
 	public String getId();
 	public void setId(String id);
 	

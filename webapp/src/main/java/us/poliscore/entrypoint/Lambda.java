@@ -333,7 +333,7 @@ public class Lambda {
 //    	bills.addAll(Arrays.asList(TrackedIssue.values()).stream().map(i -> Arrays.asList(TRACKED_ISSUE_INDEX + i.name(), i.getName() + " (issue)")).toList());
     	
     	return bills.stream()
-    			.filter(b -> b.get(1).toLowerCase().contains(text.toLowerCase()) || b.get(0).toLowerCase().contains(text.toLowerCase()))
+    			.filter(b -> b.get(1).toLowerCase().trim().contains(text.toLowerCase().trim()) || b.get(0).toLowerCase().trim().contains(text.toLowerCase().trim()))
     			.sorted((a,b) -> LevenshteinDistance.getDefaultInstance().apply(a.get(1), text) - LevenshteinDistance.getDefaultInstance().apply(b.get(1), text))
     			.limit(30)
     			.collect(Collectors.toList());

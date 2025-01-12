@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import lombok.Getter;
+import us.poliscore.model.LegislativeChamber;
 
 @Getter
 public enum BillType {
@@ -39,5 +40,17 @@ public enum BillType {
 	
 	public static BillType fromName(String name) {
 		return Arrays.asList(BillType.values()).stream().filter(bt -> bt.getName().equals(name)).findFirst().get();
+	}
+	
+	public static LegislativeChamber getOriginatingChamber(BillType type)
+	{
+		if (type.equals(BillType.HCONRES) || type.equals(BillType.HJRES) || type.equals(BillType.HR) || type.equals(BillType.HRES))
+		{
+			return LegislativeChamber.HOUSE;
+		}
+		else
+		{
+			return LegislativeChamber.SENATE;
+		}
 	}
 }

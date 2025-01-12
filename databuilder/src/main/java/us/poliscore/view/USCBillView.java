@@ -11,6 +11,7 @@ import software.amazon.awssdk.utils.StringUtils;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.bill.Bill.BillSponsor;
 import us.poliscore.model.legislator.Legislator;
+import us.poliscore.service.storage.MemoryObjectService;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,6 +26,8 @@ public class USCBillView {
 	protected String number;
 	
 	protected String congress;
+	
+	protected String status;
 	
 //	protected JsonNode actions;
 	
@@ -60,9 +63,11 @@ public class USCBillView {
 		
 		protected String type;
 		
-		public BillSponsor convert(String session)
+		public BillSponsor convert(String session, MemoryObjectService memService)
 		{
-			return new BillSponsor(Legislator.generateId(LegislativeNamespace.US_CONGRESS, session, bioguide_id), name);
+			var sponsor = new BillSponsor(Legislator.generateId(LegislativeNamespace.US_CONGRESS, session, bioguide_id), name);
+			sponsor.setParty(memService.get(sponsor.getLegislatorId(), Legislator.class).get().getParty());
+			return sponsor;
 		}
 		
 	}

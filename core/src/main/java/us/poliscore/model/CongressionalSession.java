@@ -31,4 +31,8 @@ public enum CongressionalSession {
 			throw new UnsupportedOperationException("Unsupported session [" + String.valueOf(session) + "].");
 		}
 	}
+
+	public boolean isOver() {
+		return LocalDate.now().isAfter(endDate);
+	}
 }

@@ -1,5 +1,6 @@
 
 export interface Bill {
+  importance: number;
   name: string;
   number: number;
   type: string;
@@ -11,6 +12,7 @@ export interface Bill {
   interpretation: BillInterpretation;
   rating?: number;
   shortExplain?: string;
+  status: { description: string, progress: number, sourceStatus: string };
 }
 
 export interface BillInterpretation {
@@ -95,7 +97,7 @@ export interface IssueStats {
 }
 
 export class Page {
-  index?: "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue";
+  index?: "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImportance";
   ascending?: boolean;
   pageSize?: number;
   exclusiveStartKey?: string | number;

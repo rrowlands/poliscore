@@ -22,6 +22,101 @@ h2 {
     top: -0.3em;
 }
 
+
+.title-row {
+    width: 100%;
+}
+/* --- BIG SCREEN LAYOUT --- */
+.title-row-big {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .title-left, .title-right {
+    width: 10em;  /* Fixed width for left/right columns */
+    flex: 0 0 auto;
+  }
+
+  .title-right {
+    text-align: right;
+  }
+  
+  .title-middle {
+    flex: 1 1 auto;
+    text-align: center; /* optional */
+  }
+  
+  /* --- SMALL SCREEN LAYOUT --- */
+  /* We want left and right on one line, side by side, 
+     and then the middle below filling the full width. */
+  .title-row-small {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* This row holds left and right side by side */
+  }
+
+@media screen and (min-width: 600px) {
+  .title-row-big .title-left, .title-right {
+    margin-top: -35px;
+  }
+}
+  
+  .title-middle-stretch {
+    width: 100%;      /* Span full width below left/right row */
+    text-align: left; /* or center, up to you */
+    margin-top: 10px; /* Optional spacing */
+  }
+  
+  /* 
+    .title-left, .title-right, .title-middle-stretch 
+    can be further styled, but the key is the separate 
+    HTML structure ensures we don't conflict with the 
+    big screen layout. 
+  */
+  
+  
+  
+  
+
+
+.title-middle * {
+    text-align:center;
+}
+
+
+/*
+//@media screen and (max-width: 900px) {
+    // h1.card-title {
+    //     padding-top: 2.55em;
+    // }
+//}
+
+.grade {
+    position: absolute;
+    top: 5px;
+    left: 7px;
+}
+
+.grade > p {
+    text-indent: 0;
+    padding: 0;
+}
+
+.date {
+    position: absolute;
+    top: 5px;
+    right: 6px;
+    text-align: right;
+}
+
+.card-title {
+    padding-top: 20px;
+}
+*/
+
 .card-text {
     max-height: 250px;
     overflow: clip;
@@ -41,34 +136,8 @@ p.interp-text {
     margin-top: 30px;
 }
 
-.grade {
-    position: absolute;
-    top: 5px;
-    left: 7px;
-}
-
-.grade > p {
-    text-indent: 0;
-    padding: 0;
-}
-
-.date {
-    position: absolute;
-    top: 5px;
-    right: 6px;
-}
-
-@media screen and (max-width: 900px) {
-    .date p,disclaimer {
-        display: inline;
-    }
-    .date p {
-        margin-right: 25px;
-    }
-}
-
-.card-title {
-    padding-top: 20px;
+.highlight-law {
+    color: #7a5600;
 }
 
 .chart-container {

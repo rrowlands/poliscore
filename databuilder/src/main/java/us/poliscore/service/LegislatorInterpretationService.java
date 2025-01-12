@@ -12,19 +12,17 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.val;
-import us.poliscore.MissingBillTextException;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.IssueStats;
+import us.poliscore.model.LegislativeChamber;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.legislator.Legislator;
-import us.poliscore.model.legislator.Legislator.CongressionalChamber;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCosponsor;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor;
@@ -274,7 +272,7 @@ Based on these scores, this legislator has received the overall letter grade: {{
 		
 		return PROMPT_TEMPLATE
 				.replace("{{letterGrade}}", grade)
-				.replace("{{politicianType}}", leg.getTerms().last().getChamber() == CongressionalChamber.SENATE ? "Senator" : "House Representative")
+				.replace("{{politicianType}}", leg.getTerms().last().getChamber() == LegislativeChamber.SENATE ? "Senator" : "House Representative")
 				.replace("{{fullName}}", leg.getName().getOfficial_full())
 				.replace("{{stats}}", stats.toString())
 				.replace("{{analysisType}}", grade.equals("A") || grade.equals("B") ? "endorsement" : (grade.equals("C") || grade.equals("D") ? "mixed analysis" : "harsh critique"))

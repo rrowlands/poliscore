@@ -34,8 +34,6 @@ export class BillsComponent implements OnInit {
   myControl = new FormControl('');
 
   filteredOptions?: Observable<[string, string][]>;
-  
-  myLocation?: string;
 
   public hasMoreContent: boolean = true;
 
@@ -44,7 +42,7 @@ export class BillsComponent implements OnInit {
   private lastDataFetchSequence: number = 0;
 
   public page: Page = {
-    index: "ObjectsByDate",
+    index: "ObjectsByImportance",
     ascending: false,
     pageSize: 25
   };
@@ -57,9 +55,9 @@ export class BillsComponent implements OnInit {
 
     let routeIndex = this.route.snapshot.paramMap.get('index') as string;
     let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
-    if ( (routeIndex === "bylocation" || routeIndex === "byrating" || routeIndex === "bydate") && routeAscending != null) {
-      if (routeIndex === "bylocation") {
-        this.page.index = "ObjectsByLocation";
+    if ( (routeIndex === "byimportance" || routeIndex === "byrating" || routeIndex === "bydate") && routeAscending != null) {
+      if (routeIndex === "byimportance") {
+        this.page.index = "ObjectsByImportance";
       } else if (routeIndex === "byrating") {
         this.page.index = "ObjectsByRating";
       } else if (routeIndex === "bydate") {
@@ -119,8 +117,8 @@ export class BillsComponent implements OnInit {
         this.page.exclusiveStartKey = lastBill.id + sep + lastBill.introducedDate;
       } else if (this.page.index === "ObjectsByRating") {
         this.page.exclusiveStartKey = lastBill.id + sep + getBenefitToSocietyIssue(lastBill.interpretation!.issueStats)[1];
-      // } else if (this.page.index === "ObjectsByLocation") {
-      //   this.page.exclusiveStartKey = lastBill.id + sep + lastBill.terms[0].state;
+      } else if (this.page.index === "ObjectsByImportance") {
+         this.page.exclusiveStartKey = lastBill.id + sep + lastBill.importance;
       } else {
         console.log("Unknown page index: " + this.page.index);
         return
@@ -142,27 +140,22 @@ export class BillsComponent implements OnInit {
     }
   }
 
-  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByLocation") {
+  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByImportance") {
     this.page.ascending = (index == this.page.index) ? !this.page.ascending : false;
     this.page.index = index;
     this.page.exclusiveStartKey = undefined;
     this.hasMoreContent = true;
-
-    if (index === "ObjectsByLocation") {
-      this.page.sortKey = this.myLocation;
-    } else {
-      this.page.sortKey = undefined;
-    }
+    this.page.sortKey = undefined;
 
     this.bills= [];
 
-    let routeIndex = "bylocation";
+    let routeIndex = "byimportance";
     if (this.page.index === "ObjectsByDate") {
       routeIndex = "bydate";
     } else if (this.page.index === "ObjectsByRating") {
       routeIndex = "byrating";
-    } else if (this.page.index === "ObjectsByLocation") {
-      routeIndex = "bylocation";
+    } else if (this.page.index === "ObjectsByImportance") {
+      routeIndex = "byimportance";
     }
 
     this.router.navigate(['/bills', routeIndex, this.page.ascending? "ascending" : "descending"]);

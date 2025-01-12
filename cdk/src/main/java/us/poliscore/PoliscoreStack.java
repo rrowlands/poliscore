@@ -81,6 +81,18 @@ class PoliscoreStack extends Stack {
                         .build())
                 .build());
         
+        table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
+                .indexName("ObjectsByImportance")
+                .partitionKey(Attribute.builder()
+                        .name("idClassPrefix")
+                        .type(AttributeType.STRING)
+                        .build())
+                .sortKey(Attribute.builder()
+                        .name("importance")
+                        .type(AttributeType.NUMBER)
+                        .build())
+                .build());
+        
 
         
         Map<String, String> lambdaEnvMap = new HashMap<>();

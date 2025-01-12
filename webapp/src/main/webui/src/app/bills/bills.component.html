@@ -15,9 +15,9 @@
                 <div class="sorting horizontal-layout">
                     <label class="sort-label left">Sort by:</label>
                     <mat-button-toggle-group name="fontStyle" class="right" aria-label="Font Style" [hideSingleSelectionIndicator]="true" [hideMultipleSelectionIndicator]="true">
-                        <!-- <mat-button-toggle (click)="togglePage('ObjectsByLocation')" value="bold">Location</mat-button-toggle> -->
+                        <mat-button-toggle (click)="togglePage('ObjectsByImportance')" value="bold">Importance <i *ngIf="page.index === 'ObjectsByImportance'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
                         <mat-button-toggle (click)="togglePage('ObjectsByDate')" value="italic">Date <i *ngIf="page.index === 'ObjectsByDate'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
-                        <mat-button-toggle (click)="togglePage('ObjectsByRating')" value="bold">Rating <i *ngIf="page.index === 'ObjectsByRating'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
+                        <mat-button-toggle (click)="togglePage('ObjectsByRating')" value="bold">Grade <i *ngIf="page.index === 'ObjectsByRating'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
                     </mat-button-toggle-group>
                 </div>
 
@@ -34,7 +34,7 @@
                 </mat-autocomplete>
             </div>
             
-            <mat-card *ngFor="let bill of bills" class="example-card" appearance="outlined">
+            <mat-card *ngFor="let bill of bills" class="example-card" appearance="outlined" [ngClass]="{'gold-border': bill.status.description.trim().toLowerCase() === 'law'}">
                 <a [routerLink]="'/bill/' + config.billIdToPath(bill.id)">
                     <mat-card-header>
                         <mat-card-title-group>
@@ -42,11 +42,15 @@
                             <mat-card-title>{{bill.name}}</mat-card-title>
                             <h1 class="title-grade"><p style="padding-right:12px;" [ngStyle]="{'color': colorForGrade(gradeForBill(bill))}">{{gradeForBill(bill)}}</p></h1>
                             <mat-card-subtitle>{{subtitleForBill(bill)}}</mat-card-subtitle>
+                            Importance {{bill.importance}}
                         </mat-card-title-group>
                     </mat-card-header>
                     <mat-card-content>
                         <span><p>{{descriptionForBill(bill)}}</p></span>
                     </mat-card-content>
+                    <mat-card-footer class="horizontal-layout" [ngClass]="{'highlight-law': bill.status.description.trim().toLowerCase() === 'law', 'bill-dead': bill.status.description.trim().toLowerCase() != 'law'}">
+                        <p class="status">{{ bill.status.description }}</p>
+                    </mat-card-footer>
                 </a>
             </mat-card>
 

@@ -131,11 +131,17 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
 
         var issue = Object.entries(this.issueMap).filter(i => i[1].toLowerCase() === this.chart.data.labels[dataIndex].toLowerCase())[0][0];
 
-        // console.log('Clicked Element:', issue);
-
         if (this.page.sortKey !== issue) {
+          // If the value is negative, then we want to sort by ascending to show their worst bills first
+          // If we set an existing value to descending then when we toggle it will be ascending
+          if (this.chart.data.datasets[datasetIndex].data[dataIndex] < 0)
+          {
+            this.page.index = "TrackedIssue";
+            this.page.sortKey = issue;
+            this.page.ascending = false;
+          }
+
           this.togglePage("TrackedIssue", issue);
-          // scrollTo()
 
           document.querySelector('.interactions-table')!.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }

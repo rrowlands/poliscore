@@ -77,6 +77,22 @@ mat-card-header {
     margin-right: 60px;
 }
 
+mat-card-footer {
+    padding: 0 16px;
+}
+
+.highlight-law {
+    color: #7a5600;
+}
+.bill-dead {
+    opacity: 0.5;
+}
+
+.gold-border {
+    border: 2px solid gold;
+    border-radius: 4px; /* Optional: Matches material design style */
+}
+
 .searchbox {
     width: calc(100% - 25px);
     margin: 10px;
