@@ -135,7 +135,7 @@ public class Bill implements Persistable {
 		return percent;
 	}
 	
-	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPORTANCE_INDEX }) public int getImportance() { return Math.abs((int)( (float)interpretation.getRating() + ((status.getProgress())*150f) + (getCosponsorPercent()*50) )); }
+	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPORTANCE_INDEX }) public int getImportance() { return Math.abs((int)( (float)interpretation.getRating()*1.2f + ((status.getProgress())*150f) + (getCosponsorPercent()*50) )); }
 	public void setImportance(int rating) { }
 	
 	public static String generateId(int congress, BillType type, int number)
