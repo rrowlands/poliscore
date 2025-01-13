@@ -116,7 +116,26 @@ public class Bill implements Persistable {
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return interpretation.getRating(); }
 	@JsonIgnore public void setRating(int rating) { }
 	
-	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPORTANCE_INDEX }) public int getImportance() { return Math.abs((int)( (float)interpretation.getRating() * ((status.getProgress() + 1)*200f) * ((float)cosponsors.size()) )); }
+	/*
+	 * A percentage of how much of the chamber has cosponsored the bill. In the house this number is 435. In the senate this is 100.
+	 */
+	private float getCosponsorPercent()
+	{
+		float percent;
+		
+		if (getOriginatingChamber().equals(LegislativeChamber.HOUSE))
+		{
+			percent = (float)cosponsors.size() / 435f;
+		}
+		else
+		{
+			percent = (float)cosponsors.size() / 100f;
+		}
+		
+		return percent;
+	}
+	
+	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPORTANCE_INDEX }) public int getImportance() { return Math.abs((int)( (float)interpretation.getRating() + ((status.getProgress())*150f) + (getCosponsorPercent()*50) )); }
 	public void setImportance(int rating) { }
 	
 	public static String generateId(int congress, BillType type, int number)
