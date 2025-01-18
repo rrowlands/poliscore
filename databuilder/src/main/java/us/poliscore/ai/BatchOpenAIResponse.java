@@ -2,6 +2,8 @@ package us.poliscore.ai;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,6 +13,7 @@ import lombok.NoArgsConstructor;
 @RegisterForReflection
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class BatchOpenAIResponse {
 	
 	protected String id;
@@ -27,6 +30,7 @@ public class BatchOpenAIResponse {
 	@RegisterForReflection
 	@AllArgsConstructor
 	@NoArgsConstructor
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Response {
 		protected int status_code;
 		
@@ -39,6 +43,7 @@ public class BatchOpenAIResponse {
 	@RegisterForReflection
 	@AllArgsConstructor
 	@NoArgsConstructor
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Body {
 		protected String id;
 		
@@ -59,6 +64,7 @@ public class BatchOpenAIResponse {
 	@RegisterForReflection
 	@AllArgsConstructor
 	@NoArgsConstructor
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Choice {
 		protected int index;
 		
@@ -73,6 +79,7 @@ public class BatchOpenAIResponse {
 	@RegisterForReflection
 	@AllArgsConstructor
 	@NoArgsConstructor
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Message {
 		protected String role;
 		
@@ -85,6 +92,7 @@ public class BatchOpenAIResponse {
 	@RegisterForReflection
 	@AllArgsConstructor
 	@NoArgsConstructor
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Usage {
 		protected int prompt_tokens;
 		

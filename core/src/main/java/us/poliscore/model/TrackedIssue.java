@@ -71,7 +71,7 @@ public enum TrackedIssue
 		}
 		else if (this.equals(Immigration))
 		{
-			return "Immigration";
+			return "Immigration And Border Security";
 		}
 		else if (this.equals(NationalDefense))
 		{

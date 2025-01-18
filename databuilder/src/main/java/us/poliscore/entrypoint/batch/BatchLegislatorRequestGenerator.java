@@ -26,6 +26,7 @@ import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
 import us.poliscore.model.DoubleIssueStats;
+import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
@@ -143,11 +144,11 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 //		}
 		
 		// Start with top 10 most important bills
-		billMsgs.add("Most Influential Bills:");
-		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getImportance)).limit(10).collect(Collectors.toList()))
+		billMsgs.add("Most Overall Influential Bills This Session:");
+		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getImportance).reversed()).limit(10).collect(Collectors.toList()))
 		{
 			val bill = memService.get(interact.getBillId(), Bill.class).orElseThrow();
-			val billMsg = interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
+			val billMsg = "- " + interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
 			if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
 				billMsgs.add(billMsg);
 				includedBills.add(interact.getBillId());
@@ -155,10 +156,10 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 				break;
 			}
 		}
-		billMsgs.add("\n");
 		
 		// Include the top 10 bills which explain the legislator's top 3 scoring issues.
 		for (val issue : topInteractions.keySet().stream()
+				.filter(i -> !i.equals(TrackedIssue.OverallBenefitToSociety))
 				.sorted((a,b) -> (int)Math.round(stats.getStat(b) - stats.getStat(a)))
 				.limit(3)
 				.collect(Collectors.toList()))
@@ -170,9 +171,11 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 				val bill = memService.get(interact.getBillId(), Bill.class).orElseThrow();
 				
 				String billMsg = "";
-				if (!wroteHeader)
-					billMsg += issue.getName() + ":\n";
-				billMsg = interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
+				if (!wroteHeader) {
+					billMsg = "\nLargest Contributors To \"" + issue.getName() + "\" Score:\n";
+					wroteHeader = true;
+				}
+				billMsg += "- " + interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
 				
 				if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
 					billMsgs.add(billMsg);
