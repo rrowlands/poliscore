@@ -60,7 +60,7 @@ public class BillService {
 				.sorted((a,b) -> a.getName().compareTo(b.getName()))
 				.collect(Collectors.toList()))
 		{
-			if (!PoliscoreUtil.SUPPORTED_CONGRESSES_INT.contains(Integer.valueOf(fCongress.getName()))) continue;
+			if (!Integer.valueOf(PoliscoreUtil.CURRENT_SESSION.getNumber()).equals(Integer.valueOf(fCongress.getName()))) continue;
 			
 			val session = CongressionalSession.of(Integer.valueOf(fCongress.getName()));
 			

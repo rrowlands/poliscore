@@ -85,7 +85,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
     Housing: 'Housing',
     Energy: 'Energy',
     Technology: 'Technology',
-    Immigration: 'Immigration',
+    Immigration: 'Immigration and Border Security',
     NationalDefense: 'National Defense',
     CrimeAndLawEnforcement: 'Crime and Law Enforcement',
     WildlifeAndForestManagement: 'Wildlife And Forest Management',
@@ -160,7 +160,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   };
 
   public page: Page = {
-    index: "ObjectsByDate",
+    index: "ObjectsByImportance",
     ascending: false,
     pageSize: 25
   };
@@ -185,6 +185,9 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
       this.page.ascending = routeAscending;
     } else if (routeIndex === "bygrade") {
       this.page.index = "ObjectsByRating";
+      this.page.ascending = routeAscending;
+    } else if (routeIndex === "byimportance") {
+      this.page.index = "ObjectsByImportance";
       this.page.ascending = routeAscending;
     } else if (routeIndex && routeIndex.length > 0) {
       this.page.index = "TrackedIssue";
@@ -230,7 +233,8 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
           billGrade: gradeForStats(i.issueStats),
           date: new Date(parseInt(i.date.split("-")[0]), parseInt(i.date.split("-")[1]) - 1, parseInt(i.date.split("-")[2])),
           association: this.describeAssociation(i),
-          billId: i.billId
+          billId: i.billId,
+          statusProgress: i.statusProgress
         }));
         // .sort((a, b) => b.date.getTime() - a.date.getTime());
   }
@@ -385,7 +389,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   }
 
   togglePage(
-    index: "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue",
+    index: "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImportance",
     sortKey: string | undefined = undefined,
     menuTrigger: MatMenuTrigger | undefined = undefined,
     event: Event | undefined = undefined
@@ -405,6 +409,8 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
       urlIndex = "bydate";
     } else if (index === "ObjectsByRating") {
       urlIndex = "bygrade"
+    } else if (index === "ObjectsByImportance") {
+      urlIndex = "byimportance"
     }
     this.router.navigate([], { fragment: `sort=${urlIndex}&ascending=${this.page.ascending}`, queryParamsHandling: 'merge', });
   

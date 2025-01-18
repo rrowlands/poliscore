@@ -168,6 +168,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		s3.put(interp);
 		
+		// TODO : Spread this across multiple pages. We want all their interactions
 		// 1100 seems to be about an upper limit for a single ddb page
 		leg.setInteractions(legInterp.getInteractionsForInterpretation(leg).stream()
 				.filter(i -> i.getIssueStats() != null)

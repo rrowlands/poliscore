@@ -28,7 +28,7 @@ public class PoliscoreUtil {
 	
 	public static List<CongressionalSession> SUPPORTED_CONGRESSES = Arrays.asList(CongressionalSession.S118);
 	
-	public static List<Integer> SUPPORTED_CONGRESSES_INT = Arrays.asList(CongressionalSession.S118).stream().map(c -> c.getNumber()).toList();
+	public static List<Integer> SUPPORTED_CONGRESSES_INT = SUPPORTED_CONGRESSES.stream().map(c -> c.getNumber()).toList();
 	
 	public static String BERNIE_SANDERS_ID = Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber(), "S000033");
 	

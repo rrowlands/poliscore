@@ -8,7 +8,7 @@ mat-card {
     border: 1px solid black;
 }
 
-.mat-row{        
+.mat-row {        
     // position: relative;
     cursor: pointer;
 }
@@ -24,6 +24,11 @@ mat-card {
     height: 100%;
     left: 0;
     top: 0;
+}
+
+.highlight-law {
+    color: #7a5600;
+    padding-left: 15px;
 }
 
 .sorting {

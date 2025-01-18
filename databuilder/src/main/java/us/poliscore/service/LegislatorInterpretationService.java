@@ -15,6 +15,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.val;
+import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.LegislativeChamber;
@@ -43,7 +44,7 @@ You are part of a U.S. non-partisan oversight committee which has graded the rec
 
 {{stats}}
 
-Based on these scores, this legislator has received the overall letter grade: {{letterGrade}}. You will be given bill interaction summaries of this politician’s recent legislative history, sorted by their impact to the relevant policy area grades. Please generate a layman's, concise, three paragraph, {{analysisType}}, highlighting any {{behavior}}, identifying trends, referencing specific bill titles (in quotes), and pointing out major focuses and priorities of the legislator. Focus on the policy areas with the largest score magnitudes (either positive or negative). Do not include the legislator's policy area grade scores and do not mention their letter grade in your summary.
+Based on these scores, this legislator has received the overall letter grade: {{letterGrade}}. You will be given bill interaction summaries of this politician’s recent legislative history, grouped sorted by their impact to the relevant policy area grades, as well as the legislators most influential bills (or laws). Please generate a layman's, concise, three paragraph, {{analysisType}}, highlighting any {{behavior}}, identifying trends, referencing specific bill titles (in quotes), and pointing out major focuses and priorities of the legislator for the {{congressionalSessionNumber}}th congressional session. Do not include the legislator's policy area grade scores and do not mention their letter grade in your summary.
 			""";
 	// Adding "non-partisan" to this prompt was considered, however it was found that adding it causes Chat GPT to add a "both sides" paragraph at the end, even on legislators with a very poor score. For that reason, it was removed, as our goal here is to help inform voters, not confuse them with "both sides" type rhetoric.
 	// Adding "for the voters" was found to sometimes add a nonsense sentence at the end, i.e. "voters should consider positives and negatives... bla bla bla". It's possible Chat GPT gets scared and over-thinks things if it knows it's informing voters.
@@ -155,12 +156,10 @@ Based on these scores, this legislator has received the overall letter grade: {{
 			val interp = s3.get(BillInterpretation.generateId(i.getBillId(), null), BillInterpretation.class);
 			
 			if (interp.isPresent()) {
-				i.setIssueStats(interp.get().getIssueStats());
-				i.setShortExplain(interp.get().getShortExplain());
-				
 				val bill = memService.get(i.getBillId(), Bill.class).orElseThrow();
 				bill.setInterpretation(interp.get());
-				i.setBillName(bill.getName());
+				
+				i.populate(bill, interp.get());
 			}
 		}
 	}
@@ -189,7 +188,7 @@ Based on these scores, this legislator has received the overall letter grade: {{
 		for (LegislatorBillInteraction interact : getInteractionsForInterpretation(leg)) {
 			if (interact.getIssueStats() != null) {
 				for (TrackedIssue issue : interact.getIssueStats().getStats().keySet()) {
-					val heap = heaps.getOrDefault(issue, new PriorityQueue<LegislatorBillInteraction>((a,b) -> Math.round(Math.abs(b.getIssueStats().getRating() * b.getJudgementWeight()) - Math.abs(a.getIssueStats().getRating() * a.getJudgementWeight()))));
+					val heap = heaps.getOrDefault(issue, new PriorityQueue<LegislatorBillInteraction>((a,b) -> b.getRating() - a.getRating()));
 					
 					heap.add(interact);
 					
@@ -275,6 +274,7 @@ Based on these scores, this legislator has received the overall letter grade: {{
 				.replace("{{politicianType}}", leg.getTerms().last().getChamber() == LegislativeChamber.SENATE ? "Senator" : "House Representative")
 				.replace("{{fullName}}", leg.getName().getOfficial_full())
 				.replace("{{stats}}", stats.toString())
+				.replace("{{congressionalSessionNumber}}", String.valueOf(PoliscoreUtil.CURRENT_SESSION.getNumber()))
 				.replace("{{analysisType}}", grade.equals("A") || grade.equals("B") ? "endorsement" : (grade.equals("C") || grade.equals("D") ? "mixed analysis" : "harsh critique"))
 				.replace("{{behavior}}", grade.equals("A") || grade.equals("B") ? "specific accomplishments" : (grade.equals("C") || grade.equals("D") ? "specific accomplishments or alarming behaviour" : "alarming behaviour"));
 	}

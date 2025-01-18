@@ -26,8 +26,10 @@ import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
 import us.poliscore.model.DoubleIssueStats;
+import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.parsing.BillSlicer;
 import us.poliscore.service.BillService;
@@ -124,17 +126,59 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		
 		List<String> billMsgs = new ArrayList<String>();
 		Set<String> includedBills = new HashSet<String>();
-		for (int i = 0; i < 100; ++i) {
-			for (val issue : topInteractions.keySet()) {
-				if (topInteractions.get(issue).size() > i && !includedBills.contains(topInteractions.get(issue).get(i).getBillId())) {
-					val interact = topInteractions.get(issue).get(i);
-					val billMsg = interact.describe() + " \"" + interact.getBillName() + "\": " + interact.getShortExplain();
-					if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
-						billMsgs.add(billMsg);
-						includedBills.add(interact.getBillId());
-					} else {
-						break;
-					}
+		
+//		for (int i = 0; i < 100; ++i) {
+//			for (val issue : topInteractions.keySet()) {
+//				if (topInteractions.get(issue).size() > i && !includedBills.contains(topInteractions.get(issue).get(i).getBillId())) {
+//					val interact = topInteractions.get(issue).get(i);
+//					val billMsg = interact.describe() + " \"" + interact.getBillName() + "\": " + interact.getShortExplain();
+//					if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+//						billMsgs.add(billMsg);
+//						includedBills.add(interact.getBillId());
+//					} else {
+//						break;
+//					}
+//				}
+//			}
+//		}
+		
+		// Start with top 10 most important bills
+		billMsgs.add("Most Influential Bills:");
+		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getImportance)).limit(10).collect(Collectors.toList()))
+		{
+			val bill = memService.get(interact.getBillId(), Bill.class).orElseThrow();
+			val billMsg = interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
+			if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+				billMsgs.add(billMsg);
+				includedBills.add(interact.getBillId());
+			} else {
+				break;
+			}
+		}
+		billMsgs.add("\n");
+		
+		// Include the top 10 bills which explain the legislator's top 3 scoring issues.
+		for (val issue : topInteractions.keySet().stream()
+				.sorted((a,b) -> (int)Math.round(stats.getStat(b) - stats.getStat(a)))
+				.limit(3)
+				.collect(Collectors.toList()))
+		{
+			boolean wroteHeader = false;
+			
+			for (val interact : topInteractions.get(issue).stream().limit(10).collect(Collectors.toList()))
+			{
+				val bill = memService.get(interact.getBillId(), Bill.class).orElseThrow();
+				
+				String billMsg = "";
+				if (!wroteHeader)
+					billMsg += issue.getName() + ":\n";
+				billMsg = interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
+				
+				if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+					billMsgs.add(billMsg);
+					includedBills.add(interact.getBillId());
+				} else {
+					break;
 				}
 			}
 		}

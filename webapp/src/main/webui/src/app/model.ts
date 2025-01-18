@@ -38,6 +38,7 @@ export interface BillInteraction {
   issueStats: IssueStats;
   date: string;
   voteStatus?: string;
+  statusProgress: number;
 }
 
 export interface PartyStats extends IssueStats {
@@ -118,7 +119,7 @@ export function issueKeyToLabel(key: string): string
     "Housing": "Housing",
     "Energy": "Energy",
     "Technology": "Technology",
-    "Immigration": "Immigration",
+    "Immigration": "Immigration and Border Security",
     "NationalDefense": "National Defense",
     "CrimeAndLawEnforcement": "Crime and Law Enforcement",
     "WildlifeAndForestManagement": "Wildlife And Forest Management",

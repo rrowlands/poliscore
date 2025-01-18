@@ -175,6 +175,8 @@ public class Lambda {
 			comparator = Comparator.comparing(LegislatorBillInteraction::getDate);
 		} else if (index.equals(Persistable.OBJECT_BY_RATING_INDEX)) {
 			comparator = Comparator.comparing(LegislatorBillInteraction::getRating);
+		} else if (index.equals(Persistable.OBJECT_BY_IMPORTANCE_INDEX)) {
+			comparator = Comparator.comparing(LegislatorBillInteraction::getImportance);
 		} else if (index.equals("TrackedIssue")) {
 			var issue = TrackedIssue.valueOf(sortKey);
 			stream = stream.filter(lbi -> lbi.getIssueStats().hasStat(issue));

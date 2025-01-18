@@ -28,6 +28,7 @@ import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.Bill;
+import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.dynamodb.DdbKeyProvider;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCosponsor;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor;
@@ -59,6 +60,13 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	
 	@NonNull
 	protected String billName;
+	
+	@EqualsAndHashCode.Exclude
+	@Getter(onMethod = @__({ @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPORTANCE_INDEX }) }))
+	protected int importance;
+	
+	@EqualsAndHashCode.Exclude
+	protected float statusProgress;
 	
 //	@NonNull
 //	protected String billDescription;
@@ -112,6 +120,15 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 		return Key.builder().partitionValue(id.split("~")[0]).sortValue(id.split("~")[1]).build();
 	}
 	
+	public void populate(Bill bill, BillInterpretation interp)
+	{
+		this.setIssueStats(interp.getIssueStats());
+		this.setShortExplain(interp.getShortExplain());
+		this.setBillName(bill.getName());
+		this.setImportance((int) (bill.getImportance() * getJudgementWeight()));
+		this.setStatusProgress(bill.getStatus().getProgress());
+	}
+	
 	@DynamoDbPartitionKey
 	@JsonIgnore
 	public String getPartitionKey()
@@ -138,7 +155,7 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
 	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
 	
-	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return issueStats == null ? -1 : issueStats.getRating(); }
+	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return Math.round(Math.abs(issueStats == null ? 0 : issueStats.getRating() * getJudgementWeight())); }
 	@JsonIgnore public void setRating(int rating) { }
 	
 	@Data
