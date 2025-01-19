@@ -76,7 +76,7 @@
                 <label class="sort-label left">Sort by:</label>
                 <mat-button-toggle-group name="fontStyle" class="right" aria-label="Font Style" [hideSingleSelectionIndicator]="true" [hideMultipleSelectionIndicator]="true">
                     <mat-button-toggle (click)="toggleSort('legislators')" value="bold">Legislators <i *ngIf="sort === 'bestLegislators' || sort === 'worstLegislators'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': sort === 'bestLegislators', 'fa-arrow-up': sort === 'worstLegislators' }"></i></mat-button-toggle>
-                    <mat-button-toggle (click)="toggleSort('bills')" value="bold">Bills <i *ngIf="sort === 'bestBills' || sort === 'worstBills'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': sort === 'bestBills', 'fa-arrow-up': sort === 'worstBills' }"></i></mat-button-toggle>
+                    <mat-button-toggle (click)="toggleSort('bills')" value="bold">Bills <i *ngIf="sort === 'mostImportantBills' || sort === 'worstBills'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': sort === 'mostImportantBills', 'fa-arrow-up': sort === 'worstBills' }"></i></mat-button-toggle>
 
                     <!-- <mat-button-toggle value="bold">Rating <i *ngIf="page.index === 'ObjectsByRating'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
                     <mat-button-toggle value="italic">Age <i *ngIf="page.index === 'ObjectsByDate'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': page.ascending, 'fa-arrow-up': !page.ascending }"></i></mat-button-toggle> -->
@@ -111,7 +111,7 @@
         </ng-container>
 
         <ng-container *ngIf="stats && sort.indexOf('Bills') !== -1">
-            <mat-card *ngFor="let bill of getData()" class="bills" appearance="outlined">
+            <mat-card *ngFor="let bill of getData()" class="bills" appearance="outlined" [ngClass]="{'gold-border': bill.billStatus.description.trim().toLowerCase() === 'law'}">
                 <a [routerLink]="'/bill/' + config.billIdToPath(bill.id)">
                     <mat-card-header>
                         <mat-card-title-group>
@@ -126,6 +126,9 @@
                     <mat-card-content>
                         <span><p>{{descriptionForBill(bill)}}</p></span>
                     </mat-card-content>
+                    <mat-card-footer class="horizontal-layout" [ngClass]="{'highlight-law': bill.billStatus.description.trim().toLowerCase() === 'law', 'bill-dead': bill.billStatus.description.trim().toLowerCase() != 'law'}">
+                        <p class="status">{{ bill.billStatus.description }}</p>
+                    </mat-card-footer>
                 </a>
             </mat-card>
         </ng-container>

@@ -32,7 +32,7 @@ export class SessionStatsComponent {
 
   public party: "REPUBLICAN" | "DEMOCRAT" | "INDEPENDENT" = "REPUBLICAN";
 
-  public sort: "bestLegislators" | "worstLegislators" | "bestBills" | "worstBills" = "bestLegislators";
+  public sort: "bestLegislators" | "worstLegislators" | "mostImportantBills" | "worstBills" = "bestLegislators";
 
   public stats?: SessionStats;
 
@@ -95,8 +95,8 @@ export class SessionStatsComponent {
           this.sort = "bestLegislators";
         } else if (sort == 'worst-legislators') {
           this.sort = "worstLegislators";
-        } else if (sort == 'best-bills') {
-          this.sort = "bestBills";
+        } else if (sort == 'important-bills') {
+          this.sort = "mostImportantBills";
         } else if (sort == 'worst-bills') {
           this.sort = "worstBills";
         }
@@ -137,21 +137,22 @@ export class SessionStatsComponent {
         this.sort = "bestLegislators";
       }
     } else {
-      if (this.sort == "bestBills") {
+      if (this.sort == "mostImportantBills") {
         this.sort = "worstBills";
       } else {
-        this.sort = "bestBills";
+        this.sort = "mostImportantBills";
       }
     }
 
     let routeIndex;
     if (index == "legislators") { routeIndex = this.sort == "bestLegislators" ? "best-legislators" : "worst-legislators"; }
-    if (index == "bills") { routeIndex = this.sort == "bestBills" ? "best-bills" : "worst-bills"; }
+    if (index == "bills") { routeIndex = this.sort == "mostImportantBills" ? "important-bills" : "worst-bills"; }
 
     this.router.navigate(['/congress/' + this.party.toLowerCase() + '/' +  routeIndex]);;
   }
 
   public getData() {
+    console.log(this.stats);
     return ((this.stats! as any)[this.party.toLowerCase()] as any)[this.sort];
   }
 

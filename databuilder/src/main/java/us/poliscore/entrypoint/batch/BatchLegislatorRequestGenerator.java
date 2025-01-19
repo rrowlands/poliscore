@@ -128,21 +128,6 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		List<String> billMsgs = new ArrayList<String>();
 		Set<String> includedBills = new HashSet<String>();
 		
-//		for (int i = 0; i < 100; ++i) {
-//			for (val issue : topInteractions.keySet()) {
-//				if (topInteractions.get(issue).size() > i && !includedBills.contains(topInteractions.get(issue).get(i).getBillId())) {
-//					val interact = topInteractions.get(issue).get(i);
-//					val billMsg = interact.describe() + " \"" + interact.getBillName() + "\": " + interact.getShortExplain();
-//					if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
-//						billMsgs.add(billMsg);
-//						includedBills.add(interact.getBillId());
-//					} else {
-//						break;
-//					}
-//				}
-//			}
-//		}
-		
 		// Start with top 10 most important bills
 		billMsgs.add("Most Overall Influential Bills This Session:");
 		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getImportance).reversed()).limit(10).collect(Collectors.toList()))

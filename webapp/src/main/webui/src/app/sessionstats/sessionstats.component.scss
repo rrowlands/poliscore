@@ -18,6 +18,16 @@ mat-card {
     }
 }
 
+.highlight-law {
+    color: #7a5600;
+}
+.bill-dead {
+    opacity: 0.5;
+}
+.gold-border {
+    border: 2px solid gold;
+    border-radius: 4px; /* Optional: Matches material design style */
+}
 
 .mat-row{        
     position: relative;

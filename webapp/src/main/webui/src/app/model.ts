@@ -44,6 +44,8 @@ export interface BillInteraction {
 export interface PartyStats extends IssueStats {
   party: string;
   longExplain: string;
+  mostImportantBills: Bill[];
+  leastImportantBills: Bill[];
   bestBills: Bill[];
   worstBills: Bill[];
   bestLegislators: Legislator[];

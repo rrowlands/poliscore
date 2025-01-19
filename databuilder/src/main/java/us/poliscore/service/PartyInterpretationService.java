@@ -3,9 +3,13 @@ package us.poliscore.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +29,7 @@ import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.Party;
+import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.legislator.Legislator;
@@ -41,11 +46,11 @@ import us.poliscore.service.storage.MemoryObjectService;
 @ApplicationScoped
 public class PartyInterpretationService {
 	public static final String PROMPT_TEMPLATE = """
-			You are part of a U.S. non-partisan oversight committee which has graded the {{partyName}} party for the {{session}} congressional session. The party has received the following policy area grades (scores range from -100 to 100):
+			You are part of a U.S. non-partisan oversight committee which has graded the {{partyName}} party for the {{session}} congressional session. The evaluations were compiled based on grading every bill within the session, and then aggregating the scores. The party has received the following policy area grades (scores range from -100 to 100):
 			
 			{{stats}}
 			
-			Based on these scores, this party has received the overall letter grade: {{letterGrade}}. You will be given bill interaction summaries of this party's recent legislative history, sorted by their impact to the relevant policy area grades. Please generate a layman's, concise, three paragraph, {{analysisType}}, highlighting any {{behavior}}, identifying trends, referencing specific bill titles (in quotes), and pointing out major focuses and priorities of the party. Focus on the policy areas with the largest score magnitudes (either positive or negative). Do not include the party's policy area grade scores and do not mention their letter grade in your summary.
+			Based on these scores, this party has received the overall letter grade: {{letterGrade}}. You will be given summaries of bills this party has introduced within this congressional session, sorted by two different scoring and sorting mechanisms: rating and importance. Rating was calculated by directly sorting the bills based on the \"Overall Benefit to Society\" metric. Importance is a metric which factors in rating, number of cosponsors, and how far the bill made it through the legislative process (i.e. laws are more important than bills). Highest and lowest rated bills can be useful for knowing what the extremes of the party are up to, versus importance is useful for knowing what the party actually found coalitions around. Please generate a layman's, concise, five paragraph, {{analysisType}}. Begin your first paragraph by focusing on higher level goals, highlighting any {{behavior}}, identifying trends, and pointing out major focuses and priorities of the party. Your next three paragraphs will attempt to explain why the party received the scores they did in the following policy areas: [{{highlightPolicyAreas}}] and should reference specific bill titles (in quotes). Do not include the party's policy area grade scores and do not mention their letter grade in your summary.
 			""";
 	
 	@Inject
@@ -79,20 +84,22 @@ public class PartyInterpretationService {
 	
 	private List<File> writtenFiles = new ArrayList<File>();
 	
+	private HashMap<Party, Map<TrackedIssue, PriorityQueue<PartyBillInteraction>>> bestBillsByIssue;
+	
+	private HashMap<Party, Map<TrackedIssue, PriorityQueue<PartyBillInteraction>>> worstBillsByIssue;
+	
 	public List<File> process() throws IOException
 	{
 		legService.importLegislators();
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		val worstBills = new HashMap<Party, PriorityQueue<PartyBillInteraction>>();
-		val bestBills = new HashMap<Party, PriorityQueue<PartyBillInteraction>>();
-		val partyStats = recalculateStats(bestBills, worstBills);
+		val partyStats = recalculateStats();
 		
 		// Use AI to generate explanations
-		createRequest(partyStats.getDemocrat(), bestBills, worstBills);
-		createRequest(partyStats.getRepublican(), bestBills, worstBills);
-		createRequest(partyStats.getIndependent(), bestBills, worstBills);
+		createRequest(partyStats.getDemocrat());
+		createRequest(partyStats.getRepublican());
+		createRequest(partyStats.getIndependent());
 		writeRequests(requests);
 		
 		return writtenFiles;
@@ -100,14 +107,16 @@ public class PartyInterpretationService {
 	
 	public SessionInterpretation recalculateStats()
 	{
-		return recalculateStats(new HashMap<Party, PriorityQueue<PartyBillInteraction>>(), new HashMap<Party, PriorityQueue<PartyBillInteraction>>());
-	}
-	
-	public SessionInterpretation recalculateStats(HashMap<Party, PriorityQueue<PartyBillInteraction>> bestBills, HashMap<Party, PriorityQueue<PartyBillInteraction>> worstBills)
-	{
 		// Initialize datastructures //
 		val sessionStats = new SessionInterpretation();
 		sessionStats.setSession(PoliscoreUtil.CURRENT_SESSION.getNumber());
+		
+		val mostImportantBills = new HashMap<Party, PriorityQueue<PartyBillInteraction>>();
+		val leastImportantBills = new HashMap<Party, PriorityQueue<PartyBillInteraction>>();
+		val worstBills = new HashMap<Party, PriorityQueue<PartyBillInteraction>>();
+		val bestBills = new HashMap<Party, PriorityQueue<PartyBillInteraction>>();
+		bestBillsByIssue = new HashMap<Party, Map<TrackedIssue, PriorityQueue<PartyBillInteraction>>>();
+		worstBillsByIssue = new HashMap<Party, Map<TrackedIssue, PriorityQueue<PartyBillInteraction>>>();
 		
 		val doublePartyStats = new HashMap<Party, DoubleIssueStats>();
 		val worstLegislators = new HashMap<Party, PriorityQueue<Legislator>>();
@@ -115,11 +124,22 @@ public class PartyInterpretationService {
 		for(val party : Party.values()) {
 			doublePartyStats.put(party, new DoubleIssueStats());
 			
-			val p = party;
-			worstBills.put(party, new PriorityQueue<>((a,b) -> (int) Math.round(a.getWeight() - b.getWeight())));
-			bestBills.put(party, new PriorityQueue<>((a,b) -> (int) Math.round(b.getWeight() - a.getWeight())));
-			bestLegislators.put(party, new PriorityQueue<>((a,b) -> (int) Math.round(b.getRating() - a.getRating())));
-			worstLegislators.put(party, new PriorityQueue<>((a,b) -> (int) Math.round(a.getRating() - b.getRating())));
+			leastImportantBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getImportance)));
+			mostImportantBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getImportance).reversed()));
+			worstBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getRating)));
+			bestBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getRating).reversed()));
+			bestLegislators.put(party, new PriorityQueue<>(Comparator.comparing(Legislator::getRating).reversed()));
+			worstLegislators.put(party, new PriorityQueue<>(Comparator.comparing(Legislator::getRating)));
+			
+			val bestPartyBillsByIssue = new HashMap<TrackedIssue, PriorityQueue<PartyBillInteraction>>();
+			bestBillsByIssue.put(party, bestPartyBillsByIssue);
+			val worstPartyBillsByIssue = new HashMap<TrackedIssue, PriorityQueue<PartyBillInteraction>>();
+			worstBillsByIssue.put(party, worstPartyBillsByIssue);
+			for(val issue : TrackedIssue.values())
+			{
+				bestPartyBillsByIssue.put(issue, new PriorityQueue<PartyBillInteraction>(Comparator.comparing(PartyBillInteraction::getRating).reversed()));
+				worstPartyBillsByIssue.put(issue, new PriorityQueue<PartyBillInteraction>(Comparator.comparing(PartyBillInteraction::getRating)));
+			}
 		}
 		
 		// Calculate Stats //
@@ -134,9 +154,18 @@ public class PartyInterpretationService {
 				val party = sponsor.getTerms().last().getParty();
 				val partyCosponsors = b.getCosponsors().stream().filter(sp -> memService.exists(sp.getId(), Legislator.class) && memService.get(sp.getId(), Legislator.class).get().getParty().equals(party)).toList();
 						
-				val pbi = new PartyBillInteraction(b.getId(), b.getName(), b.getType(), b.getIntroducedDate(), b.getSponsor(), partyCosponsors, interp.getIssueStats().getRating(), interp.getShortExplain().substring(0, 300));
+				val pbi = new PartyBillInteraction(b.getId(), b.getName(), b.getStatus(), b.getType(), b.getIntroducedDate(), b.getSponsor(), partyCosponsors, b.getRating(), b.getImportance(), interp.getShortExplain());
+				mostImportantBills.get(party).add(pbi);
+				leastImportantBills.get(party).add(pbi);
 				bestBills.get(party).add(pbi);
 				worstBills.get(party).add(pbi);
+				
+				for(val issue : TrackedIssue.values())
+				{
+					var issuePbi = new PartyBillInteraction(b.getId(), b.getName(), b.getStatus(), b.getType(), b.getIntroducedDate(), b.getSponsor(), partyCosponsors, interp.getIssueStats().getStat(issue), b.getImportance(), interp.getShortExplain());
+					bestBillsByIssue.get(party).get(issue).offer(issuePbi);
+					worstBillsByIssue.get(party).get(issue).offer(issuePbi);
+				}
 			}
 		}
 		for (val l : memService.query(Legislator.class).stream().filter(leg -> leg.isMemberOfSession(CongressionalSession.S118)).toList()) {
@@ -174,6 +203,8 @@ public class PartyInterpretationService {
 			ps.setParty(party);
 			
 			for (int i = 0; i < 20; ++i) {
+				if (!mostImportantBills.get(party).isEmpty()) ps.getMostImportantBills().add(mostImportantBills.get(party).poll());
+				if (!leastImportantBills.get(party).isEmpty()) ps.getLeastImportantBills().add(leastImportantBills.get(party).poll());
 				if (!bestBills.get(party).isEmpty()) ps.getBestBills().add(bestBills.get(party).poll());
 				if (!worstBills.get(party).isEmpty()) ps.getWorstBills().add(worstBills.get(party).poll());
 				if (!bestLegislators.get(party).isEmpty()) ps.getBestLegislators().add(bestLegislators.get(party).poll());
@@ -200,37 +231,52 @@ public class PartyInterpretationService {
 		return sessionStats;
 	}
 	
-	private void createRequest(PartyInterpretation interp, HashMap<Party, PriorityQueue<PartyBillInteraction>> bestBills, HashMap<Party, PriorityQueue<PartyBillInteraction>> worstBills)
+	private void createRequest(PartyInterpretation interp)
 	{
 		List<String> msg = new ArrayList<String>();
-		val best = bestBills.get(interp.getParty());
-		val worst = worstBills.get(interp.getParty());
+		
+		msg.add("Most Important Bills:");
+		msg.add(StringUtils.join(interp.getMostImportantBills().stream().map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
+		
+		msg.add("\n");
 		
 		val grade = interp.getStats().getLetterGrade();
 		if (grade.equals("A") || grade.equals("B")) {
-			msg.add(StringUtils.join(interp.getBestBills().stream().map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
-			
-			while (!best.isEmpty() && StringUtils.join(msg, "\n").length() + best.peek().getShortExplainForInterp().length() < XMLBillSlicer.MAX_SECTION_LENGTH) {
-				msg.add(best.poll().getShortExplainForInterp());
-			}
+			msg.add("Highest \"Overall Benefit to Society\" (Rating) Bills:");
+			msg.add(StringUtils.join(interp.getBestBills().stream().limit(5).map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
 		} else if (grade.equals("C") || grade.equals("D")) {
-			msg.add(StringUtils.join(interp.getBestBills().stream().map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
-			msg.add(StringUtils.join(interp.getWorstBills().stream().map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
-			
-			while (!best.isEmpty() && StringUtils.join(msg, "\n").length() + best.peek().getShortExplainForInterp().length() < XMLBillSlicer.MAX_SECTION_LENGTH) {
-				while (!worst.isEmpty() && StringUtils.join(msg, "\n").length() + worst.peek().getShortExplainForInterp().length() < XMLBillSlicer.MAX_SECTION_LENGTH) {
-					msg.add(worst.poll().getShortExplainForInterp());
-				}
-			}
+			msg.add("Highest \"Overall Benefit to Society\" (Rating) Bills:");
+			msg.add(StringUtils.join(interp.getBestBills().stream().limit(5).map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
+			msg.add("Lowest \"Overall Benefit to Society\" (Rating) Bills:");
+			msg.add(StringUtils.join(interp.getWorstBills().stream().limit(5).map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
 		} else {
-			msg.add(StringUtils.join(interp.getWorstBills().stream().map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
+			msg.add("Lowest \"Overall Benefit to Society\" (Rating) Bills:");
+			msg.add(StringUtils.join(interp.getWorstBills().stream().limit(5).map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
+		}
+		
+		for(val issue : getHighlightPolicyAreas(interp.getStats()))
+		{
+			msg.add("\nLargest Contributors To \"" + issue.getName() + "\" Score:\n");
 			
-			while (!worst.isEmpty() && StringUtils.join(msg, "\n").length() + worst.peek().getShortExplainForInterp().length() < XMLBillSlicer.MAX_SECTION_LENGTH) {
-				msg.add(worst.poll().getShortExplainForInterp());
-			}
+			if (interp.getStats().getStat(issue) >= 0)
+				msg.add(StringUtils.join(queueTake(10, bestBillsByIssue.get(interp.getParty()).get(issue)).stream().map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
+			else
+				msg.add(StringUtils.join(queueTake(10, worstBillsByIssue.get(interp.getParty()).get(issue)).stream().map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
 		}
 		
 		createRequest(interp.getParty(), PartyInterpretationService.getAiPrompt(PoliscoreUtil.CURRENT_SESSION, interp.getParty(), interp.getStats()), StringUtils.join(msg, "\n"));
+	}
+	
+	private List<PartyBillInteraction> queueTake(int amt, PriorityQueue<PartyBillInteraction> queue)
+	{
+		List<PartyBillInteraction> result = new ArrayList<PartyBillInteraction>();
+		
+		while (!queue.isEmpty() && result.size() < 10)
+		{
+			result.add(queue.poll());
+		}
+		
+		return result;
 	}
 	
 	private void createRequest(Party party, String sysMsg, String userMsg) {
@@ -267,6 +313,39 @@ public class PartyInterpretationService {
 		Log.info("Successfully wrote " + requests.size() + " requests to " + f.getAbsolutePath());
 	}
 	
+	public static List<TrackedIssue> getHighlightPolicyAreas(IssueStats stats)
+	{
+		val grade = stats.getLetterGrade();
+		List<TrackedIssue> highlightPolicyAreas;
+		
+		if (grade.equals("A") || grade.equals("B")) {
+			highlightPolicyAreas = Arrays.asList(TrackedIssue.values()).stream()
+				.filter(i -> !i.equals(TrackedIssue.OverallBenefitToSociety))
+				.sorted((a,b) -> (int)Math.round(stats.getStat(b) - stats.getStat(a)))
+				.limit(4)
+				.collect(Collectors.toList());
+		} else if (grade.equals("C") || grade.equals("D")) {
+			highlightPolicyAreas = Arrays.asList(TrackedIssue.values()).stream()
+				.filter(i -> !i.equals(TrackedIssue.OverallBenefitToSociety))
+				.sorted((a,b) -> (int)Math.round(stats.getStat(b) - stats.getStat(a)))
+				.limit(2)
+				.collect(Collectors.toList());
+			highlightPolicyAreas.addAll(Arrays.asList(TrackedIssue.values()).stream()
+					.filter(i -> !i.equals(TrackedIssue.OverallBenefitToSociety))
+					.sorted((a,b) -> (int)Math.round(stats.getStat(a) - stats.getStat(b)))
+					.limit(2)
+					.collect(Collectors.toList()));
+		} else {
+			highlightPolicyAreas = Arrays.asList(TrackedIssue.values()).stream()
+					.filter(i -> !i.equals(TrackedIssue.OverallBenefitToSociety))
+					.sorted((a,b) -> (int)Math.round(stats.getStat(a) - stats.getStat(b)))
+					.limit(2)
+					.collect(Collectors.toList());
+		}
+		
+		return highlightPolicyAreas;
+	}
+	
 	public static String getAiPrompt(CongressionalSession session, Party party, IssueStats stats) {
 		val grade = stats.getLetterGrade();
 		
@@ -276,6 +355,7 @@ public class PartyInterpretationService {
 				.replace("{{stats}}", stats.toString())
 				.replace("{{letterGrade}}", grade)
 				.replace("{{analysisType}}", grade.equals("A") || grade.equals("B") ? "endorsement" : (grade.equals("C") || grade.equals("D") ? "mixed analysis" : "harsh critique"))
-				.replace("{{behavior}}", grade.equals("A") || grade.equals("B") ? "specific accomplishments" : (grade.equals("C") || grade.equals("D") ? "specific accomplishments or alarming behaviour" : "alarming behaviour"));
+				.replace("{{behavior}}", grade.equals("A") || grade.equals("B") ? "specific accomplishments" : (grade.equals("C") || grade.equals("D") ? "specific accomplishments or alarming behaviour" : "alarming behaviour"))
+				.replace("{{highlightPolicyAreas}}", String.join(", ", getHighlightPolicyAreas(stats).stream().map(ti -> ti.getName()).toList()));
 	}
 }

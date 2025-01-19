@@ -15,22 +15,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.bill.Bill.BillSponsor;
+import us.poliscore.model.bill.BillStatus;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.dynamodb.DdbDataPage;
-import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverterProvider;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.AIInterpretationMetadataConverter;
-import us.poliscore.model.dynamodb.JacksonAttributeConverter.CompressedPartyStatsConverter;
+import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverterProvider;
 import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.dynamodb.JacksonAttributeConverter.CompressedPartyStatsConverter;
 
 @Data
 @DynamoDbBean
@@ -84,7 +85,14 @@ public class SessionInterpretation implements Persistable {
 		
 		protected IssueStats stats;
 		
+		@NonNull
 		protected String longExplain;
+		
+		@NonNull
+		protected PartyBillSet mostImportantBills = new PartyBillSet();
+		
+		@NonNull
+		protected PartyBillSet leastImportantBills = new PartyBillSet();
 		
 		@NonNull
 		protected PartyBillSet bestBills = new PartyBillSet();
@@ -116,6 +124,10 @@ public class SessionInterpretation implements Persistable {
 		
 		@NonNull
 		@EqualsAndHashCode.Exclude
+		protected BillStatus billStatus;
+		
+		@NonNull
+		@EqualsAndHashCode.Exclude
 		protected BillType type;
 		
 		@EqualsAndHashCode.Exclude
@@ -131,23 +143,26 @@ public class SessionInterpretation implements Persistable {
 		protected Integer rating;
 		
 		@EqualsAndHashCode.Exclude
+		protected Integer importance;
+		
+		@EqualsAndHashCode.Exclude
 		protected String shortExplain;
 		
 		@DynamoDbIgnore
 		@JsonIgnore
 		public String getShortExplainForInterp() {
-			return this.name + " (" + (rating > 0 ? "+" : "") + rating + ", " + (1 + cosponsors.size()) + " sponsors" + ")" + ": " + this.shortExplain;
+			return "- " + this.name + " (" + billStatus.getDescription() + ") (" + (cosponsors.size()) + " cosponsors" + ")" + ": " + this.shortExplain;
 		}
 		
 		@DynamoDbIgnore
 		@JsonIgnore
-		public Double getWeight() {
-			return (double)rating * (cosponsors.size() + 1);
+		public Integer getImportance() {
+			return importance;
 		}
 
 		@Override
 		public int compareTo(PartyBillInteraction o) {
-			return getWeight().compareTo(o.getWeight());
+			return getImportance().compareTo(o.getImportance());
 		}
 	}
 	

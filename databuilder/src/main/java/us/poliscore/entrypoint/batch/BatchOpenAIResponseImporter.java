@@ -45,6 +45,7 @@ import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.OpenAIService;
+import us.poliscore.service.PartyInterpretationService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.CachedDynamoDbService;
 import us.poliscore.service.storage.LocalCachedS3Service;
@@ -56,7 +57,7 @@ import us.poliscore.service.storage.MemoryObjectService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	
 //	 All Legislators (August 21st)
 //	public static final String INPUT = "/Users/rrowlands/Downloads/batch_P8Wsivj5pgknA2QPVrK9KZJI_output.jsonl";
@@ -64,7 +65,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	// All Legislators (Aug 5th) 
 //	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
 	
-//	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
+	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/file-NPxmq8zQKACqaSrTnufd6V.jsonl";
 	
 	@Inject
 	private CachedDynamoDbService ddb;
@@ -87,7 +88,12 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	@Inject
 	private MemoryObjectService memService;
 	
+	@Inject
+	private PartyInterpretationService partyService;
+	
 	private Set<String> importedBills = new HashSet<String>();
+	
+	private SessionInterpretation sessionInterp = null;
 	
 	@SneakyThrows
 	public void process(File input)
@@ -128,7 +134,12 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 				erroredLines.add(line);
 				line = reader.readLine();
 			}
-		} 
+		}
+		
+		if (sessionInterp != null) {
+			s3.put(sessionInterp);
+			ddb.put(sessionInterp);
+		}
 		
 		if (erroredLines.size() > 0) {
 			File f = new File(Environment.getDeployedPath(), "unprocessed.jsonl");
@@ -181,29 +192,27 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	}
 	
 	private void importParty(final BatchOpenAIResponse resp) {
-		val interp = ddb.get(SessionInterpretation.generateId(PoliscoreUtil.CURRENT_SESSION.getNumber()), SessionInterpretation.class).get();
-		
+		if (sessionInterp == null) {
+			sessionInterp = partyService.recalculateStats();
+		}
 		val interpText = resp.getResponse().getBody().getChoices().get(0).getMessage().getContent();
 		
 		PartyInterpretation partyInterp;
 		
 		if (resp.getCustom_id().contains(Party.DEMOCRAT.name())) {
-			partyInterp = interp.getDemocrat();
+			partyInterp = sessionInterp.getDemocrat();
 		} else if (resp.getCustom_id().contains(Party.REPUBLICAN.name())) {
-			partyInterp = interp.getRepublican();
+			partyInterp = sessionInterp.getRepublican();
 		} else if (resp.getCustom_id().contains(Party.INDEPENDENT.name())) {
-			partyInterp = interp.getIndependent();
+			partyInterp = sessionInterp.getIndependent();
 		} else {
 			throw new UnsupportedOperationException();
 		}
 		
 		partyInterp.setLongExplain(interpText);
-		linkPartyBills(partyInterp, interp);
+		linkPartyBills(partyInterp, sessionInterp);
 		
-		interp.setMetadata(OpenAIService.metadata());
-		
-		s3.put(interp);
-		ddb.put(interp);
+		sessionInterp.setMetadata(OpenAIService.metadata());
 	}
 	
 	private void linkPartyBills(PartyInterpretation interp, SessionInterpretation sessionInterp) {
