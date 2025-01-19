@@ -28,6 +28,7 @@ import jakarta.ws.rs.core.Context;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
+import us.poliscore.LegislatorBillLinker;
 import us.poliscore.LegislatorPageData;
 import us.poliscore.Page;
 import us.poliscore.PoliscoreUtil;
@@ -106,34 +107,36 @@ public class Lambda {
     }
     
     private void linkInterpBills(Legislator leg) {
-		try
-		{
-			var exp = leg.getInterpretation().getLongExplain();
-			
-			for (val interact : leg.getInteractions()) {
-				val url = "/" + PoliscoreUtil.DEPLOYMENT_YEAR + "/bill/" + interact.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber() + "/", "");
-				
-				var billName = interact.getBillName();
-				if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);
-				billName = billName.strip();
-				if (billName.endsWith("."))
-					billName = billName.substring(0, billName.length() - 1);
-				
-				val billId = Bill.billTypeFromId(interact.getBillId()).getName() + "-" + Bill.billNumberFromId(interact.getBillId());
-				
-				val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")[^\\d]";
-				
-				Pattern pattern = Pattern.compile("(?i)" + billMatchPattern + "", Pattern.CASE_INSENSITIVE);
-			    Matcher matcher = pattern.matcher(exp);
-			    while (matcher.find()) {
-			    	exp = exp.replaceFirst(matcher.group(1), "<a href=\"" + url + "\" >" + billName + "</a>");
-			    }
-			}
-			
-			leg.getInterpretation().setLongExplain(exp);
-		} catch (Throwable t) {
-			Log.error(t);
-		}
+//		try
+//		{
+//			var exp = leg.getInterpretation().getLongExplain();
+//			
+//			for (val interact : leg.getInteractions().stream().sorted(Comparator.comparingInt((LegislatorBillInteraction b) -> b.getBillName().length()).reversed()).collect(Collectors.toList())) {
+//				val url = "/" + PoliscoreUtil.DEPLOYMENT_YEAR + "/bill/" + interact.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber() + "/", "");
+//				
+//				var billName = interact.getBillName();
+//				if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);
+//				billName = billName.strip();
+//				if (billName.endsWith("."))
+//					billName = billName.substring(0, billName.length() - 1);
+//				
+//				val billId = Bill.billTypeFromId(interact.getBillId()).getName() + "-" + Bill.billNumberFromId(interact.getBillId());
+//				
+//				val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")[^\\d]";
+//				
+//				Pattern pattern = Pattern.compile("(?i)" + billMatchPattern + "", Pattern.CASE_INSENSITIVE);
+//			    Matcher matcher = pattern.matcher(exp);
+//			    while (matcher.find()) {
+//			    	exp = exp.replaceFirst(matcher.group(1), "<a href=\"" + url + "\" >" + billName + "</a>");
+//			    }
+//			}
+//			
+//			leg.getInterpretation().setLongExplain(exp);
+//		} catch (Throwable t) {
+//			Log.error(t);
+//		}
+    	
+    	LegislatorBillLinker.linkInterpBills(leg);
     }
     
     @GET
