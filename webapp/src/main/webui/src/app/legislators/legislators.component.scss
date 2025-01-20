@@ -39,6 +39,27 @@
     color: #81548f !important
 }
 
+@media screen and (min-width: 450px) {
+    .sorting {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+}
+
+@media screen and (max-width: 450px) {
+    .sorting {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+    .sorting .sort-label {
+        margin-left: 10px;
+    }
+    .sorting .right {
+        margin-top: 5px !important;
+    }
+}
+
 @media screen and (max-width: 480px) {
     .sort-arrow {
         margin-right:-5px;
