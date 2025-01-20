@@ -9,10 +9,10 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import us.poliscore.model.TrackedIssue;
 
-public class IssueStatsMapAttributeConverter implements AttributeConverter<Map<TrackedIssue, Integer>> {
+public class IssueStatsMapLongAttributeConverter implements AttributeConverter<Map<TrackedIssue, Long>> {
 
   @Override
-  public AttributeValue transformFrom(final Map<TrackedIssue, Integer> input) {
+  public AttributeValue transformFrom(final Map<TrackedIssue, Long> input) {
     Map<String, AttributeValue> attributeValueMap = input.entrySet().stream()
             .collect(
                 Collectors.toMap(
@@ -22,11 +22,11 @@ public class IssueStatsMapAttributeConverter implements AttributeConverter<Map<T
   }
 
   @Override
-  public Map<TrackedIssue, Integer> transformTo(final AttributeValue input) {
+  public Map<TrackedIssue, Long> transformTo(final AttributeValue input) {
     return input.m().entrySet().stream()
         .collect(
             Collectors.toMap(
-                k -> getEnumClassKeyByString(k.getKey()), v -> Integer.parseInt(v.getValue().n())));
+                k -> getEnumClassKeyByString(k.getKey()), v -> Long.parseLong(v.getValue().n())));
   }
 
   private TrackedIssue getEnumClassKeyByString(final String key) {
@@ -35,8 +35,8 @@ public class IssueStatsMapAttributeConverter implements AttributeConverter<Map<T
   }
 
   @Override
-  public EnhancedType<Map<TrackedIssue, Integer>> type() {
-    return EnhancedType.mapOf(TrackedIssue.class, Integer.class);
+  public EnhancedType<Map<TrackedIssue, Long>> type() {
+    return EnhancedType.mapOf(TrackedIssue.class, Long.class);
   }
 
   @Override

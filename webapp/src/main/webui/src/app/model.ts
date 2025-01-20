@@ -80,6 +80,7 @@ export class Legislator {
     }];
     photoError: boolean = false;
     birthday: string | undefined;
+    impact!: number;
 }
 
 export interface LegislatorPageData {

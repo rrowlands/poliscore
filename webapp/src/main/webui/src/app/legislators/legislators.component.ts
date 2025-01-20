@@ -69,11 +69,13 @@ export class LegislatorsComponent implements OnInit {
         this.isRequestingData = true;
         let routeParams = false;
   
-        if ( (routeIndex === "byrating" || routeIndex === "byage") && routeAscending != null) {
+        if ( (routeIndex === "byrating" || routeIndex === "byage" || routeIndex === "byimpact") && routeAscending != null) {
           if (routeIndex === "byrating") {
             this.page.index = "ObjectsByRating";
           } else if (routeIndex === "byage") {
             this.page.index = "ObjectsByDate";
+          } else if (routeIndex === "byimpact") {
+            this.page.index = "ObjectsByImpact";
           }
   
           this.page.ascending = routeAscending == "ascending";
@@ -129,6 +131,8 @@ export class LegislatorsComponent implements OnInit {
         this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.birthday;
       } else if (this.page.index === "ObjectsByRating") {
         this.page.exclusiveStartKey = lastLeg.id + sep + getBenefitToSocietyIssue(lastLeg.interpretation!.issueStats)[1];
+      } else if (this.page.index === "ObjectsByImpact") {
+        this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.impact;
       } else if (this.page.index === "ObjectsByLocation") {
         let lastTerm = lastLeg.terms[lastLeg.terms.length - 1];
         this.page.exclusiveStartKey = lastLeg.id + sep + lastTerm.state + (lastTerm.district == null ? "" : "/" + lastTerm.district);
@@ -160,7 +164,7 @@ export class LegislatorsComponent implements OnInit {
     }
   }
 
-  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByLocation") {
+  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByLocation" | "ObjectsByImpact") {
     this.page.ascending = (index == this.page.index) ? !this.page.ascending : false;
     this.page.index = index;
     this.page.exclusiveStartKey = undefined;
@@ -176,6 +180,8 @@ export class LegislatorsComponent implements OnInit {
       routeIndex = "byage";
     } else if (this.page.index === "ObjectsByRating") {
       routeIndex = "byrating";
+    } else if (this.page.index === "ObjectsByImpact") {
+      routeIndex = "byimpact";
     }
 
     if (this.page.index === "ObjectsByLocation") {

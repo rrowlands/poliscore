@@ -138,12 +138,12 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
-			if (!ddb.exists(b.getId(), Bill.class)) {
+//			if (!ddb.exists(b.getId(), Bill.class)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				b.setInterpretation(interp);
 				ddb.put(b);
 				amount++;
-			}
+//			}
 		}
 		
 		Log.info("Created " + amount + " missing bills in ddb from s3");
@@ -217,13 +217,13 @@ public class DatabaseBuilder implements QuarkusApplication
 				throw new RuntimeException("Unable to parse valid issue stats for legislator " + leg.getId());
 			}
 			
-			// 1100 seems to be about an upper limit for a single ddb page
 			leg.setInteractions(legInterp.getInteractionsForInterpretation(leg).stream()
 					.filter(i -> i.getIssueStats() != null)
-					.sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1100).collect(Collectors.toCollection(LegislatorBillInteractionList::new)));
-	//		leg.setInteractions(interacts);
+					.sorted((a,b) -> a.getDate().compareTo(b.getDate())).collect(Collectors.toCollection(LegislatorBillInteractionList::new)));
 			
 			leg.setInterpretation(interp);
+			
+			legInterp.calculateImpact(leg);
 			
 			ddb.put(leg);
 		}

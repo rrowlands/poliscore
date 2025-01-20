@@ -111,8 +111,8 @@ public class PartyInterpretationService {
 		val sessionStats = new SessionInterpretation();
 		sessionStats.setSession(PoliscoreUtil.CURRENT_SESSION.getNumber());
 		
-		val mostImportantBills = new HashMap<Party, PriorityQueue<PartyBillInteraction>>();
-		val leastImportantBills = new HashMap<Party, PriorityQueue<PartyBillInteraction>>();
+		val mostImpactfulBills = new HashMap<Party, PriorityQueue<PartyBillInteraction>>();
+		val leastImpactfulBills = new HashMap<Party, PriorityQueue<PartyBillInteraction>>();
 		val worstBills = new HashMap<Party, PriorityQueue<PartyBillInteraction>>();
 		val bestBills = new HashMap<Party, PriorityQueue<PartyBillInteraction>>();
 		bestBillsByIssue = new HashMap<Party, Map<TrackedIssue, PriorityQueue<PartyBillInteraction>>>();
@@ -124,12 +124,12 @@ public class PartyInterpretationService {
 		for(val party : Party.values()) {
 			doublePartyStats.put(party, new DoubleIssueStats());
 			
-			leastImportantBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getImpact)));
-			mostImportantBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getImpact).reversed()));
+			leastImpactfulBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getImpact)));
+			mostImpactfulBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getImpact).reversed()));
 			worstBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getRating)));
 			bestBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getRating).reversed()));
-			bestLegislators.put(party, new PriorityQueue<>(Comparator.comparing(Legislator::getRating).reversed()));
-			worstLegislators.put(party, new PriorityQueue<>(Comparator.comparing(Legislator::getRating)));
+			bestLegislators.put(party, new PriorityQueue<>((a,b) -> (int) (b.getImpact() - a.getImpact())));
+			worstLegislators.put(party, new PriorityQueue<>(Comparator.comparing(Legislator::getImpact)));
 			
 			val bestPartyBillsByIssue = new HashMap<TrackedIssue, PriorityQueue<PartyBillInteraction>>();
 			bestBillsByIssue.put(party, bestPartyBillsByIssue);
@@ -155,8 +155,8 @@ public class PartyInterpretationService {
 				val partyCosponsors = b.getCosponsors().stream().filter(sp -> memService.exists(sp.getId(), Legislator.class) && memService.get(sp.getId(), Legislator.class).get().getParty().equals(party)).toList();
 						
 				val pbi = new PartyBillInteraction(b.getId(), b.getName(), b.getStatus(), b.getType(), b.getIntroducedDate(), b.getSponsor(), partyCosponsors, b.getRating(), b.getImpact(), interp.getShortExplain());
-				mostImportantBills.get(party).add(pbi);
-				leastImportantBills.get(party).add(pbi);
+				mostImpactfulBills.get(party).add(pbi);
+				leastImpactfulBills.get(party).add(pbi);
 				bestBills.get(party).add(pbi);
 				worstBills.get(party).add(pbi);
 				
@@ -203,8 +203,8 @@ public class PartyInterpretationService {
 			ps.setParty(party);
 			
 			for (int i = 0; i < 20; ++i) {
-				if (!mostImportantBills.get(party).isEmpty()) ps.getMostImportantBills().add(mostImportantBills.get(party).poll());
-				if (!leastImportantBills.get(party).isEmpty()) ps.getLeastImportantBills().add(leastImportantBills.get(party).poll());
+				if (!mostImpactfulBills.get(party).isEmpty()) ps.getMostImportantBills().add(mostImpactfulBills.get(party).poll());
+				if (!leastImpactfulBills.get(party).isEmpty()) ps.getLeastImportantBills().add(leastImpactfulBills.get(party).poll());
 				if (!bestBills.get(party).isEmpty()) ps.getBestBills().add(bestBills.get(party).poll());
 				if (!worstBills.get(party).isEmpty()) ps.getWorstBills().add(worstBills.get(party).poll());
 				if (!bestLegislators.get(party).isEmpty()) ps.getBestLegislators().add(bestLegislators.get(party).poll());
@@ -235,7 +235,7 @@ public class PartyInterpretationService {
 	{
 		List<String> msg = new ArrayList<String>();
 		
-		msg.add("Most Important Bills:");
+		msg.add("Highest Impact Bills:");
 		msg.add(StringUtils.join(interp.getMostImportantBills().stream().map(i -> i.getShortExplainForInterp()).toArray(), "\n"));
 		
 		msg.add("\n");

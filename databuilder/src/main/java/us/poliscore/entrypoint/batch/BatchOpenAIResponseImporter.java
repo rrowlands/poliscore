@@ -183,6 +183,8 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		leg.setInterpretation(interp);
 		
+		legInterp.calculateImpact(leg);
+		
 		ddb.put(leg);
 	}
 	

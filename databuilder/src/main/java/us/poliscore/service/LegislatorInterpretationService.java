@@ -302,4 +302,19 @@ Based on these scores, this legislator has received the overall letter grade: {{
 	    	return years + " year" + (years <= 1 ? "" : "s");
 	    }
 	}
+
+	public void calculateImpact(Legislator leg) {
+		Map<TrackedIssue, Long> impact = new HashMap<TrackedIssue, Long>();
+		
+		for (LegislatorBillInteraction interact : getInteractionsForInterpretation(leg)) {
+			if (interact.getIssueStats() != null) {
+				for (TrackedIssue issue : interact.getIssueStats().getStats().keySet()) {
+					val existing = impact.getOrDefault(issue, 0l);
+					impact.put(issue, existing + Long.valueOf(interact.getImpact(issue)));
+				}
+			}
+		}
+		
+		leg.setImpactMap(impact);
+	}
 }
