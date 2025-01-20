@@ -82,13 +82,13 @@ class PoliscoreStack extends Stack {
                 .build());
         
         table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
-                .indexName("ObjectsByImportance")
+                .indexName("ObjectsByImpact")
                 .partitionKey(Attribute.builder()
                         .name("idClassPrefix")
                         .type(AttributeType.STRING)
                         .build())
                 .sortKey(Attribute.builder()
-                        .name("importance")
+                        .name("impact")
                         .type(AttributeType.NUMBER)
                         .build())
                 .build());

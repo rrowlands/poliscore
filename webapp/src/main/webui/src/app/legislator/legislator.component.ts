@@ -160,7 +160,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   };
 
   public page: Page = {
-    index: "ObjectsByImportance",
+    index: "ObjectsByImpact",
     ascending: false,
     pageSize: 25
   };
@@ -186,8 +186,8 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
     } else if (routeIndex === "bygrade") {
       this.page.index = "ObjectsByRating";
       this.page.ascending = routeAscending;
-    } else if (routeIndex === "byimportance") {
-      this.page.index = "ObjectsByImportance";
+    } else if (routeIndex === "byimpact") {
+      this.page.index = "ObjectsByImpact";
       this.page.ascending = routeAscending;
     } else if (routeIndex && routeIndex.length > 0) {
       this.page.index = "TrackedIssue";
@@ -389,7 +389,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   }
 
   togglePage(
-    index: "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImportance",
+    index: "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImpact",
     sortKey: string | undefined = undefined,
     menuTrigger: MatMenuTrigger | undefined = undefined,
     event: Event | undefined = undefined
@@ -409,8 +409,8 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
       urlIndex = "bydate";
     } else if (index === "ObjectsByRating") {
       urlIndex = "bygrade"
-    } else if (index === "ObjectsByImportance") {
-      urlIndex = "byimportance"
+    } else if (index === "ObjectsByImpact") {
+      urlIndex = "byimpact"
     }
     this.router.navigate([], { fragment: `sort=${urlIndex}&ascending=${this.page.ascending}`, queryParamsHandling: 'merge', });
   

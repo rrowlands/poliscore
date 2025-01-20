@@ -23,6 +23,7 @@ import us.poliscore.model.LegislativeChamber;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
 import us.poliscore.model.Persistable;
+import us.poliscore.model.TrackedIssue;
 
 @Data
 @DynamoDbBean
@@ -107,7 +108,7 @@ public class Bill implements Persistable {
 		return Integer.valueOf(session.getNumber()).equals(this.session);
 	}
 	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_IMPORTANCE_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
 	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return introducedDate; }
@@ -116,10 +117,28 @@ public class Bill implements Persistable {
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return interpretation.getRating(); }
 	@JsonIgnore public void setRating(int rating) { }
 	
+	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPACT_INDEX }) public int getImpact() { return getImpact(TrackedIssue.OverallBenefitToSociety); }
+	public void setImpact(int rating) { }
+	
+	public static String generateId(int congress, BillType type, int number)
+	{
+		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + congress + "/" + type.getName().toLowerCase() + "/" + number;
+	}
+	
+	public int getImpact(TrackedIssue issue)
+	{
+		return calculateImpact(interpretation.getIssueStats().getStat(issue), status.getProgress(), getCosponsorPercent());
+	}
+	
+	public static int calculateImpact(int rating, float statusProgress, float cosponsorPercent)
+	{
+		return Math.round( (float)rating*1.2f + (statusProgress*160f) + (cosponsorPercent*50) );
+	}
+	
 	/*
 	 * A percentage of how much of the chamber has cosponsored the bill. In the house this number is 435. In the senate this is 100.
 	 */
-	private float getCosponsorPercent()
+	public float getCosponsorPercent()
 	{
 		float percent;
 		
@@ -133,14 +152,6 @@ public class Bill implements Persistable {
 		}
 		
 		return percent;
-	}
-	
-	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPORTANCE_INDEX }) public int getImportance() { return Math.abs((int)( (float)interpretation.getRating()*1.2f + ((status.getProgress())*160f) + (getCosponsorPercent()*50) )); }
-	public void setImportance(int rating) { }
-	
-	public static String generateId(int congress, BillType type, int number)
-	{
-		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + congress + "/" + type.getName().toLowerCase() + "/" + number;
 	}
 	
 	public static BillType billTypeFromId(String poliscoreId) {

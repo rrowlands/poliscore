@@ -271,8 +271,8 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 			return "rating";
 		} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
 			return "location";
-		} else if (index.equals(Persistable.OBJECT_BY_IMPORTANCE_INDEX)) {
-			return "importance";
+		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX)) {
+			return "impact";
 		} else {
 			throw new UnsupportedOperationException();
 		}
@@ -285,7 +285,7 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 			return av.n();
 		} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
 			return av.s();
-		} else if (index.equals(Persistable.OBJECT_BY_IMPORTANCE_INDEX)) {
+		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX)) {
 			return av.n();
 		} else {
 			throw new UnsupportedOperationException();
@@ -330,7 +330,7 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 				map.put(fieldForIndex(index), AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
 			} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
 				map.put(fieldForIndex(index), AttributeValue.fromS(exclusiveStartKey.split("~`~")[1]));
-			} else if (index.equals(Persistable.OBJECT_BY_IMPORTANCE_INDEX)) {
+			} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX)) {
 				map.put(fieldForIndex(index), AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
 			}
 			

@@ -92,11 +92,7 @@ public class Lambda {
     	if (op.isPresent()) {
     		val leg = op.get();
     		
-    		linkInterpBills(leg);
-    		
-//    		leg.setInteractions(leg.getInteractions().stream()
-//    				.sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed())
-//    				.limit(25).collect(Collectors.toCollection(LegislatorBillInteractionSet::new)));
+    		LegislatorBillLinker.linkInterpBills(leg);
     		
     		var page = filterInteractions(leg, index, sortKey, pageSize, ascending, exclusiveStartKey);
     		
@@ -104,39 +100,6 @@ public class Lambda {
     	}
     	
     	return op.orElse(null);
-    }
-    
-    private void linkInterpBills(Legislator leg) {
-//		try
-//		{
-//			var exp = leg.getInterpretation().getLongExplain();
-//			
-//			for (val interact : leg.getInteractions().stream().sorted(Comparator.comparingInt((LegislatorBillInteraction b) -> b.getBillName().length()).reversed()).collect(Collectors.toList())) {
-//				val url = "/" + PoliscoreUtil.DEPLOYMENT_YEAR + "/bill/" + interact.getBillId().replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber() + "/", "");
-//				
-//				var billName = interact.getBillName();
-//				if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);
-//				billName = billName.strip();
-//				if (billName.endsWith("."))
-//					billName = billName.substring(0, billName.length() - 1);
-//				
-//				val billId = Bill.billTypeFromId(interact.getBillId()).getName() + "-" + Bill.billNumberFromId(interact.getBillId());
-//				
-//				val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")[^\\d]";
-//				
-//				Pattern pattern = Pattern.compile("(?i)" + billMatchPattern + "", Pattern.CASE_INSENSITIVE);
-//			    Matcher matcher = pattern.matcher(exp);
-//			    while (matcher.find()) {
-//			    	exp = exp.replaceFirst(matcher.group(1), "<a href=\"" + url + "\" >" + billName + "</a>");
-//			    }
-//			}
-//			
-//			leg.getInterpretation().setLongExplain(exp);
-//		} catch (Throwable t) {
-//			Log.error(t);
-//		}
-    	
-    	LegislatorBillLinker.linkInterpBills(leg);
     }
     
     @GET
@@ -178,12 +141,12 @@ public class Lambda {
 			comparator = Comparator.comparing(LegislatorBillInteraction::getDate);
 		} else if (index.equals(Persistable.OBJECT_BY_RATING_INDEX)) {
 			comparator = Comparator.comparing(LegislatorBillInteraction::getRating);
-		} else if (index.equals(Persistable.OBJECT_BY_IMPORTANCE_INDEX)) {
-			comparator = Comparator.comparing(LegislatorBillInteraction::getImportance);
+		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX)) {
+			comparator = Comparator.comparing(LegislatorBillInteraction::getImpact);
 		} else if (index.equals("TrackedIssue")) {
 			var issue = TrackedIssue.valueOf(sortKey);
 			stream = stream.filter(lbi -> lbi.getIssueStats().hasStat(issue));
-			comparator = (LegislatorBillInteraction a, LegislatorBillInteraction b) -> a.getIssueStats().getStat(issue).compareTo(b.getIssueStats().getStat(issue));
+			comparator = (LegislatorBillInteraction a, LegislatorBillInteraction b) -> Integer.valueOf(a.getImpact(issue)).compareTo(b.getImpact(issue));
 		} else {
 			throw new UnsupportedOperationException(index);
 		}

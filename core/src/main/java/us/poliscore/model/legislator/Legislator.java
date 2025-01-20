@@ -62,6 +62,19 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	@Getter(onMethod = @__({ @DynamoDbConvertedBy(CompressedLegislatorBillInteractionListConverter.class), @DdbDataPage }))
 	protected LegislatorBillInteractionList interactions = new LegislatorBillInteractionList();
 	
+	protected LegislatorBillInteractionList interactionsPrivate1 = new LegislatorBillInteractionList();
+	@DdbDataPage
+	@DynamoDbConvertedBy(CompressedLegislatorBillInteractionListConverter.class)
+	private LegislatorBillInteractionList getInteractionsPrivate1() {
+		return interactionsPrivate1;
+	}
+	protected LegislatorBillInteractionList interactionsPrivate2 = new LegislatorBillInteractionList();
+	@DdbDataPage
+	@DynamoDbConvertedBy(CompressedLegislatorBillInteractionListConverter.class)
+	private LegislatorBillInteractionList getInteractionsPrivate2() {
+		return interactionsPrivate2;
+	}
+	
 	@DynamoDbPartitionKey
 	public String getId()
 	{

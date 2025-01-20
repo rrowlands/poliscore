@@ -212,50 +212,10 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		}
 		
 		partyInterp.setLongExplain(interpText);
-		linkPartyBills(partyInterp, sessionInterp);
+		PartyBillLinker.linkPartyBillsSinglePass(partyInterp, sessionInterp, memService, s3);
 		
 		sessionInterp.setMetadata(OpenAIService.metadata());
 	}
-	
-	private void linkPartyBills(PartyInterpretation interp, SessionInterpretation sessionInterp) {
-//		try
-//		{
-//			var exp = interp.getLongExplain();
-//			
-//			for (val bill : memService.query(Bill.class).stream().sorted(Comparator.comparingInt((Bill b) -> b.getName().length()).reversed()).collect(Collectors.toList())) {
-//				val bi = s3.get(BillInterpretation.generateId(bill.getId(), null), BillInterpretation.class);
-//				
-//				if (bi.isPresent()) {
-//					bill.setInterpretation(bi.get());
-//					val id = bill.getId();
-//					var billName = bill.getName();
-//					
-//					val url = "/" + PoliscoreUtil.DEPLOYMENT_YEAR + "/bill/" + id.replace(Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber() + "/", "");
-//					
-//					if (billName.endsWith(".")) billName = billName.substring(0, billName.length() - 1);
-//					billName = billName.strip();
-//					if (billName.endsWith("."))
-//						billName = billName.substring(0, billName.length() - 1);
-//					
-//					val billId = Bill.billTypeFromId(id).getName() + "-" + Bill.billNumberFromId(id);
-//					
-//					val billMatchPattern = "(" + Pattern.quote(billName) + "|" + Pattern.quote(billId) + ")[^\\d]";
-//					
-//					Pattern pattern = Pattern.compile("(?i)" + billMatchPattern + "", Pattern.CASE_INSENSITIVE);
-//				    Matcher matcher = pattern.matcher(exp);
-//				    while (matcher.find()) {
-//				    	exp = exp.replaceFirst(matcher.group(1), "<a href=\"" + url + "\" >" + billName + "</a>");
-//				    }
-//				}
-//			}
-//			
-//			interp.setLongExplain(exp);
-//		} catch (Throwable t) {
-//			Log.error(t);
-//		}
-		
-		PartyBillLinker.linkPartyBillsSinglePass(interp, sessionInterp, memService, s3);
-    }
 
 	private void importBill(final BatchOpenAIResponse resp) {
 		String billId = resp.getCustom_id().replace(BillInterpretation.ID_CLASS_PREFIX, Bill.ID_CLASS_PREFIX);

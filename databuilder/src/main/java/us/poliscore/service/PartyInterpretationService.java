@@ -50,7 +50,7 @@ public class PartyInterpretationService {
 			
 			{{stats}}
 			
-			Based on these scores, this party has received the overall letter grade: {{letterGrade}}. You will be given summaries of bills this party has introduced within this congressional session, sorted by two different scoring and sorting mechanisms: rating and importance. Rating was calculated by directly sorting the bills based on the \"Overall Benefit to Society\" metric. Importance is a metric which factors in rating, number of cosponsors, and how far the bill made it through the legislative process (i.e. laws are more important than bills). Highest and lowest rated bills can be useful for knowing what the extremes of the party are up to, versus importance is useful for knowing what the party actually found coalitions around. Please generate a layman's, concise, five paragraph, {{analysisType}}. Begin your first paragraph by focusing on higher level goals, highlighting any {{behavior}}, identifying trends, and pointing out major focuses and priorities of the party. Your next three paragraphs will attempt to explain why the party received the scores they did in the following policy areas: [{{highlightPolicyAreas}}] and should reference specific bill titles (in quotes). Do not include the party's policy area grade scores and do not mention their letter grade in your summary.
+			Based on these scores, this party has received the overall letter grade: {{letterGrade}}. You will be given summaries of bills this party has introduced within this congressional session, sorted by two different scoring and sorting mechanisms: rating and impact. Rating was calculated by directly sorting the bills based on the \"Overall Benefit to Society\" metric. Impact is a metric which factors in rating, number of cosponsors, and how far the bill made it through the legislative process (i.e. laws are more important than bills). Highest and lowest rated bills can be useful for knowing what the extremes of the party are up to, versus impact is useful for knowing what the party actually found coalitions around. Please generate a layman's, concise, five paragraph, {{analysisType}}. Begin your first paragraph by focusing on higher level goals, highlighting any {{behavior}}, identifying trends, and pointing out major focuses and priorities of the party. Your next three paragraphs will attempt to explain why the party received the scores they did in the following policy areas: [{{highlightPolicyAreas}}] and should reference specific bill titles (in quotes). Do not include the party's policy area grade scores and do not mention their letter grade in your summary.
 			""";
 	
 	@Inject
@@ -124,8 +124,8 @@ public class PartyInterpretationService {
 		for(val party : Party.values()) {
 			doublePartyStats.put(party, new DoubleIssueStats());
 			
-			leastImportantBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getImportance)));
-			mostImportantBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getImportance).reversed()));
+			leastImportantBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getImpact)));
+			mostImportantBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getImpact).reversed()));
 			worstBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getRating)));
 			bestBills.put(party, new PriorityQueue<>(Comparator.comparing(PartyBillInteraction::getRating).reversed()));
 			bestLegislators.put(party, new PriorityQueue<>(Comparator.comparing(Legislator::getRating).reversed()));
@@ -154,7 +154,7 @@ public class PartyInterpretationService {
 				val party = sponsor.getTerms().last().getParty();
 				val partyCosponsors = b.getCosponsors().stream().filter(sp -> memService.exists(sp.getId(), Legislator.class) && memService.get(sp.getId(), Legislator.class).get().getParty().equals(party)).toList();
 						
-				val pbi = new PartyBillInteraction(b.getId(), b.getName(), b.getStatus(), b.getType(), b.getIntroducedDate(), b.getSponsor(), partyCosponsors, b.getRating(), b.getImportance(), interp.getShortExplain());
+				val pbi = new PartyBillInteraction(b.getId(), b.getName(), b.getStatus(), b.getType(), b.getIntroducedDate(), b.getSponsor(), partyCosponsors, b.getRating(), b.getImpact(), interp.getShortExplain());
 				mostImportantBills.get(party).add(pbi);
 				leastImportantBills.get(party).add(pbi);
 				bestBills.get(party).add(pbi);
@@ -162,7 +162,7 @@ public class PartyInterpretationService {
 				
 				for(val issue : TrackedIssue.values())
 				{
-					var issuePbi = new PartyBillInteraction(b.getId(), b.getName(), b.getStatus(), b.getType(), b.getIntroducedDate(), b.getSponsor(), partyCosponsors, interp.getIssueStats().getStat(issue), b.getImportance(), interp.getShortExplain());
+					var issuePbi = new PartyBillInteraction(b.getId(), b.getName(), b.getStatus(), b.getType(), b.getIntroducedDate(), b.getSponsor(), partyCosponsors, interp.getIssueStats().getStat(issue), b.getImpact(issue), interp.getShortExplain());
 					bestBillsByIssue.get(party).get(issue).offer(issuePbi);
 					worstBillsByIssue.get(party).get(issue).offer(issuePbi);
 				}

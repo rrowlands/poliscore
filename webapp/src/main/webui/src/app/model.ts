@@ -1,6 +1,6 @@
 
 export interface Bill {
-  importance: number;
+  impact: number;
   name: string;
   number: number;
   type: string;
@@ -100,7 +100,7 @@ export interface IssueStats {
 }
 
 export class Page {
-  index?: "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImportance";
+  index?: "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImpact";
   ascending?: boolean;
   pageSize?: number;
   exclusiveStartKey?: string | number;

@@ -11,9 +11,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 /*
  * Goals:
  * 1. Display bill status as a text on the bill page (similar to congress's "bill tracker" feature)
- * 2. Sort bills by "importance" which ranks bills higher if they're further along in the process
+ * 2. Sort bills by "impact" which ranks bills higher if they're further along in the process
  * 3. Highlight laws in the bills list and rank them super high
- * 4. Sort by importance when interpreting legislators and tell AI what the progress is and if its a law
+ * 4. Sort by impact when interpreting legislators and tell AI what the progress is and if its a law
  * 5. Should work with state legislatures as well (not all have house/senate)
  */
 @Data

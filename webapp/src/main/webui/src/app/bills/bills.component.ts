@@ -42,7 +42,7 @@ export class BillsComponent implements OnInit {
   private lastDataFetchSequence: number = 0;
 
   public page: Page = {
-    index: "ObjectsByImportance",
+    index: "ObjectsByImpact",
     ascending: false,
     pageSize: 25
   };
@@ -55,9 +55,9 @@ export class BillsComponent implements OnInit {
 
     let routeIndex = this.route.snapshot.paramMap.get('index') as string;
     let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
-    if ( (routeIndex === "byimportance" || routeIndex === "byrating" || routeIndex === "bydate") && routeAscending != null) {
-      if (routeIndex === "byimportance") {
-        this.page.index = "ObjectsByImportance";
+    if ( (routeIndex === "byimpact" || routeIndex === "byrating" || routeIndex === "bydate") && routeAscending != null) {
+      if (routeIndex === "byimpact") {
+        this.page.index = "ObjectsByImpact";
       } else if (routeIndex === "byrating") {
         this.page.index = "ObjectsByRating";
       } else if (routeIndex === "bydate") {
@@ -117,8 +117,8 @@ export class BillsComponent implements OnInit {
         this.page.exclusiveStartKey = lastBill.id + sep + lastBill.introducedDate;
       } else if (this.page.index === "ObjectsByRating") {
         this.page.exclusiveStartKey = lastBill.id + sep + getBenefitToSocietyIssue(lastBill.interpretation!.issueStats)[1];
-      } else if (this.page.index === "ObjectsByImportance") {
-         this.page.exclusiveStartKey = lastBill.id + sep + lastBill.importance;
+      } else if (this.page.index === "ObjectsByImpact") {
+         this.page.exclusiveStartKey = lastBill.id + sep + lastBill.impact;
       } else {
         console.log("Unknown page index: " + this.page.index);
         return
@@ -140,7 +140,7 @@ export class BillsComponent implements OnInit {
     }
   }
 
-  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByImportance") {
+  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByImpact") {
     this.page.ascending = (index == this.page.index) ? !this.page.ascending : false;
     this.page.index = index;
     this.page.exclusiveStartKey = undefined;
@@ -149,13 +149,13 @@ export class BillsComponent implements OnInit {
 
     this.bills= [];
 
-    let routeIndex = "byimportance";
+    let routeIndex = "byimpact";
     if (this.page.index === "ObjectsByDate") {
       routeIndex = "bydate";
     } else if (this.page.index === "ObjectsByRating") {
       routeIndex = "byrating";
-    } else if (this.page.index === "ObjectsByImportance") {
-      routeIndex = "byimportance";
+    } else if (this.page.index === "ObjectsByImpact") {
+      routeIndex = "byimpact";
     }
 
     this.router.navigate(['/bills', routeIndex, this.page.ascending? "ascending" : "descending"]);

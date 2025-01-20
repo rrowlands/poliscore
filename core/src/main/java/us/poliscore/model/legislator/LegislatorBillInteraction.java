@@ -26,6 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Persistable;
+import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
@@ -62,11 +63,10 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	protected String billName;
 	
 	@EqualsAndHashCode.Exclude
-	@Getter(onMethod = @__({ @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPORTANCE_INDEX }) }))
-	protected int importance;
+	protected float statusProgress;
 	
 	@EqualsAndHashCode.Exclude
-	protected float statusProgress;
+	protected float cosponsorPercent;
 	
 //	@NonNull
 //	protected String billDescription;
@@ -125,8 +125,8 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 		this.setIssueStats(interp.getIssueStats());
 		this.setShortExplain(interp.getShortExplain());
 		this.setBillName(bill.getName());
-		this.setImportance(Math.abs(Math.round(bill.getImportance() * getJudgementWeight())));
 		this.setStatusProgress(bill.getStatus().getProgress());
+		this.setCosponsorPercent(bill.getCosponsorPercent());
 	}
 	
 	@DynamoDbPartitionKey
@@ -157,6 +157,15 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return Math.round(Math.abs(issueStats == null ? 0 : issueStats.getRating() * getJudgementWeight())); }
 	@JsonIgnore public void setRating(int rating) { }
+	
+	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPACT_INDEX })
+	@JsonIgnore public int getImpact() { return getImpact(TrackedIssue.OverallBenefitToSociety); }
+	@JsonIgnore public int getOverallImpact() { return getImpact(); }
+	
+	public int getImpact(TrackedIssue issue)
+	{
+		return Math.round( (float)Bill.calculateImpact(issueStats.getStat(issue), statusProgress, cosponsorPercent) * getJudgementWeight() );
+	}
 	
 	@Data
 	@EqualsAndHashCode(callSuper=true)

@@ -188,7 +188,7 @@ Based on these scores, this legislator has received the overall letter grade: {{
 		for (LegislatorBillInteraction interact : getInteractionsForInterpretation(leg)) {
 			if (interact.getIssueStats() != null) {
 				for (TrackedIssue issue : interact.getIssueStats().getStats().keySet()) {
-					val heap = heaps.getOrDefault(issue, new PriorityQueue<LegislatorBillInteraction>((a,b) -> b.getRating() - a.getRating()));
+					val heap = heaps.getOrDefault(issue, new PriorityQueue<LegislatorBillInteraction>((a,b) -> b.getImpact(issue) - a.getImpact(issue)));
 					
 					heap.add(interact);
 					

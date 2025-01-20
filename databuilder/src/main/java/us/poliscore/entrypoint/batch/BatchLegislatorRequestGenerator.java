@@ -130,7 +130,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		
 		// Start with top 10 most important bills
 		billMsgs.add("Most Overall Influential Bills This Session:");
-		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getImportance).reversed()).limit(10).collect(Collectors.toList()))
+		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getOverallImpact).reversed()).limit(10).collect(Collectors.toList()))
 		{
 			val bill = memService.get(interact.getBillId(), Bill.class).orElseThrow();
 			val billMsg = "- " + interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();

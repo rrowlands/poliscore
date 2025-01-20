@@ -143,7 +143,7 @@ public class SessionInterpretation implements Persistable {
 		protected Integer rating;
 		
 		@EqualsAndHashCode.Exclude
-		protected Integer importance;
+		protected Integer impact;
 		
 		@EqualsAndHashCode.Exclude
 		protected String shortExplain;
@@ -156,13 +156,13 @@ public class SessionInterpretation implements Persistable {
 		
 		@DynamoDbIgnore
 		@JsonIgnore
-		public Integer getImportance() {
-			return importance;
+		public Integer getImpact() {
+			return impact;
 		}
 
 		@Override
 		public int compareTo(PartyBillInteraction o) {
-			return getImportance().compareTo(o.getImportance());
+			return getImpact().compareTo(o.getImpact());
 		}
 	}
 	
