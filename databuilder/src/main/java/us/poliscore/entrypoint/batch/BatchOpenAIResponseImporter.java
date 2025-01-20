@@ -149,10 +149,6 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			throw new RuntimeException("Encountered errors on " + erroredLines.size() + " lines. Printed them to " + f.getAbsolutePath());
 		}
 		
-		// These indexes can't be created here because they might not have all the required data
-//		legService.generateLegislatorWebappIndex();
-//		billService.generateBillWebappIndex();
-		
 		Log.info("Successfully imported " + input.getAbsolutePath());
 	}
 	
@@ -181,12 +177,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		s3.put(interp);
 		
-		// TODO : Spread this across multiple pages. We want all their interactions
-		// 1100 seems to be about an upper limit for a single ddb page
 		leg.setInteractions(legInterp.getInteractionsForInterpretation(leg).stream()
 				.filter(i -> i.getIssueStats() != null)
 				.sorted((a,b) -> a.getDate().compareTo(b.getDate())).limit(1100).collect(Collectors.toCollection(LegislatorBillInteractionList::new)));
-//		leg.setInteractions(interacts);
 		
 		leg.setInterpretation(interp);
 		

@@ -82,7 +82,7 @@ public class Lambda {
     @GET
     @Path("getLegislator")
     public Legislator getLegislator(@NonNull @RestQuery String id, @RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") Integer _exclusiveStartKey, @RestQuery String sortKey) {
-    	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
+    	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_IMPACT_INDEX;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
     	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
     	int exclusiveStartKey = (_exclusiveStartKey == null) ? -1 : _exclusiveStartKey;
@@ -163,7 +163,7 @@ public class Lambda {
 			interacts.add(allInteracts.get(i));
 		}
 		
-		page.setHasMoreData((interacts.size() + 1 + exclusiveStartKey) < leg.getInteractions().size());
+		page.setHasMoreData((interacts.size() + 1 + exclusiveStartKey) < allInteracts.size());
 		
 		return page;
     }

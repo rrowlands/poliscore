@@ -32,7 +32,7 @@ mat-card {
 }
 
 .sorting {
-    margin-top: -10px;
+    margin-top: 10px;
 }
 
 .sorting mat-button-toggle {
@@ -167,17 +167,33 @@ h1 {
         margin-left: calc(50vw - 180px);
     }
 }
-@media screen and (min-width: 450px) {
+@media screen and (min-width: 0px) {
     .sorting-inner {
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
     }
 }
-@media screen and (max-width: 400px) {
+@media screen and (min-width: 570px) {
+    .table-header {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        flex-grow: 1;
+    }
+    .sorting {
+        flex-direction: row-reverse !important;
+        flex-grow: 1;
+    }
     .sorting-inner {
         margin-right: -10px;
     }
+    .sorting {
+        margin-top: -10px;
+    }
+}
+@media screen and (max-width: 400px) {
+    
 }
 
 

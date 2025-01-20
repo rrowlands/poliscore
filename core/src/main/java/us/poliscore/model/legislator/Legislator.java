@@ -3,8 +3,11 @@ package us.poliscore.model.legislator;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.AllArgsConstructor;
@@ -28,6 +31,7 @@ import us.poliscore.model.Persistable;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.CompressedLegislatorBillInteractionListConverter;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorBillInteractionSetConverterProvider;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorLegislativeTermSortedSetConverter;
+import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
 import us.poliscore.model.dynamodb.*;
 
 @Data
@@ -58,21 +62,39 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	@Getter(onMethod = @__({ @DynamoDbConvertedBy(LegislatorLegislativeTermSortedSetConverter.class) }))
 	protected LegislatorLegislativeTermSortedSet terms;
 	
-	@NonNull
-	@Getter(onMethod = @__({ @DynamoDbConvertedBy(CompressedLegislatorBillInteractionListConverter.class), @DdbDataPage }))
-	protected LegislatorBillInteractionList interactions = new LegislatorBillInteractionList();
-	
-	protected LegislatorBillInteractionList interactionsPrivate1 = new LegislatorBillInteractionList();
+	private LegislatorBillInteractionList interactionsPrivate1 = new LegislatorBillInteractionList();
 	@DdbDataPage
 	@DynamoDbConvertedBy(CompressedLegislatorBillInteractionListConverter.class)
-	private LegislatorBillInteractionList getInteractionsPrivate1() {
+	@JsonIgnore
+	public LegislatorBillInteractionList getInteractionsPrivate1() {
 		return interactionsPrivate1;
 	}
-	protected LegislatorBillInteractionList interactionsPrivate2 = new LegislatorBillInteractionList();
-	@DdbDataPage
+	private LegislatorBillInteractionList interactionsPrivate2 = new LegislatorBillInteractionList();
+	@DdbDataPage("2")
 	@DynamoDbConvertedBy(CompressedLegislatorBillInteractionListConverter.class)
-	private LegislatorBillInteractionList getInteractionsPrivate2() {
+	@JsonIgnore
+	public LegislatorBillInteractionList getInteractionsPrivate2() {
 		return interactionsPrivate2;
+	}
+	
+	@JsonProperty
+	public LegislatorBillInteractionList getInteractions()
+	{
+		var result = new LegislatorBillInteractionList();
+		result.addAll(interactionsPrivate1);
+		result.addAll(interactionsPrivate2);
+		return result;
+	}
+	
+	@JsonProperty
+	public void setInteractions(LegislatorBillInteractionList list)
+	{
+		interactionsPrivate1 = new LegislatorBillInteractionList();
+		interactionsPrivate1.addAll(list.subList(0, Math.min(1000, list.size())));
+		
+		interactionsPrivate2 = new LegislatorBillInteractionList();
+		if (list.size() > 1000)
+			interactionsPrivate2.addAll(list.subList(1000, list.size()));
 	}
 	
 	@DynamoDbPartitionKey
@@ -88,6 +110,12 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	
 	public void addBillInteraction(LegislatorBillInteraction incoming)
 	{
+		var interactions = interactionsPrivate1;
+		if (interactions.size() >= 1000)
+		{
+			interactions = interactionsPrivate2;
+		}
+		
 		interactions.removeIf(existing -> incoming.supercedes(existing));
 		
 		if (!interactions.contains(incoming)) {
