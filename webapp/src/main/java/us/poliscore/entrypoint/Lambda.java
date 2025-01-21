@@ -84,13 +84,16 @@ public class Lambda {
     public Legislator getLegislator(@NonNull @RestQuery String id, @RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") Integer _exclusiveStartKey, @RestQuery String sortKey) {
     	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_IMPACT_INDEX;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
-    	Boolean ascending = _ascending == null ? Boolean.TRUE : _ascending;
+    	Boolean ascending = _ascending == null ? Boolean.FALSE : _ascending;
     	int exclusiveStartKey = (_exclusiveStartKey == null) ? -1 : _exclusiveStartKey;
     	
     	val op = ddb.get(id, Legislator.class);
     	
     	if (op.isPresent()) {
     		val leg = op.get();
+    		
+    		if (_ascending == null && leg.getInterpretation().getRating() < 0)
+    			ascending = Boolean.TRUE;
     		
     		LegislatorBillLinker.linkInterpBills(leg);
     		

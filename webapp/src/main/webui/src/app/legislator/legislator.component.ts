@@ -161,7 +161,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
 
   public page: Page = {
     index: "ObjectsByImpact",
-    ascending: false,
+    ascending: undefined,
     pageSize: 25
   };
 
@@ -178,7 +178,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
     const params = new URLSearchParams(fragment || '');
   
     const routeIndex = params.get('sort');
-    const routeAscending = params.get('ascending') === 'true';
+    const routeAscending = params.get('ascending') == null ? undefined : (params.get('ascending') === 'true');
   
     if (routeIndex === "bydate") {
       this.page.index = "ObjectsByDate";
@@ -197,9 +197,12 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   
     this.service.getLegislator(this.legId, this.page).then((leg) => {
       this.leg = leg;
-      this.loading = false;
-  
+      
       if (leg == null) return;
+      this.loading = false;
+
+      if (leg.interpretation != null && leg.interpretation.issueStats.stats['OverallBenefitToSociety'] < 0 && params.get('ascending') == null)
+        this.page.ascending = true;
   
       this.titleService.setTitle(
         leg.name.official_full + " - PoliScore: AI Political Rating Service"
