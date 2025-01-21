@@ -29,10 +29,11 @@
                     <div class="col-left vertical-layout">
                         <h1 class="grade"><p [ngStyle]="{'color': colorForGrade(gradeForLegislator())}">{{gradeForLegislator()}}</p></h1>
                         <h1 class="card-title" style="text-align:center;"><a [href]="'https://www.congress.gov/member/' + leg?.name?.first?.toLowerCase()?.replace(' ', '-') + '-' + leg?.name?.last?.toLowerCase()?.replace(' ', '-') + '/' + leg?.bioguideId">{{leg?.name?.official_full}}</a></h1>
-                        <h3 class="card-subtitle" style="text-align:center;">{{subtitleForLegislator()}}</h3>
+                        <h3 style="text-align:center;">{{subtitleForLegislator()}}</h3>
                         
                         <img class="leg-img img-fluid rounded-start" *ngIf="!leg?.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg?.id + '.jpg'" (error)="legPhotoError(leg)" >
                         <img class="leg-img img-fluid rounded-start" style="max-height:360px;" *ngIf="leg && leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>
+                        <h4 *ngIf="leg" class="card-subtitle" style="text-align:center; font-size: 0.9em;">{{leg!.terms[leg.terms.length-1].party | titlecase}}</h4>
 
                         <p class="reelection" *ngIf="upForReelection()">Up for reelection in November</p>
                     </div>
