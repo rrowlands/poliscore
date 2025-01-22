@@ -53,7 +53,7 @@
                             <span><p>{{descriptionForLegislator(leg)}}</p></span>
                         </mat-card-content>
                         <mat-card-footer class="horizontal-layout" style="justify-content: space-between;">
-                            <p class="reelection"><span >Up for reelection in Nov</span></p>
+                            <p class="reelection"><span *ngIf="upForReelection(leg)">Up for reelection in Nov</span></p>
                             <p class="party">{{leg.terms[leg.terms.length-1].party | titlecase}}</p>
                         </mat-card-footer>
                     </div>
