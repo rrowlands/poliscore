@@ -31,8 +31,11 @@ public class DoubleIssueStats {
 	protected Map<TrackedIssue, Double> totalSummed;
 	
 	@JsonIgnore
-	public String getLetterGrade() {
-		double credit = this.getRating();
+	public String getLetterGrade() { return getLetterGrade(TrackedIssue.OverallBenefitToSociety); }
+	
+	@JsonIgnore
+	public String getLetterGrade(TrackedIssue issue) {
+		double credit = this.getStat(issue);
 		
 		if (credit >= 40) return "A";
 		else if (credit >= 30 && credit < 40) return "B";

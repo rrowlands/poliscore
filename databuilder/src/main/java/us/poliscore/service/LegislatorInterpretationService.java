@@ -180,41 +180,25 @@ Based on these scores, this legislator has received the overall letter grade: {{
 		return stats;
 	}
 	
-	public Map<TrackedIssue, List<LegislatorBillInteraction>> calculateTopInteractions(Legislator leg) {
-		val result = new HashMap<TrackedIssue, List<LegislatorBillInteraction>>();
-		
-		val heaps = new HashMap<TrackedIssue, PriorityQueue<LegislatorBillInteraction>>();
-		
-		for (LegislatorBillInteraction interact : getInteractionsForInterpretation(leg)) {
-			if (interact.getIssueStats() != null) {
-				for (TrackedIssue issue : interact.getIssueStats().getStats().keySet()) {
-					val heap = heaps.getOrDefault(issue, new PriorityQueue<LegislatorBillInteraction>((a,b) -> b.getImpact(issue) - a.getImpact(issue)));
-					
-					heap.add(interact);
-					
-					heaps.put(issue, heap);
-				}
-			}
-		}
-		
-		for (val issue : TrackedIssue.values()) {
-			val list = new ArrayList<LegislatorBillInteraction>();
-			
-			if (heaps.containsKey(issue)) {
-				for (int i = 0; i < 100; ++i) {
-					val heap = heaps.get(issue);
-					
-					if (!heap.isEmpty()) {
-						list.add(heap.poll());
-					}
-				}
-			}
-			
-			result.put(issue, list);
-		}
-		
-		return result;
-	}
+//	public Map<TrackedIssue, List<LegislatorBillInteraction>> calculateTopInteractions(Legislator leg) {
+//		val result = new HashMap<TrackedIssue, List<LegislatorBillInteraction>>();
+//		
+//		for (val issue : TrackedIssue.values()) {
+//			val list = new ArrayList<LegislatorBillInteraction>();
+//			
+//			for (LegislatorBillInteraction interact : getInteractionsForInterpretation(leg)) {
+//				if (interact.getIssueStats() != null) {
+//					list.add(interact);
+//				}
+//			}
+//			
+//			list.sort(Comparator.comparingInt(i -> Math.round(i.getRating(issue))));
+//			
+//			result.put(issue, list);
+//		}
+//		
+//		return result;
+//	}
 	
 //	protected LegislatorInterpretation interpret(Legislator leg)
 //	{

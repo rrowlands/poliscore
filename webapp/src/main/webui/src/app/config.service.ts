@@ -23,13 +23,15 @@ export class ConfigService {
 
   public getYear(): number
   {
-    if (isPlatformBrowser(this.platformId)) {
-      const baseHref = document.querySelector('base')?.getAttribute('href') || '/';
-      const yearMatch = baseHref.match(/^\/(\d{4})\/$/); // Match "/2024/" or similar
-      return yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear(); // Default to current year
-    } else {
-      return new Date().getFullYear();
-    }
+    // if (isPlatformBrowser(this.platformId)) {
+    //   const baseHref = document.querySelector('base')?.getAttribute('href') || '/';
+    //   const yearMatch = baseHref.match(/^\/(\d{4})\/$/); // Match "/2024/" or similar
+    //   return yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear(); // Default to current year
+    // } else {
+    //   return new Date().getFullYear();
+    // }
+
+    return 2024;
   }
 
   public yearToCongressStr(year: string): string

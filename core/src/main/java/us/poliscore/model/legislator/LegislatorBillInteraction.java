@@ -155,7 +155,7 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
 	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
 	
-	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return Math.round(Math.abs(issueStats == null ? 0 : issueStats.getRating() * getJudgementWeight())); }
+	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return getRating(TrackedIssue.OverallBenefitToSociety); }
 	@JsonIgnore public void setRating(int rating) { }
 	
 	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPACT_INDEX })
@@ -165,6 +165,11 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	public int getImpact(TrackedIssue issue)
 	{
 		return Math.round( (float)Bill.calculateImpact(issueStats.getStat(issue), statusProgress, cosponsorPercent) * getJudgementWeight() );
+	}
+	
+	public int getRating(TrackedIssue issue)
+	{
+		return Math.round(Math.abs(issueStats == null ? 0 : issueStats.getStat(issue) * getJudgementWeight()));
 	}
 	
 	@Data

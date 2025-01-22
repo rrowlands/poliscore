@@ -21,7 +21,6 @@ import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 const floatingLabelsPlugin = {
   id: 'floating-labels',
   afterDatasetsDraw: function (chart: Chart) {
-    console.log(chart);
 
     const ctx = chart.ctx;
     ctx.fillStyle = 'rgb(255, 255, 255)';

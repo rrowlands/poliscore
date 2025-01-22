@@ -152,7 +152,6 @@ export class SessionStatsComponent {
   }
 
   public getData() {
-    console.log(this.stats);
     return ((this.stats! as any)[this.party.toLowerCase()] as any)[this.sort];
   }
 

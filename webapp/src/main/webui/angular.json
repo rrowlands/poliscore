@@ -21,6 +21,7 @@
             "outputPath": "dist/poliscore",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            "sourceMap": true,
             "polyfills": [
               "zone.js"
             ],

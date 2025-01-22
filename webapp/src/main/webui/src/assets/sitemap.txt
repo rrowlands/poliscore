@@ -343,6 +343,7 @@ https://poliscore.us/2024/legislator/H001068
 https://poliscore.us/2024/legislator/K000377
 https://poliscore.us/2024/legislator/D000616
 https://poliscore.us/2024/legislator/C001113
+https://poliscore.us/2024/legislator/L000604
 https://poliscore.us/2024/legislator/B001311
 https://poliscore.us/2024/legislator/P000607
 https://poliscore.us/2024/legislator/R000618
@@ -404,6 +405,7 @@ https://poliscore.us/2024/legislator/F000446
 https://poliscore.us/2024/legislator/P000616
 https://poliscore.us/2024/legislator/S001156
 https://poliscore.us/2024/legislator/H001058
+https://poliscore.us/2024/legislator/R000619
 https://poliscore.us/2024/legislator/L000582
 https://poliscore.us/2024/legislator/M001214
 https://poliscore.us/2024/legislator/B001288
@@ -493,6 +495,7 @@ https://poliscore.us/2024/legislator/S001225
 https://poliscore.us/2024/legislator/T000487
 https://poliscore.us/2024/legislator/B001223
 https://poliscore.us/2024/legislator/G000061
+https://poliscore.us/2024/legislator/W000829
 https://poliscore.us/2024/legislator/F000475
 https://poliscore.us/2024/legislator/S001208
 https://poliscore.us/2024/legislator/S001191
@@ -533,10 +536,12 @@ https://poliscore.us/2024/legislator/A000371
 https://poliscore.us/2024/legislator/B001299
 https://poliscore.us/2024/legislator/S001209
 https://poliscore.us/2024/legislator/F000480
+https://poliscore.us/2024/legislator/H001097
 https://poliscore.us/2024/legislator/G000574
 https://poliscore.us/2024/legislator/M001220
 https://poliscore.us/2024/legislator/H001089
 https://poliscore.us/2024/legislator/C001132
+https://poliscore.us/2024/legislator/L000605
 https://poliscore.us/2024/legislator/D000629
 https://poliscore.us/2024/legislator/P000614
 https://poliscore.us/2024/legislator/S001195
@@ -587,6 +592,7 @@ https://poliscore.us/2024/legislator/K000401
 https://poliscore.us/2024/legislator/F000478
 https://poliscore.us/2024/legislator/M001226
 https://poliscore.us/2024/legislator/S001223
+https://poliscore.us/2024/legislator/M001229
 https://poliscore.us/2024/legislator/H001090
 https://poliscore.us/2024/legislator/L000599
 https://poliscore.us/2024/legislator/U000040

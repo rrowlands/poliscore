@@ -101,14 +101,14 @@ public class WebappDataGenerator implements QuarkusApplication
 		// All legislator routes
 		routes.add("/legislators");
 		memService.query(Legislator.class).stream()
-			.filter(l -> l.isMemberOfSession(CongressionalSession.S118) && s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class))
+			.filter(l -> l.isMemberOfSession(PoliscoreUtil.CURRENT_SESSION) && s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 			.forEach(l -> routes.add("/legislator/" + l.getBioguideId()));
 		
 		// All bills
 		routes.add("/bills");
 		memService.query(Bill.class).stream()
-			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
+			.filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 			.forEach(b -> routes.add("/bill/" + b.getType().getName().toLowerCase() + "/" + b.getNumber()));
 		

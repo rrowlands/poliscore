@@ -80,7 +80,8 @@ export class BillComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.isSmallScreen = window.innerWidth < 600;
+    if (isPlatformBrowser(this._platformId))
+      this.isSmallScreen = window.innerWidth < 600;
 
     this.billId = (this.route.snapshot.paramMap.get('id') as string);
     if (!this.billId.startsWith("BIL/us/congress")) {
@@ -89,6 +90,9 @@ export class BillComponent implements OnInit {
 
     this.service.getBill(this.billId).then(bill => {
       this.bill = bill;
+
+      if (bill == null)
+        throw new Error("Backend did not return a bill for [" + this.billId + "]");
 
       if (bill.interpretation == null || bill.interpretation.longExplain == null || bill.interpretation.longExplain.length == 0
         || bill.interpretation.shortExplain == null || bill.interpretation.shortExplain.length == 0

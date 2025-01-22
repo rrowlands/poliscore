@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -97,11 +98,11 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		for (Legislator l : memService.query(Legislator.class).stream()
 				.filter(l -> 
 					l.getInteractions().size() > 0
-//					&& (l.getBioguideId().equals("F000476") || l.getBioguideId().equals("O000172"))
+					&& (l.getBioguideId().equals("R000595") || l.getBioguideId().equals("B001302"))
 					&& (!CHECK_S3_EXISTS || !s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class))
 				)
 				.sorted(Comparator.comparing(Legislator::getDate).reversed())
-//				.limit(2)
+				.limit(2)
 				.toList()) {
 			interpret(l);
 			
@@ -123,14 +124,98 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		
 		DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
 		
-		val topInteractions = legInterp.calculateTopInteractions(leg);
-		
 		List<String> billMsgs = new ArrayList<String>();
 		Set<String> includedBills = new HashSet<String>();
 		
-		// Start with top 10 most important bills
-		billMsgs.add("Most Overall Influential Bills This Session:");
-		for (val interact : leg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getOverallImpact).reversed()).limit(10).collect(Collectors.toList()))
+		// Start with top most impactful bills
+		billMsgs.add("Legislator's Most Impactful Bills This Session:");
+		if (stats.getLetterGrade().equals("A") || stats.getLetterGrade().equals("B"))
+			includeBillsByImpact(leg, billMsgs, includedBills, 20, false);
+		else if (stats.getLetterGrade().equals("C")) {
+			includeBillsByImpact(leg, billMsgs, includedBills, 13, false);
+			includeBillsByImpact(leg, billMsgs, includedBills, 7, true);
+		} else if (stats.getLetterGrade().equals("D")) {
+			includeBillsByImpact(leg, billMsgs, includedBills, 7, false);
+			includeBillsByImpact(leg, billMsgs, includedBills, 13, true);
+		} else
+			includeBillsByImpact(leg, billMsgs, includedBills, 20, true);
+			
+		
+		// Include the top bills which explain the legislator's top scoring issues.
+		if (stats.getLetterGrade().equals("A") || stats.getLetterGrade().equals("B"))
+			includeBillsByTopIssues(leg, stats, billMsgs, includedBills, 3, false);
+		else if (stats.getLetterGrade().equals("C")) {
+			includeBillsByTopIssues(leg, stats, billMsgs, includedBills, 2, false);
+			includeBillsByTopIssues(leg, stats, billMsgs, includedBills, 1, true);
+		} else if (stats.getLetterGrade().equals("D")) {
+			includeBillsByTopIssues(leg, stats, billMsgs, includedBills, 1, false);
+			includeBillsByTopIssues(leg, stats, billMsgs, includedBills, 2, true);
+		} else
+			includeBillsByTopIssues(leg, stats, billMsgs, includedBills, 3, true);
+		
+		if (includedBills.size() == 0)
+			return;
+		
+		createRequest(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretationService.getAiPrompt(leg, stats.toIssueStats()), String.join("\n", billMsgs));
+	}
+
+	private void includeBillsByTopIssues(Legislator leg, DoubleIssueStats stats, List<String> billMsgs, Set<String> includedBills, int amount, boolean ascending) {
+		
+		var issues = Arrays.asList(TrackedIssue.values()).stream().filter(i -> !i.equals(TrackedIssue.OverallBenefitToSociety));
+		
+		if (ascending)
+			issues = issues.sorted(Comparator.comparingInt(i -> (int)Math.round(stats.getStat(i))));
+		else
+			issues = issues.sorted(Comparator.comparingInt((TrackedIssue i) -> (int)Math.round(stats.getStat(i))).reversed());
+		
+		for (val issue : issues.limit(amount).collect(Collectors.toList()))
+		{
+			billMsgs.add("\nLargest Contributors To \"" + issue.getName() + "\" Score:");
+			
+			if (stats.getLetterGrade(issue).equals("A") || stats.getLetterGrade(issue).equals("B"))
+				includeBillsByIssue(leg, billMsgs, includedBills, issue, 20, false);
+			else if (stats.getLetterGrade(issue).equals("C")) {
+				includeBillsByIssue(leg, billMsgs, includedBills, issue, 10, false);
+				includeBillsByIssue(leg, billMsgs, includedBills, issue, 10, true);
+			} else if (stats.getLetterGrade(issue).equals("D")) {
+				includeBillsByIssue(leg, billMsgs, includedBills, issue, 13, true);
+				includeBillsByIssue(leg, billMsgs, includedBills, issue, 7, false);
+			} else
+				includeBillsByIssue(leg, billMsgs, includedBills, issue, 20, true);
+		}
+	}
+
+	private void includeBillsByIssue(final Legislator leg, List<String> billMsgs, Set<String> includedBills, final TrackedIssue issue, int amount, boolean ascending) {
+		var interacts = legInterp.getInteractionsForInterpretation(leg).stream().filter(i -> i.getIssueStats() != null && i.getIssueStats().hasStat(issue));
+		if (ascending)
+			interacts = interacts.sorted(Comparator.comparingInt(i -> Math.round(i.getRating(issue) + i.getStatusProgress()*25f*i.getJudgementWeight())));
+//			interacts = interacts.sorted(Comparator.comparingInt(i -> i.getImpact(issue)));
+		else
+			interacts = interacts.sorted(Comparator.comparingInt((LegislatorBillInteraction i) -> Math.round(i.getRating(issue) + i.getStatusProgress()*25f*i.getJudgementWeight())).reversed());
+//			interacts = interacts.sorted(Comparator.comparingInt((LegislatorBillInteraction i) -> i.getImpact(issue)).reversed());
+		
+		for (val interact : interacts.limit(amount).collect(Collectors.toList()))
+		{
+			val bill = memService.get(interact.getBillId(), Bill.class).orElseThrow();
+			
+			String billMsg = "- " + interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
+			
+			if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+				billMsgs.add(billMsg);
+				includedBills.add(interact.getBillId());
+			} else {
+				break;
+			}
+		}
+	}
+
+	private void includeBillsByImpact(Legislator leg, List<String> billMsgs, Set<String> includedBills, int amount, boolean ascending) {
+		var billsByImpact = legInterp.getInteractionsForInterpretation(leg).stream().filter(i -> i.getIssueStats() != null);
+		if (ascending)
+			billsByImpact = billsByImpact.sorted(Comparator.comparing(LegislatorBillInteraction::getOverallImpact));
+		else
+			billsByImpact = billsByImpact.sorted(Comparator.comparing(LegislatorBillInteraction::getOverallImpact).reversed());
+		for (val interact : billsByImpact.limit(amount).collect(Collectors.toList()))
 		{
 			val bill = memService.get(interact.getBillId(), Bill.class).orElseThrow();
 			val billMsg = "- " + interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
@@ -141,37 +226,6 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 				break;
 			}
 		}
-		
-		// Include the top 10 bills which explain the legislator's top 3 scoring issues.
-		for (val issue : topInteractions.keySet().stream()
-				.filter(i -> !i.equals(TrackedIssue.OverallBenefitToSociety))
-				.sorted((a,b) -> (int)Math.round(stats.getStat(b) - stats.getStat(a)))
-				.limit(3)
-				.collect(Collectors.toList()))
-		{
-			boolean wroteHeader = false;
-			
-			for (val interact : topInteractions.get(issue).stream().limit(10).collect(Collectors.toList()))
-			{
-				val bill = memService.get(interact.getBillId(), Bill.class).orElseThrow();
-				
-				String billMsg = "";
-				if (!wroteHeader) {
-					billMsg = "\nLargest Contributors To \"" + issue.getName() + "\" Score:\n";
-					wroteHeader = true;
-				}
-				billMsg += "- " + interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
-				
-				if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
-					billMsgs.add(billMsg);
-					includedBills.add(interact.getBillId());
-				} else {
-					break;
-				}
-			}
-		}
-		
-		createRequest(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretationService.getAiPrompt(leg, stats.toIssueStats()), String.join("\n", billMsgs));
 	}
 
 	private void createRequest(String oid, String sysMsg, String userMsg) {

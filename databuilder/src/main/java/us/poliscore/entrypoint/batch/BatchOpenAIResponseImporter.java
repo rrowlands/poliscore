@@ -27,7 +27,9 @@ import us.poliscore.Environment;
 import us.poliscore.PartyBillLinker;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIResponse;
+import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.DoubleIssueStats;
+import us.poliscore.model.IssueStats;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
 import us.poliscore.model.TrackedIssue;
@@ -59,7 +61,7 @@ import us.poliscore.service.storage.MemoryObjectService;
 @QuarkusMain(name="BatchOpenAIResponseImporter")
 public class BatchOpenAIResponseImporter implements QuarkusApplication
 {
-//	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
+	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/unprocessed.jsonl";
 	
 //	 All Legislators (August 21st)
 //	public static final String INPUT = "/Users/rrowlands/Downloads/batch_P8Wsivj5pgknA2QPVrK9KZJI_output.jsonl";
@@ -67,7 +69,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	// All Legislators (Aug 5th) 
 //	public static final String INPUT = "/Users/rrowlands/Downloads/batch_tUs6UH4XIsYDBjIhbX4Ni9Sq_output.jsonl";
 	
-	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/file-NPxmq8zQKACqaSrTnufd6V.jsonl";
+//	public static final String INPUT = "/Users/rrowlands/dev/projects/poliscore/databuilder/target/file-NPxmq8zQKACqaSrTnufd6V.jsonl";
 	
 	@Inject
 	private CachedDynamoDbService ddb;
@@ -161,7 +163,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		legInterp.updateInteractionsInterp(leg);
 		
-		val interp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class).get();
+		LegislatorInterpretation interp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class)
+				.orElse(new LegislatorInterpretation(leg.getId(), leg.getSession(), OpenAIService.metadata(), null));
+		
 		interp.setHash(legInterp.calculateInterpHashCode(leg));
 		
 		DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
