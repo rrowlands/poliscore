@@ -58,6 +58,8 @@
 /legislators/state/wv
 /legislators/state/wi
 /legislators/state/wy
+/legislators/byimpact/descending
+/legislators/byimpact/ascending
 /legislators/byrating/descending
 /legislators/byrating/ascending
 /legislators/byage/descending

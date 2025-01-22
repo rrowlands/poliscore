@@ -98,11 +98,11 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		for (Legislator l : memService.query(Legislator.class).stream()
 				.filter(l -> 
 					l.getInteractions().size() > 0
-					&& (l.getBioguideId().equals("R000595") || l.getBioguideId().equals("B001302"))
+//					&& (l.getBioguideId().equals("R000614"))
 					&& (!CHECK_S3_EXISTS || !s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class))
 				)
 				.sorted(Comparator.comparing(Legislator::getDate).reversed())
-				.limit(2)
+//				.limit(1)
 				.toList()) {
 			interpret(l);
 			
@@ -127,18 +127,23 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		List<String> billMsgs = new ArrayList<String>();
 		Set<String> includedBills = new HashSet<String>();
 		
-		// Start with top most impactful bills
-		billMsgs.add("Legislator's Most Impactful Bills This Session:");
-		if (stats.getLetterGrade().equals("A") || stats.getLetterGrade().equals("B"))
-			includeBillsByImpact(leg, billMsgs, includedBills, 20, false);
-		else if (stats.getLetterGrade().equals("C")) {
-			includeBillsByImpact(leg, billMsgs, includedBills, 13, false);
-			includeBillsByImpact(leg, billMsgs, includedBills, 7, true);
-		} else if (stats.getLetterGrade().equals("D")) {
-			includeBillsByImpact(leg, billMsgs, includedBills, 7, false);
-			includeBillsByImpact(leg, billMsgs, includedBills, 13, true);
-		} else
-			includeBillsByImpact(leg, billMsgs, includedBills, 20, true);
+		if (stats.getLetterGrade().equals("F")) {
+			// If they got an F we just want to roast them as hard as we can. List their worst bills.
+			includeBillsByGrade(leg, billMsgs, includedBills, 20, true);
+		} else {
+			// Start with top most impactful bills
+			billMsgs.add("Legislator's Most Impactful Bills:");
+			if (stats.getLetterGrade().equals("A") || stats.getLetterGrade().equals("B"))
+				includeBillsByImpact(leg, billMsgs, includedBills, 20, false);
+			else if (stats.getLetterGrade().equals("C")) {
+				includeBillsByImpact(leg, billMsgs, includedBills, 13, false);
+				includeBillsByImpact(leg, billMsgs, includedBills, 7, true);
+			} else if (stats.getLetterGrade().equals("D")) {
+				includeBillsByImpact(leg, billMsgs, includedBills, 7, false);
+				includeBillsByImpact(leg, billMsgs, includedBills, 13, true);
+			} else
+				includeBillsByImpact(leg, billMsgs, includedBills, 20, true);
+		}
 			
 		
 		// Include the top bills which explain the legislator's top scoring issues.
@@ -208,13 +213,38 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 			}
 		}
 	}
+	
+	private void includeBillsByGrade(Legislator leg, List<String> billMsgs, Set<String> includedBills, int amount, boolean ascending) {
+		billMsgs.add("Legislator's " + (ascending ? "Worst" : "Best") + " Bills:");
+		
+		var billsByGrade = legInterp.getInteractionsForInterpretation(leg).stream().filter(i -> i.getIssueStats() != null);
+		
+		if (ascending)
+			billsByGrade = billsByGrade.sorted(Comparator.comparingInt(LegislatorBillInteraction::getRating));
+		else
+			billsByGrade = billsByGrade.sorted(Comparator.comparingInt(LegislatorBillInteraction::getOverallRating).reversed());
+		
+		for (val interact : billsByGrade.limit(amount).collect(Collectors.toList()))
+		{
+			val bill = memService.get(interact.getBillId(), Bill.class).orElseThrow();
+			val billMsg = "- " + interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
+			if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+				billMsgs.add(billMsg);
+				includedBills.add(interact.getBillId());
+			} else {
+				break;
+			}
+		}
+	}
 
 	private void includeBillsByImpact(Legislator leg, List<String> billMsgs, Set<String> includedBills, int amount, boolean ascending) {
 		var billsByImpact = legInterp.getInteractionsForInterpretation(leg).stream().filter(i -> i.getIssueStats() != null);
+		
 		if (ascending)
 			billsByImpact = billsByImpact.sorted(Comparator.comparing(LegislatorBillInteraction::getOverallImpact));
 		else
 			billsByImpact = billsByImpact.sorted(Comparator.comparing(LegislatorBillInteraction::getOverallImpact).reversed());
+		
 		for (val interact : billsByImpact.limit(amount).collect(Collectors.toList()))
 		{
 			val bill = memService.get(interact.getBillId(), Bill.class).orElseThrow();

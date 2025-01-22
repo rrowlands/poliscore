@@ -93,6 +93,8 @@ public class WebappDataGenerator implements QuarkusApplication
 		Arrays.asList(states).stream().forEach(s -> routes.add("/legislators/state/" + s.toLowerCase()));
 		
 		// Sorted Legislators
+		routes.add("/legislators/byimpact/descending");
+		routes.add("/legislators/byimpact/ascending");
 		routes.add("/legislators/byrating/descending");
 		routes.add("/legislators/byrating/ascending");
 		routes.add("/legislators/byage/descending");
