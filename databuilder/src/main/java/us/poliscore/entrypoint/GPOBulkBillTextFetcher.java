@@ -1,13 +1,13 @@
 package us.poliscore.entrypoint;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -46,8 +46,6 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 	
 	public static final String URL_TEMPLATE = "https://www.govinfo.gov/bulkdata/BILLS/{{congress}}/{{session}}/{{type}}/BILLS-{{congress}}-{{session}}-{{type}}.zip";
 	
-	public static int[] FETCH_SESSION = new int[] { 1, 2 };
-	
 	public static List<String> FETCH_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
 	@Inject
@@ -62,7 +60,7 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 		
 		s3.optimizeExists(BillText.class);
 		
-		for (var congress : PoliscoreUtil.SUPPORTED_CONGRESSES)
+		for (var congress : Arrays.asList(PoliscoreUtil.CURRENT_SESSION))
 		{
 			val congressStore = new File(store, String.valueOf(congress.getNumber()));
 			congressStore.mkdir();
@@ -73,7 +71,7 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 				typeStore.mkdir();
 				
 				// Download and unzip
-				for (int session : FETCH_SESSION)
+				for (int session : new int[] { 1, 2 })
 				{
 					val url = URL_TEMPLATE.replaceAll("\\{\\{congress\\}\\}", String.valueOf(congress.getNumber()))
 								.replaceAll("\\{\\{session\\}\\}", String.valueOf(session))
@@ -86,11 +84,19 @@ public class GPOBulkBillTextFetcher implements QuarkusApplication {
 						zip.delete();
 					} else if (zip.exists()) { continue; }
 					
-					Log.info("Downloading " + url + " to " + zip.getAbsolutePath());
-					IOUtils.copy(new URL(url).openStream(), new FileOutputStream(zip));
-					
-					Log.info("Extracting " + zip.getAbsolutePath() + " to " + typeStore.getAbsolutePath());
-					new ZipFile(zip).extractAll(typeStore.getAbsolutePath());
+					try
+					{
+						Log.info("Downloading " + url + " to " + zip.getAbsolutePath());
+						IOUtils.copy(new URL(url).openStream(), new FileOutputStream(zip));
+						
+						Log.info("Extracting " + zip.getAbsolutePath() + " to " + typeStore.getAbsolutePath());
+						new ZipFile(zip).extractAll(typeStore.getAbsolutePath());
+					}
+					catch(FileNotFoundException ex)
+					{
+						if (session != 2) // Session 2 may not exist yet
+							throw ex;
+					}
 				}
 				
 				// Upload to S3

@@ -10,13 +10,17 @@ git pull
 python3 -m venv env
 source env/bin/activate
 
-usc-run govinfo --bulkdata=BILLSTATUS --congress=118
-usc-run bills --govtrack --congres=118
+CONGRESS=119
+
+usc-run govinfo --bulkdata=BILLSTATUS --congress=$CONGRESS
+usc-run bills --govtrack --congress=$CONGRESS
 
 cd ../poliscore
 
 mvn install
 
-cd databuilder && mvn exec:java -Dquarkus.devservices.enabled=false && cd ..
+cd databuilder
+mvn exec:java -Dquarkus.devservices.enabled=false
+cd ..
 
 ./deploy.sh

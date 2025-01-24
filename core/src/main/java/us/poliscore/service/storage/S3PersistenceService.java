@@ -93,7 +93,7 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 	@SneakyThrows
 	public <T extends Persistable> boolean exists(String id, Class<T> clazz)
 	{
-		val idClassPrefix = (String) clazz.getField("ID_CLASS_PREFIX").get(null);
+		val idClassPrefix = Persistable.getClassStorageBucket(clazz);
 		if (objectsInBucket.containsKey(idClassPrefix)) return objectsInBucket.get(idClassPrefix).contains(id);
 		
 		val key = getKey(id);
@@ -120,16 +120,16 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 	
 	@SneakyThrows
 	public <T extends Persistable> void optimizeExists(Class<T> clazz) {
-		val idClassPrefix = (String) clazz.getField("ID_CLASS_PREFIX").get(null);
+		val storageBucket = Persistable.getClassStorageBucket(clazz);
 		
-		if (objectsInBucket.containsKey(idClassPrefix)) return;
+		if (objectsInBucket.containsKey(storageBucket)) return;
 		
-		objectsInBucket.put(idClassPrefix, new HashSet<String>());
+		objectsInBucket.put(storageBucket, new HashSet<String>());
 		
 		String continuationToken = null;
 		do {
 			val builder = ListObjectsV2Request.builder().bucket(BUCKET_NAME)
-					.prefix(idClassPrefix);
+					.prefix(storageBucket);
 			
 			if (continuationToken != null) {
 				builder.continuationToken(continuationToken);
@@ -137,7 +137,7 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 			
 			val resp = getClient().listObjectsV2(builder.build());
 			
-			objectsInBucket.get(idClassPrefix).addAll(resp.contents().stream().map(o -> FilenameUtils.getPath(o.key()) + FilenameUtils.getBaseName(o.key())).toList());
+			objectsInBucket.get(storageBucket).addAll(resp.contents().stream().map(o -> FilenameUtils.getPath(o.key()) + FilenameUtils.getBaseName(o.key())).toList());
 			
 			continuationToken = resp.nextContinuationToken();
 		}
@@ -146,7 +146,7 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 	
 	@SneakyThrows
 	public <T extends Persistable> void clearExistsOptimize(Class<T> clazz) {
-		val idClassPrefix = (String) clazz.getField("ID_CLASS_PREFIX").get(null);
+		val idClassPrefix = Persistable.getClassStorageBucket(clazz);
 		
 		objectsInBucket.remove(idClassPrefix);
 	}

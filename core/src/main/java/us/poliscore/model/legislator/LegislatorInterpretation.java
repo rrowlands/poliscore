@@ -68,9 +68,9 @@ public class LegislatorInterpretation implements Persistable
 	
 	public static String generateId(String legislatorId, String session) { return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + session + "/" + Arrays.asList(legislatorId.split("/")).getLast(); }
 	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX }) public String getStorageBucket() { return ID_CLASS_PREFIX; }
 	
-	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
+	@Override @JsonIgnore public void setStorageBucket(String prefix) { }
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return metadata.getDate(); }
 

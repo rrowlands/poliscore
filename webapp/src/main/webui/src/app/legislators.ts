@@ -1,8 +1,11 @@
-import convertStateCodeToName, { gradeForStats, issueKeyToLabel, issueKeyToLabelSmall, Legislator } from "./model";
+import convertStateCodeToName, { gradeForStats, hasValidInterpretation, issueKeyToLabel, issueKeyToLabelSmall, Legislator } from "./model";
 
 // 
 export function descriptionForLegislator(leg: Legislator, small: boolean = false): string
   {
+    if (!hasValidInterpretation(leg))
+      return "Waiting for more data ...";
+
     var issueStats: any = Object.entries(leg?.interpretation?.issueStats?.stats)
       .filter(kv => kv[0] != "OverallBenefitToSociety")
       .sort((a,b) => Math.abs(b[1] as number) - Math.abs(a[1] as number))
@@ -25,16 +28,8 @@ export function descriptionForLegislator(leg: Legislator, small: boolean = false
 
   export function gradeForLegislator(leg: Legislator): string
   {
-    /*
-    let credit = Object.entries(leg?.interpretation?.issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0][1] as number;
-
-    if (credit >= 50) return "A";
-    else if (credit >= 30 && credit < 50) return "B";
-    else if (credit >= 10 && credit < 30) return "C";
-    else if (credit > 0 && credit < 10) return "D";
-    else if (credit <= 0) return "F";
-    else return "Not enough data";
-    */
+    if (!hasValidInterpretation(leg))
+      return "";
 
     return gradeForStats(leg.interpretation?.issueStats!);
   }

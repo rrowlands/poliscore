@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, Inject, OnInit, PLATFORM_ID, Renderer2, ViewChild } from '@angular/core';
 import { AppService } from '../app.service';
-import convertStateCodeToName, { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade, issueKeyToLabelSmall, Page } from '../model';
+import convertStateCodeToName, { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade, issueKeyToLabelSmall, Page, hasValidInterpretation } from '../model';
 import { HttpHeaders, HttpClient, HttpParams, HttpHandler } from '@angular/common/http';
 import { CommonModule, DatePipe, KeyValuePipe, isPlatformBrowser } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
@@ -53,7 +53,6 @@ export const CHART_COLORS = {
   styleUrl: './legislator.component.scss'
 })
 export class LegislatorComponent implements OnInit, AfterViewInit {
-
   @ViewChild("barChart") barChart!: HTMLCanvasElement;
 
   @ViewChild("interactTable") interactTable!: ElementRef;
@@ -68,6 +67,8 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   public loading: boolean = true;
 
   public isRequestingData: boolean = false;
+
+  public hasValidInterp: boolean = false;
 
   private hasMoreData: boolean = true;
 
@@ -199,6 +200,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
       
       if (leg == null) return;
       this.loading = false;
+      this.hasValidInterp = hasValidInterpretation(this.leg);
 
       if (leg.interpretation != null && leg.interpretation.issueStats.stats['OverallBenefitToSociety'] < 0 && params.get('ascending') == null)
         this.page.ascending = true;
@@ -211,6 +213,11 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   
       this.buildBarChartData();
     });
+  }
+
+  getPreviousYear(): number {
+    const currentYear: number = new Date().getFullYear();
+    return currentYear - 1;
   }
   
   isNonSafari() {
@@ -241,7 +248,12 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
         // .sort((a, b) => b.date.getTime() - a.date.getTime());
   }
 
-  gradeForLegislator(): string { return gradeForStats(this.leg?.interpretation?.issueStats!); }
+  gradeForLegislator(): string {
+    if (!hasValidInterpretation(this.leg))
+      return "";
+
+    return gradeForStats(this.leg?.interpretation?.issueStats!);
+  }
 
   colorForGrade(grade: string): string { return colorForGrade(this.gradeForLegislator()); }
 
@@ -283,7 +295,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   }
 
   async buildBarChartData() {
-    if (this.leg == null) return;
+    if (this.leg == null || !this.hasValidInterp) return;
 
     let data: number[] = [];
     let labels: string[] = [];

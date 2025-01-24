@@ -31,7 +31,7 @@ export class ConfigService {
     //   return new Date().getFullYear();
     // }
 
-    return 2024;
+    return 2026;
   }
 
   public yearToCongressStr(year: string): string

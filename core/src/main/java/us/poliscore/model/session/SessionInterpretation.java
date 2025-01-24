@@ -72,8 +72,8 @@ public class SessionInterpretation implements Persistable {
 	
 	public void setId(String id) { }
 
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
-	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX }) public String getStorageBucket() { return ID_CLASS_PREFIX; }
+	@Override @JsonIgnore public void setStorageBucket(String prefix) { }
 
 	@Data
 	@DynamoDbBean

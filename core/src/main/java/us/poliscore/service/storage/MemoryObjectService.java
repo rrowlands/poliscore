@@ -50,8 +50,8 @@ public class MemoryObjectService implements ObjectStorageServiceIF {
 	@SneakyThrows
 	public <T extends Persistable> List<T> query(Class<T> clazz)
 	{
-		val idClassPrefix =(String) clazz.getField("ID_CLASS_PREFIX").get(null);
+		val idClassPrefix = Persistable.getClassStorageBucket(clazz);
 		
-		return memoryStore.values().stream().filter(o -> o.getIdClassPrefix().equals(idClassPrefix)).map(o -> (T) o).toList();
+		return memoryStore.values().stream().filter(o -> o.getStorageBucket().equals(idClassPrefix)).map(o -> (T) o).toList();
 	}
 }

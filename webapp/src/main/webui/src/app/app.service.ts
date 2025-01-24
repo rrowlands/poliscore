@@ -5,6 +5,7 @@ import { backendUrl } from './app.config';
 import { Bill, BillInteraction, Legislator, LegislatorPageData, Page, SessionStats } from './model';
 import { firstValueFrom } from 'rxjs/internal/firstValueFrom';
 import { Observable } from 'rxjs';
+import { ConfigService } from './config.service';
 
 export class AppDataPage {
     data!: any[];
@@ -15,7 +16,7 @@ export class AppDataPage {
 @Injectable()
 export class AppService {
     
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient, private config: ConfigService) { }
 
     getSessionStats(): Promise<SessionStats | undefined> {
         let params: HttpParams = new HttpParams();
@@ -100,6 +101,8 @@ export class AppService {
             params = params.set("sortKey", page.sortKey);
         }
 
+        params = params.set("year", this.config.getYear());
+
         return firstValueFrom(this.http.get<Bill[]>(backendUrl + "/getBills", { params: params }));
     }
 
@@ -133,6 +136,8 @@ export class AppService {
             params = params.set("sortKey", page.sortKey);
         }
 
+        params = params.set("year", this.config.getYear());
+
         return firstValueFrom(this.http.get<Legislator[]>(backendUrl + "/getLegislators", { params: params }));
     }
 
@@ -142,6 +147,8 @@ export class AppService {
         if (state != null) {
             params = params.set("state", state);
         }
+
+        params.set("year", this.config.getYear());
 
         return firstValueFrom(this.http.get<LegislatorPageData>(backendUrl + "/getLegislatorPageData", { params: params }));
     }

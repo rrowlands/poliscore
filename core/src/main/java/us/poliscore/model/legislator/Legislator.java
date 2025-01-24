@@ -23,6 +23,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
+import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeChamber;
 import us.poliscore.model.LegislativeNamespace;
@@ -42,6 +43,16 @@ import us.poliscore.model.dynamodb.JacksonAttributeConverter.LegislatorLegislati
 public class Legislator implements Persistable, Comparable<Legislator> {
 	
 	public static final String ID_CLASS_PREFIX = "LEG";
+	
+	/**
+	 * An optional grouping mechanism, beyond the ID_CLASS_PREFIX concept, which allows you to group objects of the same class in different
+	 * "storage buckets". Really only used in DynamoDb at the moment, and is used for querying on the object indexes with objects that exist
+	 * in different congressional sessions.
+	 */
+	public static String getClassStorageBucket()
+	{
+		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber();
+	}
 	
 	@NonNull
 	protected LegislatorName name;
@@ -141,8 +152,18 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 		
 		// (StartA <= EndB) and (EndA >= StartB)
 		
-		return (term.getStartDate().isBefore(session.getEndDate()) || term.getStartDate().isEqual(session.getEndDate()))
-				&& (term.getEndDate().isAfter(session.getStartDate()) || term.getEndDate().equals(session.getStartDate()));
+		return term.getStartDate().isBefore(session.getEndDate()) && term.getEndDate().isAfter(session.getStartDate());
+		
+//		return (term.getStartDate().isBefore(session.getEndDate()) || term.getStartDate().isEqual(session.getEndDate()))
+//				&& (term.getEndDate().isAfter(session.getStartDate()) || term.getEndDate().equals(session.getStartDate()));
+		
+		
+//		return (term.getStartDate().isAfter(session.getStartDate()) || term.getStartDate().equals(session.getStartDate()))
+//				&& (term.getEndDate().isBefore(session.getEndDate()) || term.getEndDate().equals(session.getEndDate()));
+		
+//		return (term.getStartDate().isAfter(session.getStartDate()) || term.getStartDate().isEqual(session.getStartDate()))
+//	            && term.getEndDate().isBefore(session.getEndDate())
+//	            && !term.getEndDate().isEqual(session.getStartDate());
 	}
 	
 	public static String generateId(LegislativeNamespace ns, Integer session, String bioguideId)
@@ -155,8 +176,8 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 		return ID_CLASS_PREFIX + "/" + ns.getNamespace() + "/" + session + "/" + bioguideId;
 	}
 	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX}) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
-	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX}) public String getStorageBucket() { return getClassStorageBucket(); }
+	@Override @JsonIgnore public void setStorageBucket(String prefix) { }
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return birthday; }
 	@JsonIgnore public void setDate(LocalDate date) { }

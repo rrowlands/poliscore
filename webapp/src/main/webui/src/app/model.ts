@@ -160,6 +160,14 @@ export function issueKeyToLabelSmall(key: string): string
   return map[key];
 }
 
+export function hasValidInterpretation(obj: any): boolean {
+  return obj != null
+    && obj.interpretation != null && obj.interpretation.issueStats != null && obj.interpretation.issueStats.stats != null
+    && Object.entries(obj.interpretation.issueStats.stats).length > 0
+    && Object.entries(obj.interpretation.issueStats.stats).filter(kv => kv[0] === "OverallBenefitToSociety").length === 1
+    && obj.interpretation.longExplain != null && obj.interpretation.shortExplain != null;
+}
+
 export function getBenefitToSocietyIssue(issueStats: IssueStats): [string, number] {
   return Object.entries(issueStats?.stats).filter(kv => kv[0] === "OverallBenefitToSociety")[0] as [string, number];
 }

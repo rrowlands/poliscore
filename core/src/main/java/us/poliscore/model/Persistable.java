@@ -1,5 +1,7 @@
 package us.poliscore.model;
 
+import lombok.SneakyThrows;
+
 public interface Persistable {
 	
 	public static final String OBJECT_BY_DATE_INDEX = "ObjectsByDate";
@@ -13,6 +15,14 @@ public interface Persistable {
 	public String getId();
 	public void setId(String id);
 	
-	public String getIdClassPrefix();
-	public void setIdClassPrefix(String prefix);
+	public String getStorageBucket();
+	public void setStorageBucket(String prefix);
+	
+	@SneakyThrows
+	public static String getClassStorageBucket(Class<?> clazz)
+	{
+		try { return (String) clazz.getMethod("getClassStorageBucket").invoke(null); } catch (Throwable t) {}
+		
+		return (String) clazz.getField("ID_CLASS_PREFIX").get(null);
+	}
 }

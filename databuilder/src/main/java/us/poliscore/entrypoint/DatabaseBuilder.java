@@ -3,6 +3,7 @@ package us.poliscore.entrypoint;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,6 +49,8 @@ import us.poliscore.service.storage.MemoryObjectService;
 @QuarkusMain(name="DatabaseBuilder")
 public class DatabaseBuilder implements QuarkusApplication
 {
+	public static boolean INTERPRET_NEW_BILLS = false;
+	
 	public static boolean REINTERPRET_LEGISLATORS = false;
 	
 	public static boolean REINTERPRET_PARTIES = false;
@@ -119,10 +122,9 @@ public class DatabaseBuilder implements QuarkusApplication
 		imageBuilder.process();
 		billTextFetcher.process();
 		
-		buildFromS3();
-		interpretBills();
-		interpretLegislators();
-		interpretPartyStats();
+		importBills();
+		importLegislators();
+		importPartyStats();
 		
 		webappDataGenerator.process();
 		
@@ -130,7 +132,7 @@ public class DatabaseBuilder implements QuarkusApplication
 	}
 	
 	@SneakyThrows
-	private void buildFromS3()
+	private void importBillsFromS3()
 	{
 		Log.info("Making sure that our ddb bill database is up-to-date with what exists on s3.");
 		
@@ -138,17 +140,15 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
-//			if (!ddb.exists(b.getId(), Bill.class)) {
+			if (!ddb.exists(b.getId(), Bill.class)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				b.setInterpretation(interp);
 				ddb.put(b);
 				amount++;
-//			}
+			}
 		}
 		
 		Log.info("Created " + amount + " missing bills in ddb from s3");
-		
-		// We don't need to worry about legislators here because this will happen as part of "interpretLegislators"
 	}
 	
 	@SneakyThrows
@@ -158,27 +158,31 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 		File dbRes = new File(Environment.getDeployedPath(), "../../databuilder/src/main/resources");
 		
-		FileUtils.copyURLToFile(URI.create("https://theunitedstates.io/congress-legislators/legislators-current.json").toURL(), new File(dbRes, "legislators-current.json"));
-		FileUtils.copyURLToFile(URI.create("https://theunitedstates.io/congress-legislators/legislators-historical.json").toURL(), new File(dbRes, "legislators-historical.json"));
+		FileUtils.copyURLToFile(URI.create("https://unitedstates.github.io/congress-legislators/legislators-current.json").toURL(), new File(dbRes, "legislators-current.json"));
+		FileUtils.copyURLToFile(URI.create("https://unitedstates.github.io/congress-legislators/legislators-historical.json").toURL(), new File(dbRes, "legislators-historical.json"));
 	}
 	
 	@SneakyThrows
-	private void interpretBills() {
-		List<File> requests = billRequestGenerator.process();
+	private void importBills() {
+		importBillsFromS3();
 		
-		if (requests.size() > 0) {
-			List<File> responses = openAi.processBatch(requests);
+		if (INTERPRET_NEW_BILLS) {
+			List<File> requests = billRequestGenerator.process();
 			
-			for (File f : responses) {
-				responseImporter.process(f);
+			if (requests.size() > 0) {
+				List<File> responses = openAi.processBatch(requests);
+				
+				for (File f : responses) {
+					responseImporter.process(f);
+				}
+				
+				importBills();
 			}
-			
-			interpretBills();
 		}
 	}
 	
 	@SneakyThrows
-	private void interpretLegislators() {
+	private void importLegislators() {
 		if (REINTERPRET_LEGISLATORS) {
 			List<File> requests = legislatorRequestGenerator.process();
 		
@@ -201,20 +205,30 @@ public class DatabaseBuilder implements QuarkusApplication
 	private void recalculateLegislators() {
 		Log.info("Recalculating legislators");
 		
+		List<String> legsWithoutInterp = new ArrayList<String>();
+		List<String> legsWithoutSufficientInteractions = new ArrayList<String>();
+		
 		for (var leg : memService.query(Legislator.class).stream()
-				.filter(l -> l.isMemberOfSession(PoliscoreUtil.CURRENT_SESSION) && s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class))
+				.filter(l -> l.isMemberOfSession(PoliscoreUtil.CURRENT_SESSION)) //  && s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class)
 				.collect(Collectors.toList()))
 		{
 			legInterp.updateInteractionsInterp(leg);
 			
-			val interp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class).get();
+			if (leg.getInteractions().size() < 100) {
+				legsWithoutSufficientInteractions.add(leg.getBioguideId());
+				continue;
+			}
+			
+			val interp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class).orElse(new LegislatorInterpretation(leg.getId(), String.valueOf(PoliscoreUtil.CURRENT_SESSION.getNumber()), OpenAIService.metadata(), null));
+			
 			interp.setHash(legInterp.calculateInterpHashCode(leg));
 			
 			DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
 			interp.setIssueStats(stats.toIssueStats());
 			
 			if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(interp.getLongExplain())) {
-				throw new RuntimeException("Unable to parse valid issue stats for legislator " + leg.getId());
+				legsWithoutInterp.add(leg.getBioguideId());
+				continue;
 			}
 			
 			leg.setInteractions(legInterp.getInteractionsForInterpretation(leg).stream()
@@ -227,10 +241,20 @@ public class DatabaseBuilder implements QuarkusApplication
 			
 			ddb.put(leg);
 		}
+		
+		if (legsWithoutInterp.size() > 0 || legsWithoutSufficientInteractions.size() > 0) {
+			System.out.println("Legislators without interpretations:");
+			System.out.println(String.join(", ", legsWithoutInterp));
+			System.out.println("Legislators without sufficient interactions:");
+			System.out.println(String.join(", ", legsWithoutSufficientInteractions));
+			
+			throw new RuntimeException(legsWithoutInterp.size() + " legislators without interpretations " +
+					legsWithoutSufficientInteractions.size() + " legislators without sufficient interactions");
+		}
 	}
 	
 	@SneakyThrows
-	private void interpretPartyStats() {
+	private void importPartyStats() {
 		if (REINTERPRET_PARTIES) {
 			List<File> requests = partyInterpreter.process();
 			

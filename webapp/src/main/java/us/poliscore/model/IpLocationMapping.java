@@ -34,8 +34,8 @@ public class IpLocationMapping implements Persistable {
 	@Exclude
 	private String location;
 	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
-	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX }) public String getStorageBucket() { return ID_CLASS_PREFIX; }
+	@Override @JsonIgnore public void setStorageBucket(String prefix) { }
 	
 	public long getExpireDate() { return TimeUnit.MILLISECONDS.toSeconds(LocalDate.now().plusMonths(6).toDateTimeAtStartOfDay(DateTimeZone.UTC).toInstant().getMillis()); }
 	public void setExpireDate(long expire) { }

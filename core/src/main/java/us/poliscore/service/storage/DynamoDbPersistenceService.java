@@ -30,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import us.poliscore.model.Persistable;
@@ -40,7 +41,7 @@ import us.poliscore.model.dynamodb.DdbListPage;
 @ApplicationScoped
 public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 {
-	public static final String TABLE_NAME = "poliscore2";
+	public static final String TABLE_NAME = "poliscore1";
 	
 	public static final String HEAD_PAGE = "0";
 	
@@ -68,6 +69,19 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 	DynamoDbClient ddb;
 	
 	private Map<Class<?>, BeanTableSchema<?>> schemas  = new HashMap<Class<?>, BeanTableSchema<?>>();
+	
+	public <T extends Persistable> void delete(T obj)
+	{
+		Map<String, AttributeValue> attrMap = new HashMap<String, AttributeValue>();
+		attrMap.put("id", AttributeValue.fromS(obj.getId()));
+		attrMap.put("page", AttributeValue.fromS(HEAD_PAGE));
+		
+		ddb.deleteItem(DeleteItemRequest.builder()
+				.tableName(TABLE_NAME)
+//				.key(Key.builder().partitionValue(obj.getId()).build().primaryKeyMap(getSchema(obj.getClass())))
+				.key(attrMap)
+				.build());
+	}
 	
 	@SuppressWarnings("unchecked")
 	private <T extends Persistable> BeanTableSchema<T> getSchema(Class<T> clazz) {
@@ -258,12 +272,6 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 		setter.invoke(head, convertedVal);
 	}
 	
-	@Override
-	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz)
-	{
-		return query(clazz, -1, null, null, null, null);
-	}
-	
 	private String fieldForIndex(String index) {
 		if (index.equals(Persistable.OBJECT_BY_DATE_INDEX)) {
 			return "date";
@@ -292,8 +300,21 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 		}
 	}
 	
+	@Override
+	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz)
+	{
+		return query(clazz, -1, null, null, null, null);
+	}
+	
 	@SneakyThrows
 	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz, int pageSize, String index, Boolean ascending, String exclusiveStartKey, String sortKey)
+	{
+		
+		return query(clazz, -1, null, null, null, null, Persistable.getClassStorageBucket(clazz));
+	}
+	
+	@SneakyThrows
+	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz, int pageSize, String index, Boolean ascending, String exclusiveStartKey, String sortKey, String storageBucket)
 	{
 		if (StringUtils.isBlank(index)) index = Persistable.OBJECT_BY_DATE_INDEX;
 		if (ascending == null) ascending = Boolean.TRUE;
@@ -302,17 +323,16 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 		@SuppressWarnings("unchecked")
 		val table = ((DynamoDbTable<T>) ddbe.table(TABLE_NAME, TableSchema.fromBean(clazz))).index(index);
 		
-		val idClassPrefix =(String) clazz.getField("ID_CLASS_PREFIX").get(null);
-		
 		QueryConditional condition;
 		if (sortKey == null) {
-			condition = QueryConditional.keyEqualTo(Key.builder().partitionValue(idClassPrefix).build());
+			condition = QueryConditional.keyEqualTo(Key.builder().partitionValue(storageBucket).build());
 		} else {
-			condition = QueryConditional.sortBeginsWith(Key.builder().partitionValue(idClassPrefix).sortValue(sortKey).build());
+			condition = QueryConditional.sortBeginsWith(Key.builder().partitionValue(storageBucket).sortValue(sortKey).build());
 		}
 		
 		val request = QueryEnhancedRequest.builder()
 				.queryConditional(condition);
+		
 		
 //		if (pageSize != -1) {
 //			request.limit(pageSize);
@@ -320,7 +340,7 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 		if (exclusiveStartKey != null) {
 			HashMap<String,AttributeValue> map = new HashMap<String,AttributeValue>();
 			
-			map.put("idClassPrefix", AttributeValue.fromS(idClassPrefix));
+			map.put("storageBucket", AttributeValue.fromS(storageBucket));
 			map.put("page", AttributeValue.fromS(HEAD_PAGE));
 			map.put("id", AttributeValue.fromS(exclusiveStartKey.split("~`~")[0]));
 			

@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
+import us.poliscore.PoliscoreUtil;
+import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Persistable;
 
 @Data
@@ -39,8 +41,8 @@ public class BillText implements Persistable
 	
 	public static String generateId(String billId) { return billId.replace(Bill.ID_CLASS_PREFIX, ID_CLASS_PREFIX); }
 	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public String getIdClassPrefix() { return ID_CLASS_PREFIX; }
-	@Override @JsonIgnore public void setIdClassPrefix(String prefix) { }
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public String getStorageBucket() { return ID_CLASS_PREFIX; }
+	@Override @JsonIgnore public void setStorageBucket(String prefix) { }
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return lastUpdated; }
 	@JsonIgnore public void setDate(LocalDate date) { lastUpdated = date; }

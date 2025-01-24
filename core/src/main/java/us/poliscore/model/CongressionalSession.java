@@ -1,13 +1,15 @@
 package us.poliscore.model;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 
 import lombok.Getter;
 
 @Getter
 public enum CongressionalSession {
 	S117(117, LocalDate.of(2021, 1, 3), LocalDate.of(2023, 1, 3)),
-	S118(118, LocalDate.of(2023, 1, 3), LocalDate.of(2025, 1, 3));
+	S118(118, LocalDate.of(2023, 1, 3), LocalDate.of(2025, 1, 3)),
+	S119(119, LocalDate.of(2025, 1, 3), LocalDate.of(2027, 1, 3));
 	
 	private int number;
 	
@@ -23,13 +25,12 @@ public enum CongressionalSession {
 	
 	public static CongressionalSession of(Integer session)
 	{
-		if (session == 118) {
-			return S118;
-		} else if (session == 117) {
-			return S117;
-		} else {
-			throw new UnsupportedOperationException("Unsupported session [" + String.valueOf(session) + "].");
-		}
+		return Arrays.asList(CongressionalSession.values()).stream().filter(s -> Integer.valueOf(s.getNumber()).equals(session)).findAny().orElseThrow();
+	}
+	
+	public static CongressionalSession fromYear(Integer year)
+	{
+		return of((int) Math.floor((year - 1789) / 2) + 1);
 	}
 
 	public boolean isOver() {

@@ -39,7 +39,18 @@
                     </div>
                     <div class="col-right">
                         <div class="card-body chart-container">
-                            <canvas #barChart id="barChart"></canvas>
+                            <canvas *ngIf="hasValidInterp" #barChart id="barChart"></canvas>
+                            <div *ngIf="!hasValidInterp" class="invalid-interp vertical-layout">
+                                <h3>
+                                    Waiting for more data ...
+                                </h3>
+                                <p>
+                                    Legislator interpretatons require at least a hundred bill interactions in order to ensure accuracy.
+                                </p>
+                                <p>
+                                    <a [href]="'https://poliscore.us/' + getPreviousYear()">You can always visit a previous year to see historical legislator data.</a>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

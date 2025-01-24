@@ -2,6 +2,7 @@ package us.poliscore;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
@@ -12,6 +13,7 @@ import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillText;
+import us.poliscore.model.legislator.Legislator;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.RollCallService;
@@ -41,46 +43,14 @@ public class DataCleaner implements QuarkusApplication {
 	{
 		legService.importLegislators();
 		billService.importUscBills();
-//		rollCallService.importUscVotes();
+		rollCallService.importUscVotes();
 		
-		val badInterps = new ArrayList<String>();
-		val badExplanations = new ArrayList<String>();
-		
-		s3.optimizeExists(BillText.class);
-		
-		for (Bill b : memService.query(Bill.class)) {
-			val op = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class);
-			
-			if (!op.isPresent()) {
-				if (s3.exists(BillText.generateId(b.getId()), BillText.class)) {
-					badInterps.add(b.getId());
-				}
-				
-				continue;
-			}
-			
-			val interp = op.get();
-			
-			if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety)) {
-				badInterps.add(b.getId());
-				continue;
-			}
-			
-			val summaryHeaders = new String[] { "summary of the predicted impact to society and why", "summary of the predicted impact to society", "summary of the bill and predicted impact to society and why", "summary of the bill and predicted impact to society", "summary of the bill and its predicted impact to society and why", "summary of the bill and its predicted impact to society", "Summary of the bill's predicted impact to society and why", "Summary of the bill's predicted impact to society", "summary of predicted impact to society and why", "summary of predicted impact to society", "summary of the impact to society", "summary of impact to society", "summary report", "summary of the impact", "summary of impact", "summary", "explanation" };
-			val summaryHeaderRegex = " *#*\\** *(" + String.join("|", summaryHeaders) + ") *#*\\** *:? *#*\\** *";
-			if (interp.getLongExplain().matches("(?i)^" + summaryHeaderRegex + ".*$")) {
-//				interp.getIssueStats().setExplanation(interp.getIssueStats().getExplanation().replaceFirst("(?i)" + summaryHeaderRegex, ""));
-				badExplanations.add(b.getId());
-				
-//				s3.put(interp);
-//				
-//				b.setInterpretation(interp);
-//				ddb.put(b);
-			}
+		for (var leg : memService.query(Legislator.class).stream()
+				.filter(l -> l.isMemberOfSession(PoliscoreUtil.CURRENT_SESSION)) //  && s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class)
+				.collect(Collectors.toList()))
+		{
+			ddb.delete(leg);
 		}
-		
-		System.out.println(String.join(", ", badInterps.stream().map(id -> "\"" + id + "\"").toList()));
-		System.out.println(String.join(", ", badExplanations.stream().map(id -> "\"" + id + "\"").toList()));
 		
 		System.out.println("Program complete.");
 	}
