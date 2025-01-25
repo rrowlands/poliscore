@@ -165,7 +165,7 @@ export function hasValidInterpretation(obj: any): boolean {
     && obj.interpretation != null && obj.interpretation.issueStats != null && obj.interpretation.issueStats.stats != null
     && Object.entries(obj.interpretation.issueStats.stats).length > 0
     && Object.entries(obj.interpretation.issueStats.stats).filter(kv => kv[0] === "OverallBenefitToSociety").length === 1
-    && obj.interpretation.longExplain != null && obj.interpretation.shortExplain != null;
+    && obj.interpretation.longExplain != null;
 }
 
 export function getBenefitToSocietyIssue(issueStats: IssueStats): [string, number] {

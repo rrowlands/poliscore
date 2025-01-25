@@ -152,7 +152,8 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 		
 		// (StartA <= EndB) and (EndA >= StartB)
 		
-		return term.getStartDate().isBefore(session.getEndDate()) && term.getEndDate().isAfter(session.getStartDate());
+//		return term.getStartDate().isBefore(session.getEndDate()) && term.getEndDate().isAfter(session.getStartDate());
+		return this.terms.stream().anyMatch(t -> t.getStartDate().isBefore(session.getEndDate()) && t.getEndDate().isAfter(session.getStartDate()));
 		
 //		return (term.getStartDate().isBefore(session.getEndDate()) || term.getStartDate().isEqual(session.getEndDate()))
 //				&& (term.getEndDate().isAfter(session.getStartDate()) || term.getEndDate().equals(session.getStartDate()));

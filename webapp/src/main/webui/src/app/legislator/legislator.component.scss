@@ -177,7 +177,7 @@ h1 {
         margin-left: calc(50vw - 180px);
     }
 }
-@media screen and (min-width: 0px) {
+@media screen and (min-width: 410px) {
     .sorting-inner {
         display: flex !important;
         flex-direction: row !important;
@@ -213,7 +213,8 @@ h1 {
     }
     .chart-container {
         width: calc(90vw - 15px);
-        height: 300px;
+        height: initial;
+        padding-bottom: 40px;
     }
     .invalid-interp {
         padding-left: 0;

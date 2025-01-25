@@ -77,6 +77,10 @@ public class Lambda {
     public SessionInterpretation getSessionStats() {
     	val op = ddb.get(SessionInterpretation.generateId(PoliscoreUtil.CURRENT_SESSION.getNumber()), SessionInterpretation.class);
     	
+    	if (op.isEmpty()) {
+    		return ddb.get(SessionInterpretation.generateId(PoliscoreUtil.CURRENT_SESSION.getNumber() - 1), SessionInterpretation.class).orElse(null);
+    	}
+    	
     	return op.orElse(null);
     }
     

@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
@@ -24,13 +24,15 @@ import us.poliscore.entrypoint.batch.BatchBillRequestGenerator;
 import us.poliscore.entrypoint.batch.BatchLegislatorRequestGenerator;
 import us.poliscore.entrypoint.batch.BatchOpenAIResponseImporter;
 import us.poliscore.model.DoubleIssueStats;
-import us.poliscore.model.TrackedIssue;
+import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
+import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.legislator.LegislatorInterpretation;
+import us.poliscore.model.session.SessionInterpretation;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
@@ -119,11 +121,11 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		imageBuilder.process();
-		billTextFetcher.process();
+//		imageBuilder.process();
+//		billTextFetcher.process();
 		
-		importBills();
-		importLegislators();
+//		importBills();
+//		importLegislators();
 		importPartyStats();
 		
 		webappDataGenerator.process();
@@ -214,22 +216,56 @@ public class DatabaseBuilder implements QuarkusApplication
 		{
 			legInterp.updateInteractionsInterp(leg);
 			
-			if (leg.getInteractions().size() < 100) {
-				legsWithoutSufficientInteractions.add(leg.getBioguideId());
-				continue;
-			}
+//			if (leg.getInteractions().size() < 100) {
+//				legsWithoutSufficientInteractions.add(leg.getBioguideId());
+//				continue;
+//			}
 			
-			val interp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class).orElse(new LegislatorInterpretation(leg.getId(), String.valueOf(PoliscoreUtil.CURRENT_SESSION.getNumber()), OpenAIService.metadata(), null));
+			LegislatorInterpretation interp = new LegislatorInterpretation(leg.getId(), String.valueOf(PoliscoreUtil.CURRENT_SESSION.getNumber()), OpenAIService.metadata(), null);
+			val interpOp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class);
+			
+			if (interpOp.isPresent()) { interp = interpOp.get(); }
+			else {
+				// If an interpretation from this session doesn't exist, grab one from the previous session.
+				val prevInterpOp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber() - 1), LegislatorInterpretation.class);
+				
+				if (prevInterpOp.isPresent()) {
+					// Backfill the interactions until we get to 1000
+					interp = prevInterpOp.get();
+					val prevLeg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber() - 1, leg.getBioguideId()), Legislator.class).orElseThrow();
+					
+					val prevInteracts = prevLeg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed()).iterator();
+					while (leg.getInteractionsPrivate1().size() < 1000 && prevInteracts.hasNext()) {
+						val n = prevInteracts.next();
+						if (n.getIssueStats() != null)
+							leg.getInteractionsPrivate1().add(n);
+					}
+					
+					DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
+					interp.setIssueStats(stats.toIssueStats());
+					
+					leg.setInteractions(legInterp.getInteractionsForInterpretation(leg).stream()
+							.filter(i -> i.getIssueStats() != null)
+							.sorted((a,b) -> a.getDate().compareTo(b.getDate())).collect(Collectors.toCollection(LegislatorBillInteractionList::new)));
+					
+					leg.setInterpretation(interp);
+					
+					legInterp.calculateImpact(leg);
+					
+					ddb.put(leg);
+					continue;
+				}
+			}
 			
 			interp.setHash(legInterp.calculateInterpHashCode(leg));
 			
 			DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
 			interp.setIssueStats(stats.toIssueStats());
 			
-			if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(interp.getLongExplain())) {
-				legsWithoutInterp.add(leg.getBioguideId());
-				continue;
-			}
+//			if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(interp.getLongExplain())) {
+//				legsWithoutInterp.add(leg.getBioguideId());
+//				continue;
+//			}
 			
 			leg.setInteractions(legInterp.getInteractionsForInterpretation(leg).stream()
 					.filter(i -> i.getIssueStats() != null)
@@ -266,7 +302,11 @@ public class DatabaseBuilder implements QuarkusApplication
 				}
 			}
 		} else {
-			partyInterpreter.process();
+			val sit = s3.get(SessionInterpretation.generateId(PoliscoreUtil.CURRENT_SESSION.getNumber()), SessionInterpretation.class).orElse(null);
+			
+			if (sit != null) {
+				ddb.put(sit);
+			}
 		}
 	}
 	

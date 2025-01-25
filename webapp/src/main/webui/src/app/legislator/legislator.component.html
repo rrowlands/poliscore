@@ -40,10 +40,10 @@
                     <div class="col-right">
                         <div class="card-body chart-container">
                             <canvas *ngIf="hasValidInterp" #barChart id="barChart"></canvas>
-                            <div *ngIf="!hasValidInterp" class="invalid-interp vertical-layout">
-                                <h3>
+                            <div *ngIf="leg !=  null && !hasValidInterp && !loading" class="invalid-interp vertical-layout">
+                                <h2>
                                     Waiting for more data ...
-                                </h3>
+                                </h2>
                                 <p>
                                     Legislator interpretatons require at least a hundred bill interactions in order to ensure accuracy.
                                 </p>
@@ -55,11 +55,11 @@
                     </div>
                 </div>
                 
-                <div class="row">
+                <div *ngIf="leg != null && hasValidInterp && !loading" class="row">
                     
                 </div>
 
-                <div *ngIf="leg != null">
+                <div *ngIf="leg != null && hasValidInterp && !loading">
                     <!-- <h2>Interpretation</h2> -->
                     <div class="leg-summary"><p *ngFor="let paragraph of leg?.interpretation?.longExplain?.split('\n')" [innerHTML]="paragraph"></p></div>
                 </div>
