@@ -38,8 +38,8 @@
                         <p class="reelection" *ngIf="upForReelection()">Up for reelection in November</p>
                     </div>
                     <div class="col-right">
-                        <div class="card-body chart-container">
-                            <canvas *ngIf="hasValidInterp" #barChart id="barChart"></canvas>
+                        <div class="card-body">
+                            <div *ngIf="leg !=  null && hasValidInterp && !loading" class="chart-container"><canvas *ngIf="hasValidInterp" #barChart id="barChart"></canvas></div>
                             <div *ngIf="leg !=  null && !hasValidInterp && !loading" class="invalid-interp vertical-layout">
                                 <h2>
                                     Waiting for more data ...
@@ -113,7 +113,7 @@
                             <td mat-cell *matCellDef="let element">
                                 {{element.billName}}
 
-                                <a fxFlexFill [href]="'/' + config.getYear() + '/bill/' + config.billIdToPath(element.billId)" class="mat-row-link"></a>
+                                <a fxFlexFill [href]="config.billIdToAbsolutePath(element.billId)" class="mat-row-link"></a>
 
                                 <span *ngIf="element.statusProgress === 1.0" class="highlight-law">(Law)</span>
                             </td>
@@ -135,7 +135,7 @@
                         </ng-container>
 
                         <tr mat-header-row *matHeaderRowDef="getDisplayedColumns()"></tr>
-                        <tr mat-row *matRowDef="let row; columns: getDisplayedColumns();" [routerLink]="'/bill/' + config.billIdToPath(row.billId)" class="mat-row"></tr>
+                        <tr mat-row *matRowDef="let row; columns: getDisplayedColumns();" [routerLink]="config.billIdToAbsolutePath(row.billId)" class="mat-row"></tr>
                     </table>
                 </div>
             </mat-card-content>

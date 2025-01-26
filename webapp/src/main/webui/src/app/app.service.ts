@@ -148,7 +148,7 @@ export class AppService {
             params = params.set("state", state);
         }
 
-        params.set("year", this.config.getYear());
+        params = params.set("year", this.config.getYear());
 
         return firstValueFrom(this.http.get<LegislatorPageData>(backendUrl + "/getLegislatorPageData", { params: params }));
     }

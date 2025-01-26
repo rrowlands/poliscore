@@ -86,7 +86,7 @@
 
         <ng-container *ngIf="stats && sort.indexOf('Legislators') !== -1">
             <mat-card *ngFor="let leg of getData()" class="legs" appearance="outlined">
-                <a [routerLink]="'/legislator/' + config.legislatorIdToPath(leg.id)">
+                <a [href]="config.legislatorIdToAbsolutePath(leg.id)">
                     <div class="left">
                         <img *ngIf="!leg.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + leg.id + '.jpg'" (error)="leg.photoError = true;" >
                         <img *ngIf="leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>
@@ -112,7 +112,7 @@
 
         <ng-container *ngIf="stats && sort.indexOf('Bills') !== -1">
             <mat-card *ngFor="let bill of getData()" class="bills" appearance="outlined" [ngClass]="{'gold-border': bill.billStatus.description.trim().toLowerCase() === 'law'}">
-                <a [routerLink]="'/bill/' + config.billIdToPath(bill.id)">
+                <a [href]="config.billIdToAbsolutePath(bill.id)">
                     <mat-card-header>
                         <mat-card-title-group>
                             <mat-card-title>{{bill.name}}</mat-card-title>

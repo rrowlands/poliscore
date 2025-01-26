@@ -3,6 +3,7 @@ package us.poliscore.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,7 +21,6 @@ import lombok.SneakyThrows;
 import lombok.val;
 import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
-import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorLegislativeTermSortedSet;
 import us.poliscore.service.storage.MemoryObjectService;
@@ -80,8 +80,13 @@ public class LegislatorService {
 	public void generateLegislatorWebappIndex() {
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/resources/legislators.index");
 		
-		val data = memService.query(Legislator.class).stream()
-			.filter(l -> l.isMemberOfSession(CongressionalSession.S118))
+		val uniqueSet = new HashMap<String, Legislator>();
+		
+		memService.queryAll(Legislator.class).stream()
+			.filter(l -> PoliscoreUtil.SUPPORTED_CONGRESSES.stream().anyMatch(s -> l.isMemberOfSession(s)))
+			.forEach(l -> uniqueSet.put(l.getBioguideId(), l));
+		
+		val data = uniqueSet.values().stream()
 			.map(l -> Arrays.asList(l.getBioguideId(),l.getName().getOfficial_full()))
 			.sorted((a,b) -> a.get(1).compareTo(b.get(1)))
 			.toList();

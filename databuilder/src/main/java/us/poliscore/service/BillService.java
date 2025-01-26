@@ -282,8 +282,8 @@ public class BillService {
 	public void generateBillWebappIndex() {
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/resources/bills.index");
 		
-		val data = memService.query(Bill.class).stream()
-			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
+		val data = memService.queryAll(Bill.class).stream()
+			.filter(b -> PoliscoreUtil.SUPPORTED_CONGRESSES.stream().anyMatch(s -> b.isIntroducedInSession(s)) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.map(b -> {
 				// The bill name can come from the interpretation so we have to fetch it.
 				b.setInterpretation(s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).orElseThrow());
@@ -302,7 +302,7 @@ public class BillService {
 	public void dumbAllBills() {
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/resources/allbills.dump");
 		
-		val data = memService.query(Bill.class).stream()
+		val data = memService.queryAll(Bill.class).stream()
 			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.sorted((a,b) -> a.getName().compareTo(b.getName()))
 			.toList();

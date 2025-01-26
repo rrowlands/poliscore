@@ -118,6 +118,11 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 		throw new UnsupportedOperationException();
 	}
 	
+	@Override
+	public <T extends Persistable> List<T> query(Class<T> clazz, String storageBucket) {
+		throw new UnsupportedOperationException();
+	}
+	
 	@SneakyThrows
 	public <T extends Persistable> void optimizeExists(Class<T> clazz) {
 		val storageBucket = Persistable.getClassStorageBucket(clazz);

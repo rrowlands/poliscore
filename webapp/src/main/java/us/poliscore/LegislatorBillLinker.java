@@ -8,7 +8,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import io.quarkus.logging.Log;
+import lombok.val;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.legislator.Legislator;
@@ -42,13 +45,7 @@ public class LegislatorBillLinker {
 	            String normalizedName = normalizeBillName(rawBillName);
 
 	            // 3. Build the link URL
-	            String url = "/" + PoliscoreUtil.DEPLOYMENT_YEAR + "/bill/" +
-	                    interact.getBillId().replace(
-	                            Bill.ID_CLASS_PREFIX + "/" +
-	                                    LegislativeNamespace.US_CONGRESS.getNamespace() + "/" +
-	                                    PoliscoreUtil.CURRENT_SESSION.getNumber() + "/",
-	                            ""
-	                    );
+	            String url = linkForBill(interact.getBillId());
 
 	            // 4. Construct a readable form of the bill ID (e.g. "H.R.-1234" or "S.-201")
 	            String typeName = Bill.billTypeFromId(interact.getBillId()).getName(); // e.g. "H.R."
@@ -101,6 +98,14 @@ public class LegislatorBillLinker {
 	    } catch (Throwable t) {
 	        Log.error(t);
 	    }
+	}
+	
+	public static String linkForBill(String id)
+	{
+		val billSession = Integer.valueOf(id.split("/")[3]);
+		val deploymentYear = (billSession - 1) * 2 + 1789 + 1;
+		
+		return "/" + deploymentYear + "/bill/" + id.substring(StringUtils.ordinalIndexOf(id, "/", 4) + 1);
 	}
 
 	/**

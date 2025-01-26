@@ -54,4 +54,16 @@ public class MemoryObjectService implements ObjectStorageServiceIF {
 		
 		return memoryStore.values().stream().filter(o -> o.getStorageBucket().equals(idClassPrefix)).map(o -> (T) o).toList();
 	}
+	
+	@SneakyThrows
+	public <T extends Persistable> List<T> query(Class<T> clazz, String storageBucket)
+	{
+		return memoryStore.values().stream().filter(o -> o.getStorageBucket().equals(storageBucket)).map(o -> (T) o).toList();
+	}
+	
+	@SneakyThrows
+	public <T extends Persistable> List<T> queryAll(Class<T> clazz)
+	{
+		return memoryStore.values().stream().filter(o -> clazz.isInstance(o)).map(o -> (T) o).toList();
+	}
 }

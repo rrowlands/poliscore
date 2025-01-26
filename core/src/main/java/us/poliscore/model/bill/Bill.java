@@ -119,7 +119,12 @@ public class Bill implements Persistable {
 		return Integer.valueOf(session.getNumber()).equals(this.session);
 	}
 	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX }) public String getStorageBucket() { return getClassStorageBucket(); }
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX }) public String getStorageBucket() {
+		if (!StringUtils.isEmpty(this.getId()))
+			return this.getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 3));
+		
+		return getClassStorageBucket();
+	}
 	@Override @JsonIgnore public void setStorageBucket(String prefix) { }
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return introducedDate; }

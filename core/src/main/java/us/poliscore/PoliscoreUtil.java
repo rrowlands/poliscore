@@ -22,7 +22,7 @@ public class PoliscoreUtil {
 		APP_DATA.mkdirs();
 	}
 	
-	public static String DEPLOYMENT_YEAR = "2026";
+	public static String DEPLOYMENT_YEAR = "2024";
 	
 	public static CongressionalSession CURRENT_SESSION = CongressionalSession.of((int)Math.floor((Integer.parseInt(DEPLOYMENT_YEAR) - 1789) / 2) + 1);
 	

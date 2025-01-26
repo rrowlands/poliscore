@@ -31,7 +31,7 @@ export class ConfigService {
     //   return new Date().getFullYear();
     // }
 
-    return 2026;
+    return 2024;
   }
 
   public yearToCongressStr(year: string): string
@@ -45,9 +45,22 @@ export class ConfigService {
     return Math.floor((year - 1789) / 2) + 1;
   }
 
+  public congressToYear(congress: number): number
+  {
+    return (congress - 1) * 2 + 1789 + 1;
+  }
+
   public billIdToPath(billId: string): string
   {
     return billId.replace('BIL/us/congress/' + this.congress + '/', '');
+  }
+
+  public billIdToAbsolutePath(billId: string): string
+  {
+    var billSession = parseInt(billId.split("/")[3]);
+    var year = this.congressToYear(billSession);
+
+    return "/" + year + "/bill/" +  billId.replace('BIL/us/congress/' + billSession + '/', '');
   }
 
   public pathToBillId(path: string): string
@@ -58,6 +71,15 @@ export class ConfigService {
   public legislatorIdToPath(legislatorId: string): string
   {
     return legislatorId.replace('LEG/us/congress/' + this.congress + "/", '');
+  }
+
+  public legislatorIdToAbsolutePath(legislatorId: string): string
+  {
+    var session = parseInt(legislatorId.split("/")[3]);
+    var year = this.congressToYear(session);
+    var bioguideId = legislatorId.split("/")[4];
+
+    return "/" + year + "/legislator/" + bioguideId;
   }
 
   public pathToLegislatorId(path: string): string

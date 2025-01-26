@@ -121,11 +121,11 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-//		imageBuilder.process();
-//		billTextFetcher.process();
+		imageBuilder.process();
+		billTextFetcher.process();
 		
-//		importBills();
-//		importLegislators();
+		importBills();
+		importLegislators();
 		importPartyStats();
 		
 		webappDataGenerator.process();

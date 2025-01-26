@@ -148,6 +148,7 @@ h1 {
     width: 100%;
     height: 100%;
     padding-left: 40px;
+    padding-bottom: 40px;
 }
 
 .reelection {
@@ -159,6 +160,10 @@ h1 {
     width: calc(60vw - 100px);
     max-width: 800px;
     height: 400px;
+}
+
+.card-body {
+    height: 100%;
 }
 
 #barChart {
@@ -213,8 +218,6 @@ h1 {
     }
     .chart-container {
         width: calc(90vw - 15px);
-        height: initial;
-        padding-bottom: 40px;
     }
     .invalid-interp {
         padding-left: 0;

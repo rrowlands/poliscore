@@ -63,19 +63,25 @@ public class WebappDataGenerator implements QuarkusApplication
 	
 	public void process() throws IOException
 	{
-		legService.importLegislators();
-		billService.importUscBills();
-		
-		s3.optimizeExists(BillInterpretation.class);
-		s3.optimizeExists(LegislatorInterpretation.class);
-		
+		val s = PoliscoreUtil.CURRENT_SESSION;
+		for(val session : PoliscoreUtil.SUPPORTED_CONGRESSES) {
+			PoliscoreUtil.CURRENT_SESSION = session;
+			
+			legService.importLegislators();
+			billService.importUscBills();
+			
+			s3.optimizeExists(BillInterpretation.class);
+			s3.optimizeExists(LegislatorInterpretation.class);
+		}
+		PoliscoreUtil.CURRENT_SESSION = s;
+			
 		legService.generateLegislatorWebappIndex();
 		billService.generateBillWebappIndex();
 //		billService.dumbAllBills();
-		
+			
 		generateRoutes();
 		generateSiteMap();
-		
+			
 		Log.info("Webapp Data Generator complete.");
 	}
 	
@@ -102,14 +108,14 @@ public class WebappDataGenerator implements QuarkusApplication
 		
 		// All legislator routes
 		routes.add("/legislators");
-		memService.query(Legislator.class).stream()
-			.filter(l -> l.isMemberOfSession(PoliscoreUtil.CURRENT_SESSION) && s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class))
+		memService.queryAll(Legislator.class).stream()
+			.filter(l -> l.isMemberOfSession(PoliscoreUtil.CURRENT_SESSION)) // && s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class)
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 			.forEach(l -> routes.add("/legislator/" + l.getBioguideId()));
 		
 		// All bills
 		routes.add("/bills");
-		memService.query(Bill.class).stream()
+		memService.queryAll(Bill.class).stream()
 			.filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 			.forEach(b -> routes.add("/bill/" + b.getType().getName().toLowerCase() + "/" + b.getNumber()));
@@ -146,14 +152,14 @@ public class WebappDataGenerator implements QuarkusApplication
 			
 			// All legislator routes
 			routes.add(url + prefix + "/legislators");
-			memService.query(Legislator.class).stream()
-				.filter(l -> l.isMemberOfSession(congress) && s3.exists(LegislatorInterpretation.generateId(l.getId(), congress.getNumber()), LegislatorInterpretation.class))
+			memService.queryAll(Legislator.class).stream()
+				.filter(l -> l.isMemberOfSession(congress)) //  && s3.exists(LegislatorInterpretation.generateId(l.getId(), congress.getNumber()), LegislatorInterpretation.class)
 				.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 				.forEach(l -> routes.add(url + prefix + "/legislator/" + l.getBioguideId()));
 			
 			// All bills
 			routes.add(url + prefix + "/bills");
-			memService.query(Bill.class).stream()
+			memService.queryAll(Bill.class).stream()
 				.filter(b -> b.isIntroducedInSession(congress) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 				.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 				.forEach(b -> routes.add(url + prefix + "/bill/" + b.getType().getName().toLowerCase() + "/" + b.getNumber()));
