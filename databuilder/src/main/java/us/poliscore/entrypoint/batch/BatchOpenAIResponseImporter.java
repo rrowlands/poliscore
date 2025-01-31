@@ -189,7 +189,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		legInterp.calculateImpact(leg);
 		
-		ddb.put(leg);
+		legService.ddbPersist(leg, interp);
 	}
 	
 	private void importParty(final BatchOpenAIResponse resp) {
@@ -278,8 +278,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		s3.put(bi);
 		
 		if (sliceIndex == null) {
-			bill.setInterpretation(bi);
-			ddb.put(bill);
+			billService.ddbPersist(bill, bi);
 			
 			importedBills.add(billId);
 		}

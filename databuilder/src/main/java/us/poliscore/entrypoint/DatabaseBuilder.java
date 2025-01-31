@@ -121,14 +121,14 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		imageBuilder.process();
-		billTextFetcher.process();
+//		imageBuilder.process();
+//		billTextFetcher.process();
 		
 		importBills();
-		importLegislators();
-		importPartyStats();
+//		importLegislators();
+//		importPartyStats();
 		
-		webappDataGenerator.process();
+//		webappDataGenerator.process();
 		
 		Log.info("Poliscore database build complete.");
 	}
@@ -142,12 +142,11 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
-			if (!ddb.exists(b.getId(), Bill.class)) {
+//			if (!ddb.exists(b.getId(), Bill.class)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
-				b.setInterpretation(interp);
-				ddb.put(b);
+				billService.ddbPersist(b, interp);
 				amount++;
-			}
+//			}
 		}
 		
 		Log.info("Created " + amount + " missing bills in ddb from s3");
@@ -221,7 +220,7 @@ public class DatabaseBuilder implements QuarkusApplication
 //				continue;
 //			}
 			
-			LegislatorInterpretation interp = new LegislatorInterpretation(leg.getId(), String.valueOf(PoliscoreUtil.CURRENT_SESSION.getNumber()), OpenAIService.metadata(), null);
+			LegislatorInterpretation interp = new LegislatorInterpretation(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber(), OpenAIService.metadata(), null);
 			val interpOp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class);
 			
 			if (interpOp.isPresent()) { interp = interpOp.get(); }
@@ -252,7 +251,7 @@ public class DatabaseBuilder implements QuarkusApplication
 					
 					legInterp.calculateImpact(leg);
 					
-					ddb.put(leg);
+					legService.ddbPersist(leg, interp);
 					continue;
 				}
 			}
@@ -275,7 +274,7 @@ public class DatabaseBuilder implements QuarkusApplication
 			
 			legInterp.calculateImpact(leg);
 			
-			ddb.put(leg);
+			legService.ddbPersist(leg, interp);
 		}
 		
 		if (legsWithoutInterp.size() > 0 || legsWithoutSufficientInteractions.size() > 0) {

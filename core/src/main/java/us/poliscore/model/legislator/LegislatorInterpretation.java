@@ -43,7 +43,7 @@ public class LegislatorInterpretation implements Persistable
 		
 	}
 	
-	public LegislatorInterpretation(String legislatorId, String session, AIInterpretationMetadata metadata, IssueStats stats)
+	public LegislatorInterpretation(String legislatorId, Integer session, AIInterpretationMetadata metadata, IssueStats stats)
 	{
 		this.id = generateId(legislatorId, session);
 		this.metadata = metadata;
@@ -64,9 +64,7 @@ public class LegislatorInterpretation implements Persistable
 		return Legislator.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + Arrays.asList(this.id.split("/")).getLast();
 	}
 	
-	public static String generateId(String legislatorId, Integer session) { return generateId(legislatorId, session.toString()); }
-	
-	public static String generateId(String legislatorId, String session) { return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + session + "/" + Arrays.asList(legislatorId.split("/")).getLast(); }
+	public static String generateId(String legislatorId, Integer session) { return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + session + "/" + Arrays.asList(legislatorId.split("/")).getLast(); }
 	
 	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX }) public String getStorageBucket() { return ID_CLASS_PREFIX; }
 	

@@ -60,7 +60,7 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	@NonNull
 	protected LegislatorName name;
 	
-	protected String session;
+	protected Integer session;
 	
 	protected String bioguideId;
 	
@@ -155,26 +155,23 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 		this.birthday = date;
 	}
 	
+	@JsonIgnore
+	@DynamoDbIgnore
+	public LegislativeTerm getCurrentTerm()
+	{
+		if (this.terms == null || this.terms.size() == 0) return null;
+		
+		val session = CongressionalSession.of(this.session);
+		
+		return this.terms.stream().filter(t -> t.getStartDate().isBefore(session.getEndDate()) && t.getEndDate().isAfter(session.getStartDate())).findFirst().orElse(null);
+	}
+	
 	public boolean isMemberOfSession(CongressionalSession session) {
 		if (this.terms == null || this.terms.size() == 0) return false;
 		
-		val term = this.terms.last();
-		
-		// (StartA <= EndB) and (EndA >= StartB)
-		
-//		return term.getStartDate().isBefore(session.getEndDate()) && term.getEndDate().isAfter(session.getStartDate());
 		return this.terms.stream().anyMatch(t -> t.getStartDate().isBefore(session.getEndDate()) && t.getEndDate().isAfter(session.getStartDate()));
 		
-//		return (term.getStartDate().isBefore(session.getEndDate()) || term.getStartDate().isEqual(session.getEndDate()))
-//				&& (term.getEndDate().isAfter(session.getStartDate()) || term.getEndDate().equals(session.getStartDate()));
-		
-		
-//		return (term.getStartDate().isAfter(session.getStartDate()) || term.getStartDate().equals(session.getStartDate()))
-//				&& (term.getEndDate().isBefore(session.getEndDate()) || term.getEndDate().equals(session.getEndDate()));
-		
-//		return (term.getStartDate().isAfter(session.getStartDate()) || term.getStartDate().isEqual(session.getStartDate()))
-//	            && term.getEndDate().isBefore(session.getEndDate())
-//	            && !term.getEndDate().isEqual(session.getStartDate());
+//		return Integer.valueOf(session.getNumber()).equals(this.session);
 	}
 	
 	public static String generateId(LegislativeNamespace ns, Integer session, String bioguideId)
@@ -189,7 +186,7 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	
 	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX}) public String getStorageBucket() {
 		if (!StringUtils.isEmpty(this.getId()))
-			return this.getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 3));
+			return this.getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 4));
 		
 		return getClassStorageBucket();
 	}

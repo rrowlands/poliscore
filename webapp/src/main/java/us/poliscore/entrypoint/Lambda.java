@@ -6,8 +6,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -38,10 +36,11 @@ import us.poliscore.model.Persistable;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
+import us.poliscore.model.bill.BillIssueImpact;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
-import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
+import us.poliscore.model.legislator.LegislatorIssueImpact;
 import us.poliscore.model.session.SessionInterpretation;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
@@ -178,7 +177,7 @@ public class Lambda {
     
     @GET
     @Path("/getLegislators")
-    public List<Legislator> getLegislators(@RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") String _exclusiveStartKey, @RestQuery String sortKey, @RestQuery("year") Integer _year) {
+    public List<Persistable> getLegislators(@RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") String _exclusiveStartKey, @RestQuery String sortKey, @RestQuery("year") Integer _year) {
     	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
     	val startKey = _exclusiveStartKey;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
@@ -187,9 +186,16 @@ public class Lambda {
     	Integer year = _year == null ? Integer.valueOf(PoliscoreUtil.DEPLOYMENT_YEAR) : _year;
     	String storageBucket = Legislator.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + CongressionalSession.fromYear(year).getNumber();
     	
-    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25;
+    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25 && !index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX);
     	val cacheKey = storageBucket + "-" + index + "-" + ascending.toString() + (StringUtils.isBlank(sortKey) ? "" : "-" + sortKey);
-    	if (cacheable && cachedLegislators.containsKey(cacheKey)) return cachedLegislators.get(cacheKey);
+    	if (cacheable && cachedLegislators.containsKey(cacheKey)) return cachedLegislators.get(cacheKey).stream().map(l -> (Persistable) l).toList();
+    	
+    	if (index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
+    		storageBucket = LegislatorIssueImpact.getIndexPrimaryKey(TrackedIssue.valueOf(sortKey));
+    		sortKey = null;
+    		val legs = ddb.query(LegislatorIssueImpact.class, pageSize, index, ascending, startKey, sortKey, storageBucket);
+    		return legs.stream().map(l -> (Persistable) l).toList();
+    	}
     	
     	val legs = ddb.query(Legislator.class, pageSize, index, ascending, startKey, sortKey, storageBucket);
     	
@@ -199,7 +205,7 @@ public class Lambda {
     		cachedLegislators.put(cacheKey, legs);
     	}
     	
-    	return legs;
+    	return legs.stream().map(l -> (Persistable) l).toList();
     }
     
     @GET
@@ -256,7 +262,7 @@ public class Lambda {
     @GET
     @Path("/getBills")
     @SneakyThrows
-    public List<Bill> getBills(@RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") String _exclusiveStartKey, @RestQuery String sortKey, @RestQuery("year") Integer _year) {
+    public List<Persistable> getBills(@RestQuery("pageSize") Integer _pageSize, @RestQuery("index") String _index, @RestQuery("ascending") Boolean _ascending, @RestQuery("exclusiveStartKey") String _exclusiveStartKey, @RestQuery String sortKey, @RestQuery("year") Integer _year) {
     	val index = StringUtils.isNotBlank(_index) ? _index : Persistable.OBJECT_BY_DATE_INDEX;
     	val startKey = _exclusiveStartKey;
     	var pageSize = _pageSize == null ? 25 : _pageSize;
@@ -265,18 +271,16 @@ public class Lambda {
     	Integer year = _year == null ? Integer.valueOf(PoliscoreUtil.DEPLOYMENT_YEAR) : _year;
     	String storageBucket = Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + CongressionalSession.fromYear(year).getNumber();
     	
-    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25 && StringUtils.isBlank(sortKey) && !index.startsWith(TRACKED_ISSUE_INDEX);
+    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25 && StringUtils.isBlank(sortKey) && !index.startsWith(TRACKED_ISSUE_INDEX) && !index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX);
     	val cacheKey = storageBucket + "-" + index + "-" + ascending.toString();
-    	if (cacheable && cachedBills.containsKey(cacheKey)) return cachedBills.get(cacheKey);
+    	if (cacheable && cachedBills.containsKey(cacheKey)) return cachedBills.get(cacheKey).stream().map(l -> (Persistable) l).toList();
     	
     	List<Bill> bills;
-    	if (index.startsWith(TRACKED_ISSUE_INDEX)) {
-    		val issue = TrackedIssue.valueOf(index.replace(TRACKED_ISSUE_INDEX, ""));
-    		bills = getBillsDump().stream()
-    				.filter(b -> b.getInterpretation().getIssueStats().hasStat(issue))
-    				.sorted((a,b) -> Integer.valueOf(b.getInterpretation().getIssueStats().getStat(issue)).compareTo(a.getInterpretation().getIssueStats().getStat(issue)))
-    				.limit(pageSize)
-    				.toList();
+    	if (index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
+    		storageBucket = BillIssueImpact.getIndexPrimaryKey(TrackedIssue.valueOf(sortKey));
+    		sortKey = null;
+    		val bii = ddb.query(BillIssueImpact.class, pageSize, index, ascending, startKey, sortKey, storageBucket);
+    		return bii.stream().map(l -> (Persistable) l).toList();
     	} else {
     		bills = ddb.query(Bill.class, pageSize, index, ascending, startKey, sortKey, storageBucket);
     	}
@@ -285,7 +289,7 @@ public class Lambda {
     		cachedBills.put(cacheKey, bills);
     	}
     	
-    	return bills;
+    	return bills.stream().map(l -> (Persistable) l).toList();
     }
     
     @SuppressWarnings("unchecked")

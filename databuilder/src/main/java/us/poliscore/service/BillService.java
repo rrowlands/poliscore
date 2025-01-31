@@ -22,14 +22,17 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.LegislativeChamber;
 import us.poliscore.model.LegislativeNamespace;
+import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
+import us.poliscore.model.bill.BillIssueImpact;
 import us.poliscore.model.bill.BillStatus;
 import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCosponsor;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor;
+import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryObjectService;
 import us.poliscore.view.USCBillView;
@@ -46,6 +49,9 @@ public class BillService {
 	
 	@Inject
 	protected LegislatorService lService;
+	
+	@Inject
+	private DynamoDbPersistenceService ddb;
 	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
@@ -135,7 +141,7 @@ public class BillService {
     		}
     	});
     	
-    	archiveBill(bill);
+    	memService.put(bill);
 	}
 	
 	public BillStatus buildStatus(USCBillView view) {
@@ -276,7 +282,15 @@ public class BillService {
 	    return status;
 	}
 
-
+	public void ddbPersist(Bill b, BillInterpretation interp)
+	{
+		b.setInterpretation(interp);
+		ddb.put(b);
+		
+		for(TrackedIssue issue : TrackedIssue.values()) {
+			ddb.put(new BillIssueImpact(issue, b.getImpact(issue), b));
+		}
+	}
 	
 	@SneakyThrows
 	public void generateBillWebappIndex() {
@@ -302,8 +316,8 @@ public class BillService {
 	public void dumbAllBills() {
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/resources/allbills.dump");
 		
-		val data = memService.queryAll(Bill.class).stream()
-			.filter(b -> b.isIntroducedInSession(CongressionalSession.S118) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
+		val data = memService.query(Bill.class).stream()
+			.filter(b -> s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.sorted((a,b) -> a.getName().compareTo(b.getName()))
 			.toList();
 		
@@ -383,9 +397,4 @@ public class BillService {
 	{
 		return memService.get(id, Bill.class);
 	}
-    
-    protected void archiveBill(Bill bill)
-    {
-    	memService.put(bill);
-    }
 }

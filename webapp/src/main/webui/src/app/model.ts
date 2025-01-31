@@ -8,7 +8,8 @@ export interface Bill {
   sponsor: BillSponsor;
   cosponsors: BillSponsor[];
   introducedDate: string;
-  id: string;
+  id?: string;
+  billId?: string;
   interpretation: BillInterpretation;
   rating?: number;
   shortExplain?: string;
@@ -64,7 +65,8 @@ export interface SessionStats {
 
 export class Legislator {
     name!: {first: string, last: string, official_full: string};
-    id!: string;
+    id?: string;
+    legislatorId?: string;
     bioguideId?: string;
     thomasId?: string;
     interpretation?: LegislatorInterpretation;
@@ -101,7 +103,7 @@ export interface IssueStats {
 }
 
 export class Page {
-  index?: "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImpact";
+  index?: "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImpact" | "ObjectsByIssueImpact";
   ascending?: boolean;
   pageSize?: number;
   exclusiveStartKey?: string | number;
@@ -281,6 +283,25 @@ export const states: [string,string][] = [
   ['Wisconsin', 'WI'],
   ['Wyoming', 'WY'],
 ];
+
+export const issueMap = {
+    AgricultureAndFood: 'Agriculture and Food',
+    Education: 'Education',
+    Transportation: 'Transportation',
+    EconomicsAndCommerce: 'Economics and Commerce',
+    ForeignRelations: 'Foreign Relations',
+    Government: 'Government Efficiency and Management',
+    Healthcare: 'Healthcare',
+    Housing: 'Housing',
+    Energy: 'Energy',
+    Technology: 'Technology',
+    Immigration: 'Immigration and Border Security',
+    NationalDefense: 'National Defense',
+    CrimeAndLawEnforcement: 'Crime and Law Enforcement',
+    WildlifeAndForestManagement: 'Wildlife And Forest Management',
+    PublicLandsAndNaturalResources: 'Public Lands And Natural Resources',
+    EnvironmentalManagementAndClimateChange: 'Environmental Management And Climate Change'
+  };
 
 export default function convertStateCodeToName(input: string): string {
   const toAbbr = input.length !== 2;

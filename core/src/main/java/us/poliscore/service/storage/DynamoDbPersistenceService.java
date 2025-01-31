@@ -279,7 +279,7 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 			return "rating";
 		} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
 			return "location";
-		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX)) {
+		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
 			return "impact";
 		} else {
 			throw new UnsupportedOperationException();
@@ -293,7 +293,7 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 			return av.n();
 		} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
 			return av.s();
-		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX)) {
+		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
 			return av.n();
 		} else {
 			throw new UnsupportedOperationException();
@@ -343,7 +343,16 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 //		if (pageSize != -1) {
 //			request.limit(pageSize);
 //		}
-		if (exclusiveStartKey != null) {
+		if (exclusiveStartKey != null && index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
+			HashMap<String,AttributeValue> map = new HashMap<String,AttributeValue>();
+			
+			map.put("issuePK", AttributeValue.fromS(storageBucket));
+			map.put("page", AttributeValue.fromS(HEAD_PAGE));
+			map.put("id", AttributeValue.fromS(exclusiveStartKey.split("~`~")[0]));
+			map.put("impact", AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
+			
+			request.exclusiveStartKey(map);
+		} else if (exclusiveStartKey != null) {
 			HashMap<String,AttributeValue> map = new HashMap<String,AttributeValue>();
 			
 			map.put("storageBucket", AttributeValue.fromS(storageBucket));
@@ -356,7 +365,7 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 				map.put(fieldForIndex(index), AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
 			} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
 				map.put(fieldForIndex(index), AttributeValue.fromS(exclusiveStartKey.split("~`~")[1]));
-			} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX)) {
+			} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
 				map.put(fieldForIndex(index), AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
 			}
 			

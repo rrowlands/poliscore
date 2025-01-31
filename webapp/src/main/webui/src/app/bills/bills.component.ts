@@ -1,6 +1,6 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
-import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue, Bill } from '../model';
+import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue, Bill, issueMap } from '../model';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -16,11 +16,12 @@ import { Title } from '@angular/platform-browser';
 import { descriptionForBill, gradeForBill, subtitleForBill } from '../bills';
 import { ConfigService } from '../config.service';
 import { HeaderComponent } from '../header/header.component';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 
 @Component({
   selector: 'bills',
   standalone: true,
-  imports: [HeaderComponent, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule, MatAutocompleteModule, ReactiveFormsModule, MatButtonModule],
+  imports: [MatMenuModule, HeaderComponent, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule, MatAutocompleteModule, ReactiveFormsModule, MatButtonModule],
   providers: [AppService, HttpClient],
   templateUrl: './bills.component.html',
   styleUrl: './bills.component.scss'
@@ -41,6 +42,8 @@ export class BillsComponent implements OnInit {
 
   private lastDataFetchSequence: number = 0;
 
+  issueMap = issueMap;
+
   public page: Page = {
     index: "ObjectsByImpact",
     ascending: false,
@@ -53,31 +56,42 @@ export class BillsComponent implements OnInit {
   {
     this.titleService.setTitle("Bills - PoliScore: AI Political Rating Service");
 
-    let routeIndex = this.route.snapshot.paramMap.get('index') as string;
-    let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
-    if ( (routeIndex === "byimpact" || routeIndex === "byrating" || routeIndex === "bydate") && routeAscending != null) {
-      if (routeIndex === "byimpact") {
-        this.page.index = "ObjectsByImpact";
-      } else if (routeIndex === "byrating") {
-        this.page.index = "ObjectsByRating";
-      } else if (routeIndex === "bydate") {
-        this.page.index = "ObjectsByDate";
+    this.route.fragment.subscribe(fragment => {
+      if (fragment) {
+        const params = new URLSearchParams(fragment);
+        let routeIndex = params.get('index');
+        let routeAscending = params.get('ascending');
+
+        if ((routeIndex != null && routeIndex.length > 0)) {
+          if (routeIndex === "byrating") {
+            this.page.index = "ObjectsByRating";
+          } else if (routeIndex === "bydate") {
+            this.page.index = "ObjectsByDate";
+          } else if (routeIndex === "byimpact") {
+            this.page.index = "ObjectsByImpact";
+          } else if (routeIndex && routeIndex.length > 0) {
+            this.page.index = "ObjectsByIssueImpact";
+            this.page.sortKey = routeIndex!;
+          }
+
+          this.page.ascending = routeAscending === "ascending";
+        }
+
+        this.fetchData();
+      } else {
+        this.fetchData();
       }
-
-      this.page.ascending = routeAscending == "ascending";
-    }
-
-    this.fetchData();
+    });
 
     this.filteredOptions = this.myControl.valueChanges
-        .pipe(
-          startWith(''),
-          debounceTime(400),
-          distinctUntilChanged(),
-          switchMap(val => {
-            return this.filter(val || '')
-          })       
-        );
+      .pipe(
+        startWith(''),
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap(val => {
+          return this.filter(val || '')
+        })       
+      );
   }
 
   private filter(value: string): Observable<[string, string][]> {
@@ -111,20 +125,34 @@ export class BillsComponent implements OnInit {
     // Trigger when scrolled to bottom
     if (el.offsetHeight + el.scrollTop >= (el.scrollHeight - 200) && this.bills != null) {
       const lastBill = this.bills[this.bills.length - 1];
+      const lastBillId = (lastBill.id ?? lastBill.billId);
       const sep = "~`~";
 
       if (this.page.index === "ObjectsByDate") {
-        this.page.exclusiveStartKey = lastBill.id + sep + lastBill.introducedDate;
+        this.page.exclusiveStartKey = lastBillId + sep + lastBill.introducedDate;
       } else if (this.page.index === "ObjectsByRating") {
-        this.page.exclusiveStartKey = lastBill.id + sep + getBenefitToSocietyIssue(lastBill.interpretation!.issueStats)[1];
+        this.page.exclusiveStartKey = lastBillId + sep + getBenefitToSocietyIssue(lastBill.interpretation!.issueStats)[1];
       } else if (this.page.index === "ObjectsByImpact") {
-         this.page.exclusiveStartKey = lastBill.id + sep + lastBill.impact;
+         this.page.exclusiveStartKey = lastBillId + sep + lastBill.impact;
+      } else if (this.page.index === "ObjectsByIssueImpact") {
+        this.page.exclusiveStartKey = lastBillId + sep + lastBill.impact;
       } else {
         console.log("Unknown page index: " + this.page.index);
         return
       }
 
       this.fetchData(false);
+    }
+  }
+
+  onBillSearchEnter(event: Event): void {
+    // Prevent the default behavior of the Enter key in the autocomplete
+    event.preventDefault();
+  
+    // Check if there's an active option and handle selection
+    const activeOption = this.myControl.value; // Or your custom logic
+    if (activeOption) {
+      this.onSelectAutocomplete(activeOption); // Call your existing handler
     }
   }
 
@@ -140,17 +168,22 @@ export class BillsComponent implements OnInit {
     }
   }
 
-  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByImpact") {
-    this.page.ascending = (index == this.page.index) ? !this.page.ascending : false;
+  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByImpact" | "ObjectsByIssueImpact",
+                sortKey: string | undefined = undefined,
+                menuTrigger: MatMenuTrigger | undefined = undefined,
+                event: Event | undefined = undefined) {
+    this.page.ascending = index === this.page.index && sortKey === this.page.sortKey ? !this.page.ascending : false;
     this.page.index = index;
     this.page.exclusiveStartKey = undefined;
     this.hasMoreContent = true;
-    this.page.sortKey = undefined;
+    this.page.sortKey = sortKey;
 
     this.bills= [];
 
-    let routeIndex = "byimpact";
-    if (this.page.index === "ObjectsByDate") {
+    let routeIndex = "";
+    if (sortKey) {
+      routeIndex = sortKey;
+    } else if (this.page.index === "ObjectsByDate") {
       routeIndex = "bydate";
     } else if (this.page.index === "ObjectsByRating") {
       routeIndex = "byrating";
@@ -158,9 +191,24 @@ export class BillsComponent implements OnInit {
       routeIndex = "byimpact";
     }
 
-    this.router.navigate(['/bills', routeIndex, this.page.ascending? "ascending" : "descending"]);
+    // this.router.navigate(['/bills', routeIndex, this.page.ascending? "ascending" : "descending"]);
+    this.router.navigate([], { fragment: `index=${routeIndex}&ascending=${this.page.ascending ? 'ascending' : 'descending'}` });
 
     this.fetchData();
+
+    if (event && menuTrigger) {
+      event.stopPropagation();
+      const overlayDiv = document.querySelector('.cdk-overlay-connected-position-bounding-box');
+      if (overlayDiv) overlayDiv.classList.add('closing');
+      setTimeout(() => {
+        if (overlayDiv) overlayDiv.classList.remove('closing');
+        if (overlayDiv) overlayDiv.classList.add('hidden');
+        menuTrigger!.closeMenu();
+        setTimeout(() => {
+          if (overlayDiv) overlayDiv.classList.remove('hidden');
+        }, 500);
+      }, 300);
+    }
   }
 
   fetchData(replace: boolean = true) {

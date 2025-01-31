@@ -12,13 +12,21 @@
             <div *ngIf="bills" class="content-section">
                 <h1 style="display: none;">Bills</h1>
 
-                <div class="sorting horizontal-layout">
+                <div class="sorting">
                     <label class="sort-label left">Sort by:</label>
                     <mat-button-toggle-group name="fontStyle" class="right" aria-label="Font Style" [hideSingleSelectionIndicator]="true" [hideMultipleSelectionIndicator]="true">
                         <mat-button-toggle (click)="togglePage('ObjectsByImpact')" value="bold">Impact <i *ngIf="page.index === 'ObjectsByImpact'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
                         <mat-button-toggle (click)="togglePage('ObjectsByDate')" value="italic">Date <i *ngIf="page.index === 'ObjectsByDate'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
                         <mat-button-toggle (click)="togglePage('ObjectsByRating')" value="bold">Grade <i *ngIf="page.index === 'ObjectsByRating'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
+                        <mat-button-toggle #menuTrigger="matMenuTrigger" [matMenuTriggerFor]="sortMenu" value="bold">Issue <i *ngIf="page.index === 'ObjectsByIssueImpact'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
                     </mat-button-toggle-group>
+
+                    <mat-menu #sortMenu="matMenu">
+                        <button mat-menu-item *ngFor="let issue of issueMap | keyvalue" (click)="togglePage('ObjectsByIssueImpact', issue.key, menuTrigger, $event)">
+                            {{ issue.value }}
+                            <i *ngIf="page.index === 'ObjectsByIssueImpact' && page.sortKey === issue.key" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i>
+                        </button>
+                    </mat-menu>
                 </div>
 
                 <input class="searchbox" type="text"
@@ -26,7 +34,8 @@
                     aria-label="Number"
                     matInput
                     [formControl]="myControl"
-                    [matAutocomplete]="auto">
+                    [matAutocomplete]="auto"
+                    (keydown.enter)="onBillSearchEnter($event)">
                 <mat-autocomplete #auto="matAutocomplete">
                     @for (idAndName of filteredOptions | async; track idAndName) {
                         <mat-option (click)="onSelectAutocomplete(idAndName[0])" [value]="idAndName[0]">{{idAndName[1]}}</mat-option>
@@ -35,7 +44,7 @@
             </div>
             
             <mat-card *ngFor="let bill of bills" class="example-card" appearance="outlined" [ngClass]="{'gold-border': bill.status.description.trim().toLowerCase() === 'law'}">
-                <a [routerLink]="'/bill/' + config.billIdToPath(bill.id)">
+                <a [routerLink]="'/bill/' + config.billIdToPath(bill.id ?? bill.billId!)">
                     <mat-card-header>
                         <mat-card-title-group>
                             <h4 class="title-date"><p style="padding-left:12px;">{{bill.introducedDate}}</p></h4>

@@ -42,6 +42,10 @@ public class Bill implements Persistable {
 	{
 		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber();
 	}
+	public static String getClassStorageBucket(LegislativeNamespace namespace, int session)
+	{
+		return ID_CLASS_PREFIX + "/" + namespace.getNamespace() + "/" + session;
+	}
 	
 	@JsonIgnore
 	protected transient BillText text;
@@ -121,7 +125,7 @@ public class Bill implements Persistable {
 	
 	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX }) public String getStorageBucket() {
 		if (!StringUtils.isEmpty(this.getId()))
-			return this.getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 3));
+			return this.getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 4));
 		
 		return getClassStorageBucket();
 	}

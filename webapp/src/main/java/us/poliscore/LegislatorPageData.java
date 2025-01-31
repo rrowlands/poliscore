@@ -6,7 +6,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.Persistable;
 
 @Data
 @AllArgsConstructor
@@ -15,7 +15,7 @@ import us.poliscore.model.legislator.Legislator;
 public class LegislatorPageData {
 	private String location;
 	
-	private List<Legislator> legislators;
+	private List<Persistable> legislators;
 	
 	private List<List<String>> allLegislators;
 }

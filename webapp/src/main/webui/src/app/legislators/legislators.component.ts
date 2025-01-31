@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, HostListener, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { AppService } from '../app.service';
-import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue } from '../model';
+import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue, issueMap } from '../model';
 import { CommonModule, KeyValuePipe, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -15,11 +15,12 @@ import { Title } from '@angular/platform-browser';
 import { descriptionForLegislator, gradeForLegislator, subtitleForLegislator, upForReelection } from '../legislators';
 import { HeaderComponent } from '../header/header.component';
 import { ConfigService } from '../config.service';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 
 @Component({
   selector: 'legislators',
   standalone: true,
-  imports: [HeaderComponent, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule, MatAutocompleteModule, ReactiveFormsModule, MatButtonModule],
+  imports: [MatMenuModule, HeaderComponent, KeyValuePipe, CommonModule, RouterModule, MatCardModule, MatPaginatorModule, MatButtonToggleModule, MatAutocompleteModule, ReactiveFormsModule, MatButtonModule],
   providers: [AppService, HttpClient],
   templateUrl: './legislators.component.html',
   styleUrl: './legislators.component.scss'
@@ -44,6 +45,8 @@ export class LegislatorsComponent implements OnInit {
 
   private lastDataFetchSequence = 0;
 
+  issueMap = issueMap;
+
   public page: Page = {
     index: "ObjectsByLocation",
     ascending: true,
@@ -52,47 +55,67 @@ export class LegislatorsComponent implements OnInit {
 
   constructor(public config: ConfigService, private service: AppService, private router: Router, private route: ActivatedRoute, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) {}
 
-  ngOnInit(): void
-  {
-    let routeIndex = this.route.snapshot.paramMap.get('index') as string;
-    let routeAscending = this.route.snapshot.paramMap.get('ascending') as string;
-
-    if (routeIndex === "state") {
-      this.page.index = "ObjectsByLocation";
-      this.page.ascending = true;
-      this.myLocation = routeAscending.toLowerCase();
-      this.titleService.setTitle(convertStateCodeToName(this.myLocation.toUpperCase()) + " Legislators - PoliScore: AI Political Rating Service");
-      this.fetchLegislatorPageData(false, this.myLocation);
-    } else {
-      this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
-      if (isPlatformBrowser(this._platformId)) { // This is here at the moment because we want to always force the request so that it's personalized by location
-        this.isRequestingData = true;
-        let routeParams = false;
+  ngOnInit(): void {
+    this.route.fragment.subscribe(fragment => {
+      if (fragment) {
+        const params = new URLSearchParams(fragment);
+        let routeIndex = params.get('index');
+        let routeAscending = params.get('order');
+        let routeLocation = params.get('location');
   
-        if ( (routeIndex === "byrating" || routeIndex === "byage" || routeIndex === "byimpact") && routeAscending != null) {
-          if (routeIndex === "byrating") {
-            this.page.index = "ObjectsByRating";
-          } else if (routeIndex === "byage") {
-            this.page.index = "ObjectsByDate";
-          } else if (routeIndex === "byimpact") {
-            this.page.index = "ObjectsByImpact";
+        if (routeIndex === "state" && routeLocation) {
+          this.page.index = "ObjectsByLocation";
+          this.page.ascending = true;
+          this.myLocation = routeLocation.toLowerCase();
+          this.titleService.setTitle(convertStateCodeToName(this.myLocation.toUpperCase()) + " Legislators - PoliScore: AI Political Rating Service");
+          this.fetchLegislatorPageData(false, this.myLocation);
+        } else if (routeIndex && routeAscending) {
+          this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
+          if (isPlatformBrowser(this._platformId)) { 
+            this.isRequestingData = true;
+            let routeParams = false;
+    
+            if ((routeIndex != null && routeIndex.length > 0)) {
+              if (routeIndex === "byrating") {
+                this.page.index = "ObjectsByRating";
+              } else if (routeIndex === "byage") {
+                this.page.index = "ObjectsByDate";
+              } else if (routeIndex === "byimpact") {
+                this.page.index = "ObjectsByImpact";
+              } else if (routeIndex && routeIndex.length > 0) {
+                this.page.index = "ObjectsByIssueImpact";
+                this.page.sortKey = routeIndex!;
+              }
+    
+              this.page.ascending = routeAscending === "ascending";
+              this.fetchData();
+              routeParams = true;
+            }
+    
+            this.fetchLegislatorPageData(routeParams);
           }
-  
-          this.page.ascending = routeAscending == "ascending";
-          
-          this.fetchData();
-          routeParams = true;
+        } else {
+          // Default behavior if no fragment is present
+          this.page.index = "ObjectsByLocation";
+          this.page.ascending = true;
+          this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
+          this.fetchLegislatorPageData();
         }
-  
-        this.fetchLegislatorPageData(routeParams);
+      } else {
+        // Default behavior if no fragment is present
+        this.page.index = "ObjectsByLocation";
+        this.page.ascending = true;
+        this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
+        this.fetchLegislatorPageData();
       }
-    }
-
+    });
+  
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value || '')),
     );
   }
+  
 
   private _filter(value: string): [string, string][] {
     const filterValue = value.toLowerCase();
@@ -133,6 +156,8 @@ export class LegislatorsComponent implements OnInit {
         this.page.exclusiveStartKey = lastLeg.id + sep + getBenefitToSocietyIssue(lastLeg.interpretation!.issueStats)[1];
       } else if (this.page.index === "ObjectsByImpact") {
         this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.impact;
+      } else if (this.page.index === "ObjectsByIssueImpact") {
+        this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.impact;
       } else if (this.page.index === "ObjectsByLocation") {
         let lastTerm = lastLeg.terms[lastLeg.terms.length - 1];
         this.page.exclusiveStartKey = lastLeg.id + sep + lastTerm.state + (lastTerm.district == null ? "" : "/" + lastTerm.district);
@@ -145,8 +170,19 @@ export class LegislatorsComponent implements OnInit {
     }
   }
 
-  onSelectAutocomplete(bioguideId: string) {
-    if (bioguideId.startsWith("STATE/")) {
+  onLegislatorSearchEnter(event: Event): void {
+    // Prevent the default behavior of the Enter key in the autocomplete
+    event.preventDefault();
+  
+    // Check if there's an active option and handle selection
+    const activeOption = this.myControl.value; // Or your custom logic
+    if (activeOption) {
+      this.onSelectAutocomplete(activeOption); // Call your existing handler
+    }
+  }
+
+  onSelectAutocomplete(id: string) {
+    if (id.startsWith("STATE/")) {
       this.page.index = "ObjectsByLocation";
       // this.page.sortKey = bioguideId.substring(6);
       this.page.ascending = true;
@@ -155,28 +191,34 @@ export class LegislatorsComponent implements OnInit {
       this.page.exclusiveStartKey = undefined;
       this.myControl.setValue("");
 
-      this.myLocation = bioguideId.substring(6);
+      this.myLocation = id.substring(6);
       this.router.navigate(['/legislators/state/' + this.myLocation.toLowerCase()]);
 
       this.fetchLegislatorPageData(false, this.myLocation);
     } else {
-      this.router.navigate(['/legislator/' + bioguideId]);
+      window.location.href = this.config.legislatorIdToAbsolutePath(id);
+      // this.router.navigate(this.config.legislatorIdToAbsolutePath(id));
     }
   }
 
-  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByLocation" | "ObjectsByImpact") {
-    this.page.ascending = (index == this.page.index) ? !this.page.ascending : false;
+  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByLocation" | "ObjectsByImpact" | "ObjectsByIssueImpact",
+              sortKey: string | undefined = undefined,
+              menuTrigger: MatMenuTrigger | undefined = undefined,
+              event: Event | undefined = undefined) {
+    this.page.ascending = index === this.page.index && sortKey === this.page.sortKey ? !this.page.ascending : false;
     this.page.index = index;
     this.page.exclusiveStartKey = undefined;
     this.hasMoreContent = true;
-    this.page.sortKey = undefined;
+    this.page.sortKey = sortKey;
 
     this.legs = [];
 
     this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
 
     let routeIndex = "";
-    if (this.page.index === "ObjectsByDate") {
+    if (sortKey) {
+      routeIndex = sortKey;
+    } else if (this.page.index === "ObjectsByDate") {
       routeIndex = "byage";
     } else if (this.page.index === "ObjectsByRating") {
       routeIndex = "byrating";
@@ -189,8 +231,22 @@ export class LegislatorsComponent implements OnInit {
       this.router.navigate(['/legislators']);
       this.fetchLegislatorPageData();
     } else {
-      this.router.navigate(['/legislators', routeIndex, this.page.ascending? "ascending" : "descending"]);
+      this.router.navigate([], { fragment: `index=${routeIndex}&order=${this.page.ascending ? 'ascending' : 'descending'}` });
       this.fetchData();
+    }
+
+    if (event && menuTrigger) {
+      event.stopPropagation();
+      const overlayDiv = document.querySelector('.cdk-overlay-connected-position-bounding-box');
+      if (overlayDiv) overlayDiv.classList.add('closing');
+      setTimeout(() => {
+        if (overlayDiv) overlayDiv.classList.remove('closing');
+        if (overlayDiv) overlayDiv.classList.add('hidden');
+        menuTrigger!.closeMenu();
+        setTimeout(() => {
+          if (overlayDiv) overlayDiv.classList.remove('hidden');
+        }, 500);
+      }, 300);
     }
   }
 
@@ -231,7 +287,7 @@ export class LegislatorsComponent implements OnInit {
       let hasntChangedUrl = (this.router.url == "" || this.router.url == "/" || this.router.url == "/legislators");
 
       if (state == null && !routeParams && hasntChangedUrl) {
-        this.router.navigate(['/legislators/state/' + data.location.toLowerCase()]);
+        this.router.navigate([], { fragment: `index=state&location=${this.myLocation.toLowerCase()}` });
       }
     }).finally(() => {
       if (!routeParams) {
@@ -242,8 +298,8 @@ export class LegislatorsComponent implements OnInit {
 
   routeTo(leg: Legislator)
   {
-    document.getElementById(leg.id)?.classList.add("tran-div");
-    this.router.navigate(['/legislator/' + leg.id.replace("LEG/us/congress", "")]);
+    document.getElementById((leg.id ?? leg.legislatorId!))?.classList.add("tran-div");
+    this.router.navigate(['/legislator/' + (leg.id ?? leg.legislatorId!).replace("LEG/us/congress", "")]);
   }
 
 

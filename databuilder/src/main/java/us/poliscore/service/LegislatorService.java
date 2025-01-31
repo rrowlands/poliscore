@@ -21,8 +21,12 @@ import lombok.SneakyThrows;
 import lombok.val;
 import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
+import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorLegislativeTermSortedSet;
+import us.poliscore.model.legislator.LegislatorInterpretation;
+import us.poliscore.model.legislator.LegislatorIssueImpact;
+import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.MemoryObjectService;
 import us.poliscore.view.USCLegislatorView;
 
@@ -31,6 +35,9 @@ public class LegislatorService {
 	
 	@Inject
 	private MemoryObjectService memService;
+	
+	@Inject
+	private DynamoDbPersistenceService ddb;
 	
 	@SneakyThrows
 	public void importLegislators()
@@ -61,7 +68,7 @@ public class LegislatorService {
 			
 			if (leg.isMemberOfSession(PoliscoreUtil.CURRENT_SESSION))
 			{
-				leg.setSession(String.valueOf(PoliscoreUtil.CURRENT_SESSION.getNumber()));
+				leg.setSession(PoliscoreUtil.CURRENT_SESSION.getNumber());
 				
 				memService.put(leg);
 				count++;
@@ -75,6 +82,16 @@ public class LegislatorService {
 	{
 		return memService.get(id, Legislator.class);
 	}
+	
+	public void ddbPersist(Legislator leg, LegislatorInterpretation interp)
+	{
+		leg.setInterpretation(interp);
+		ddb.put(leg);
+		
+		for(TrackedIssue issue : TrackedIssue.values()) {
+			ddb.put(new LegislatorIssueImpact(issue, leg.getImpact(issue), leg));
+		}
+	}
 
 	@SneakyThrows
 	public void generateLegislatorWebappIndex() {
@@ -84,10 +101,15 @@ public class LegislatorService {
 		
 		memService.queryAll(Legislator.class).stream()
 			.filter(l -> PoliscoreUtil.SUPPORTED_CONGRESSES.stream().anyMatch(s -> l.isMemberOfSession(s)))
-			.forEach(l -> uniqueSet.put(l.getBioguideId(), l));
+			.forEach(l -> {
+				if (!uniqueSet.containsKey(l.getBioguideId()) ||
+					(uniqueSet.containsKey(l.getBioguideId()) && uniqueSet.get(l.getBioguideId()).getSession() < l.getSession())) {
+					uniqueSet.put(l.getBioguideId(), l);
+				}
+			});
 		
 		val data = uniqueSet.values().stream()
-			.map(l -> Arrays.asList(l.getBioguideId(),l.getName().getOfficial_full()))
+			.map(l -> Arrays.asList(l.getId(),l.getName().getOfficial_full()))
 			.sorted((a,b) -> a.get(1).compareTo(b.get(1)))
 			.toList();
 		

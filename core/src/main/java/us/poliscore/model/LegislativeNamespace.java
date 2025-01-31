@@ -1,5 +1,7 @@
 package us.poliscore.model;
 
+import java.util.Arrays;
+
 import lombok.Getter;
 
 @Getter
@@ -11,5 +13,10 @@ public enum LegislativeNamespace {
 	private LegislativeNamespace(String namespace)
 	{
 		this.namespace = namespace;
+	}
+	
+	public static LegislativeNamespace of(String namespace)
+	{
+		return Arrays.asList(LegislativeNamespace.values()).stream().filter(n -> n.getNamespace().equals(namespace)).findFirst().get();
 	}
 }

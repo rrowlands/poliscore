@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, Inject, OnInit, PLATFORM_ID, Renderer2, ViewChild } from '@angular/core';
 import { AppService } from '../app.service';
-import convertStateCodeToName, { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade, issueKeyToLabelSmall, Page, hasValidInterpretation } from '../model';
+import convertStateCodeToName, { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade, issueKeyToLabelSmall, Page, hasValidInterpretation, issueMap } from '../model';
 import { HttpHeaders, HttpClient, HttpParams, HttpHandler } from '@angular/common/http';
 import { CommonModule, DatePipe, KeyValuePipe, isPlatformBrowser } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
@@ -74,24 +74,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
 
   private chart: any = null;
 
-  issueMap = {
-    AgricultureAndFood: 'Agriculture and Food',
-    Education: 'Education',
-    Transportation: 'Transportation',
-    EconomicsAndCommerce: 'Economics and Commerce',
-    ForeignRelations: 'Foreign Relations',
-    Government: 'Government Efficiency and Management',
-    Healthcare: 'Healthcare',
-    Housing: 'Housing',
-    Energy: 'Energy',
-    Technology: 'Technology',
-    Immigration: 'Immigration and Border Security',
-    NationalDefense: 'National Defense',
-    CrimeAndLawEnforcement: 'Crime and Law Enforcement',
-    WildlifeAndForestManagement: 'Wildlife And Forest Management',
-    PublicLandsAndNaturalResources: 'Public Lands And Natural Resources',
-    EnvironmentalManagementAndClimateChange: 'Environmental Management And Climate Change'
-  };
+  issueMap = issueMap;
 
   selectedOption: string = '';
 
@@ -182,18 +165,16 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   
     if (routeIndex === "bydate") {
       this.page.index = "ObjectsByDate";
-      this.page.ascending = routeAscending;
     } else if (routeIndex === "bygrade") {
       this.page.index = "ObjectsByRating";
-      this.page.ascending = routeAscending;
     } else if (routeIndex === "byimpact") {
       this.page.index = "ObjectsByImpact";
-      this.page.ascending = routeAscending;
     } else if (routeIndex && routeIndex.length > 0) {
       this.page.index = "TrackedIssue";
       this.page.sortKey = routeIndex!;
-      this.page.ascending = routeAscending;
     }
+
+    this.page.ascending = routeAscending;
   
     this.service.getLegislator(this.legId, this.page).then((leg) => {
       this.leg = leg;
