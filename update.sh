@@ -10,7 +10,7 @@ git pull
 python3 -m venv env
 source env/bin/activate
 
-CONGRESS=118
+CONGRESS=119
 
 usc-run govinfo --bulkdata=BILLSTATUS --congress=$CONGRESS
 usc-run bills --govtrack --congress=$CONGRESS

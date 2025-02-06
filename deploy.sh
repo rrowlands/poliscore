@@ -9,8 +9,9 @@ fi
 # Exit on error
 set -e
 
-export BUCKET_NAME=poliscore-website1
-export YEAR=2024
+export NODE_OPTIONS="--max-old-space-size=8192"
+export BUCKET_NAME=poliscore-website2
+export YEAR=2026
 
 
 if [ "$1" != "view" ]; then

@@ -1,0 +1,42 @@
+
+.logo-section {
+    align-items: baseline !important;
+}
+
+.logo-section .year {
+    padding-left: 15px;
+    font-size: 11px;
+}
+
+.logo-subtitle {
+    padding-left: 16px;
+}
+
+.year-and-namespace {
+    padding-left: 16px;;
+    margin-top: 20px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.year-and-namespace .namespace {
+    font-size: 14px;
+    font-weight: bold;
+    // width: 7em;
+}
+
+.year-and-namespace .year {
+    font-size: 13px;
+    font-weight: bold;
+    // width: 8em;
+}
+
+.dropdown-panel {
+    min-width: 10em !important; /* Ensures dropdown is wide enough */
+    max-width: none !important; /* Allows expansion */
+    white-space: nowrap; /* Prevents text from wrapping */
+}
+
+::ng-deep .cdk-overlay-pane {
+    width: 12em !important;
+}

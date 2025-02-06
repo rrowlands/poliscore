@@ -74,17 +74,14 @@
 
             <div class="sorting horizontal-layout">
                 <label class="sort-label left">Sort by:</label>
-                <mat-button-toggle-group name="fontStyle" class="right" aria-label="Font Style" [hideSingleSelectionIndicator]="true" [hideMultipleSelectionIndicator]="true">
-                    <mat-button-toggle (click)="toggleSort('legislators')" value="bold">Legislators <i *ngIf="sort === 'bestLegislators' || sort === 'worstLegislators'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': sort === 'bestLegislators', 'fa-arrow-up': sort === 'worstLegislators' }"></i></mat-button-toggle>
-                    <mat-button-toggle (click)="toggleSort('bills')" value="bold">Bills <i *ngIf="sort === 'mostImportantBills' || sort === 'worstBills'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': sort === 'mostImportantBills', 'fa-arrow-up': sort === 'worstBills' }"></i></mat-button-toggle>
-
-                    <!-- <mat-button-toggle value="bold">Rating <i *ngIf="page.index === 'ObjectsByRating'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
-                    <mat-button-toggle value="italic">Age <i *ngIf="page.index === 'ObjectsByDate'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': page.ascending, 'fa-arrow-up': !page.ascending }"></i></mat-button-toggle> -->
+                <mat-button-toggle-group [value]="sort" name="fontStyle" class="right" aria-label="Font Style" [hideSingleSelectionIndicator]="true" [hideMultipleSelectionIndicator]="true">
+                    <mat-button-toggle [value]="'legislators'" (click)="toggleSort('legislators')" value="bold">Legislators <i *ngIf="sort === 'legislators'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !ascending, 'fa-arrow-up': ascending }"></i></mat-button-toggle>
+                    <mat-button-toggle [value]="'bills'" (click)="toggleSort('bills')" value="bold">Bills <i *ngIf="sort === 'bills'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !ascending, 'fa-arrow-up': ascending }"></i></mat-button-toggle>
                 </mat-button-toggle-group>
             </div>
         </div>
 
-        <ng-container *ngIf="stats && sort.indexOf('Legislators') !== -1">
+        <ng-container *ngIf="stats && sort === 'legislators'">
             <mat-card *ngFor="let leg of getData()" class="legs" appearance="outlined">
                 <a [href]="config.legislatorIdToAbsolutePath(leg.id)">
                     <div class="left">
@@ -110,7 +107,7 @@
             </mat-card>
         </ng-container>
 
-        <ng-container *ngIf="stats && sort.indexOf('Bills') !== -1">
+        <ng-container *ngIf="stats && sort === 'bills'">
             <mat-card *ngFor="let bill of getData()" class="bills" appearance="outlined" [ngClass]="{'gold-border': bill.billStatus.description.trim().toLowerCase() === 'law'}">
                 <a [href]="config.billIdToAbsolutePath(bill.id)">
                     <mat-card-header>

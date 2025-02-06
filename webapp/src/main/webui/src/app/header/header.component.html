@@ -1,8 +1,23 @@
 <div>
     <div class="title">
-       <div class="vertical-layout">
+       <div class="vertical-layout logo-section">
            <a class="unstyled" href="/"><img class="logo" src="images/poliscore-word.png" alt="PoliScore Logo"></a>
            <span class="logo-subtitle">AI Political Rating Service</span>
+           <!-- <button class="year" mat-raised-button>{{ year }} (118th congress)</button> -->
+           <!-- <div class="horizontal-layout namespace-picker"><button mat-raised-button class="year" href="#">U.S. Congress</button> <button mat-raised-button class="year" href="#">{{year}} (118th)</button></div> -->
+
+           <div class="horizontal-layout year-and-namespace">
+            <!-- <mat-select class="namespace" [(value)]="namespace">
+              <mat-option value="us/congress">Congress</mat-option>
+              <mat-option value="colorado">Colorado</mat-option>
+            </mat-select> -->
+
+            <label class="namespace">Congress</label>
+          
+            <mat-select class="year" [(value)]="year" [panelClass]="'dropdown-panel'">
+              <mat-option *ngFor="let y of years" [value]="y" (click)="onChangeYear(y)">{{ yearDisplayLabel(y) }}</mat-option>
+            </mat-select>
+          </div>          
        </div>
        <div class="horizontal-layout" style="flex-direction: row-reverse !important;">
            <div class="nav-buttons vertical-layout">

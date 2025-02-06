@@ -136,7 +136,7 @@ export class BillComponent implements OnInit {
   public getCosponsorLarge() {
     var plural = (this.bill!.cosponsors.length > 1 ? "s" : "");
 
-    return "Cosponsor" + plural + ":\n\n" + this.bill?.cosponsors.map(s => "- <a href='/" + this.config.getYear() + "/legislator/" + this.config.legislatorIdToPath(s.legislatorId) + "'>" + s.name + "</a>").join("\n");
+    return "Cosponsor" + plural + ":\n\n" + this.bill?.cosponsors.map(s => "- <a href='" + this.config.legislatorIdToAbsolutePath(s.legislatorId) + "'>" + s.name + "</a>").join("\n");
   }
 
   async buildBarChartData() {

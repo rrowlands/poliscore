@@ -51,7 +51,7 @@ import us.poliscore.service.storage.MemoryObjectService;
 @QuarkusMain(name="DatabaseBuilder")
 public class DatabaseBuilder implements QuarkusApplication
 {
-	public static boolean INTERPRET_NEW_BILLS = false;
+	public static boolean INTERPRET_NEW_BILLS = true;
 	
 	public static boolean REINTERPRET_LEGISLATORS = false;
 	
@@ -121,14 +121,14 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-//		imageBuilder.process();
-//		billTextFetcher.process();
+		imageBuilder.process();
+		billTextFetcher.process();
 		
 		importBills();
-//		importLegislators();
-//		importPartyStats();
+		importLegislators();
+		importPartyStats();
 		
-//		webappDataGenerator.process();
+		webappDataGenerator.process();
 		
 		Log.info("Poliscore database build complete.");
 	}
@@ -142,11 +142,11 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
-//			if (!ddb.exists(b.getId(), Bill.class)) {
+			if (!ddb.exists(b.getId(), Bill.class)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				billService.ddbPersist(b, interp);
 				amount++;
-//			}
+			}
 		}
 		
 		Log.info("Created " + amount + " missing bills in ddb from s3");

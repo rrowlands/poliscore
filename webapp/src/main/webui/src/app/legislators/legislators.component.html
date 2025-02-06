@@ -14,12 +14,12 @@
 
                 <div class="sorting">
                     <label class="sort-label left">Sort by:</label>
-                    <mat-button-toggle-group name="fontStyle" class="right" aria-label="Font Style" [hideSingleSelectionIndicator]="true" [hideMultipleSelectionIndicator]="true">
-                        <mat-button-toggle (click)="togglePage('ObjectsByLocation')" value="bold">State</mat-button-toggle>
-                        <mat-button-toggle (click)="togglePage('ObjectsByImpact')" value="bold">Impact <i *ngIf="page.index === 'ObjectsByImpact'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
-                        <mat-button-toggle (click)="togglePage('ObjectsByRating')" value="bold">Grade <i *ngIf="page.index === 'ObjectsByRating'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
-                        <mat-button-toggle (click)="togglePage('ObjectsByDate')" value="italic">Age <i *ngIf="page.index === 'ObjectsByDate'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': page.ascending, 'fa-arrow-up': !page.ascending }"></i></mat-button-toggle>
-                        <mat-button-toggle #menuTrigger="matMenuTrigger" [matMenuTriggerFor]="sortMenu" value="bold">Issue <i *ngIf="page.index === 'ObjectsByIssueImpact'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
+                    <mat-button-toggle-group [value]="page.index" name="fontStyle" class="right" aria-label="Font Style" [hideSingleSelectionIndicator]="true" [hideMultipleSelectionIndicator]="true">
+                        <mat-button-toggle (click)="togglePage('ObjectsByLocation')" [value]="'ObjectsByLocation'" value="bold">State</mat-button-toggle>
+                        <mat-button-toggle (click)="togglePage('ObjectsByImpact')" [value]="'ObjectsByImpact'" value="bold">Impact <i *ngIf="page.index === 'ObjectsByImpact'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
+                        <mat-button-toggle (click)="togglePage('ObjectsByRating')" [value]="'ObjectsByRating'" value="bold">Grade <i *ngIf="page.index === 'ObjectsByRating'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
+                        <mat-button-toggle (click)="togglePage('ObjectsByDate')" [value]="'ObjectsByDate'" value="italic">Age <i *ngIf="page.index === 'ObjectsByDate'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': page.ascending, 'fa-arrow-up': !page.ascending }"></i></mat-button-toggle>
+                        <mat-button-toggle [value]="'ObjectsByIssueImpact'" #menuTrigger="matMenuTrigger" [matMenuTriggerFor]="sortMenu" value="bold">Issue <i *ngIf="page.index === 'ObjectsByIssueImpact'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
                     </mat-button-toggle-group>
 
                     <mat-menu #sortMenu="matMenu">
@@ -45,7 +45,7 @@
             </div>
             
             <mat-card *ngFor="let leg of legs" class="example-card" appearance="outlined">
-                <a [routerLink]="['/legislator', config.legislatorIdToPath(leg.id ?? leg.legislatorId!)]">
+                <a [href]="config.legislatorIdToAbsolutePath(leg.id ?? leg.legislatorId!)">
                     <div class="left">
                         <img *ngIf="!leg.photoError" [src]="'https://poliscore-prod-public.s3.amazonaws.com/' + (leg.id ?? leg.legislatorId!) + '.jpg'" (error)="leg.photoError = true;" >
                         <img *ngIf="leg.photoError" src="https://poliscore-prod-public.s3.amazonaws.com/LEG/leg-photo-missing.png" alt=“Name”>

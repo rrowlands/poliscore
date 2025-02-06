@@ -32,7 +32,9 @@ export class SessionStatsComponent {
 
   public party: "REPUBLICAN" | "DEMOCRAT" | "INDEPENDENT" = "REPUBLICAN";
 
-  public sort: "bestLegislators" | "worstLegislators" | "mostImportantBills" | "worstBills" = "bestLegislators";
+  public sort: "legislators" | "bills" = "legislators";
+
+  public ascending: boolean = false;
 
   public stats?: SessionStats;
 
@@ -89,16 +91,20 @@ export class SessionStatsComponent {
         this.party = party.toUpperCase() as "REPUBLICAN" | "DEMOCRAT" | "INDEPENDENT";
       }
 
-      let sort = this.route.snapshot.paramMap.get('sort') as string;
-      if (sort != null) {
-        if (sort == 'best-legislators') {
-          this.sort = "bestLegislators";
-        } else if (sort == 'worst-legislators') {
-          this.sort = "worstLegislators";
-        } else if (sort == 'important-bills') {
-          this.sort = "mostImportantBills";
-        } else if (sort == 'worst-bills') {
-          this.sort = "worstBills";
+      let routeSort = this.route.snapshot.paramMap.get('sort') as string;
+      if (routeSort != null) {
+        if (routeSort == 'best-legislators') {
+          this.sort = "legislators";
+          this.ascending = false;
+        } else if (routeSort == 'worst-legislators') {
+          this.sort = "legislators";
+          this.ascending = true;
+        } else if (routeSort == 'important-bills') {
+          this.sort = "bills";
+          this.ascending = false;
+        } else if (routeSort == 'worst-bills') {
+          this.sort = "bills";
+          this.ascending = true;
         }
       }
 
@@ -130,29 +136,22 @@ export class SessionStatsComponent {
   }
 
   toggleSort(index: "legislators" | "bills") {
-    if (index == "legislators") {
-      if (this.sort == "bestLegislators") {
-        this.sort = "worstLegislators";
-      } else {
-        this.sort = "bestLegislators";
-      }
-    } else {
-      if (this.sort == "mostImportantBills") {
-        this.sort = "worstBills";
-      } else {
-        this.sort = "mostImportantBills";
-      }
-    }
+    this.ascending = index === this.sort ? !this.ascending : false;
+    this.sort = index;
 
     let routeIndex;
-    if (index == "legislators") { routeIndex = this.sort == "bestLegislators" ? "best-legislators" : "worst-legislators"; }
-    if (index == "bills") { routeIndex = this.sort == "mostImportantBills" ? "important-bills" : "worst-bills"; }
+    if (index == "legislators") { routeIndex = !this.ascending ? "best-legislators" : "worst-legislators"; }
+    if (index == "bills") { routeIndex = !this.ascending ? "important-bills" : "worst-bills"; }
 
     this.router.navigate(['/congress/' + this.party.toLowerCase() + '/' +  routeIndex]);;
   }
 
   public getData() {
-    return ((this.stats! as any)[this.party.toLowerCase()] as any)[this.sort];
+    let routeIndex = "";
+    if (this.sort == "legislators") { routeIndex = !this.ascending ? "bestLegislators" : "worstLegislators"; }
+    if (this.sort == "bills") { routeIndex = !this.ascending ? "mostImportantBills" : "worstBills"; }
+
+    return ((this.stats! as any)[this.party.toLowerCase()] as any)[routeIndex];
   }
 
   async buildBarChartData() {

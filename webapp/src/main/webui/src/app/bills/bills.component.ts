@@ -164,7 +164,7 @@ export class BillsComponent implements OnInit {
       this.fetchData();
       this.myControl.setValue("");
     } else {
-      this.router.navigate(['/bill/' + this.config.billIdToPath(id)]);
+      window.location.href = this.config.billIdToAbsolutePath(id);
     }
   }
 

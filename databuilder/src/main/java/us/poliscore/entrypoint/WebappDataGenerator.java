@@ -98,14 +98,6 @@ public class WebappDataGenerator implements QuarkusApplication
 		// All states
 		Arrays.asList(states).stream().forEach(s -> routes.add("/legislators/state/" + s.toLowerCase()));
 		
-		// Sorted Legislators
-		routes.add("/legislators/byimpact/descending");
-		routes.add("/legislators/byimpact/ascending");
-		routes.add("/legislators/byrating/descending");
-		routes.add("/legislators/byrating/ascending");
-		routes.add("/legislators/byage/descending");
-		routes.add("/legislators/byage/ascending");
-		
 		// All legislator routes
 		routes.add("/legislators");
 		memService.queryAll(Legislator.class).stream()
@@ -119,12 +111,6 @@ public class WebappDataGenerator implements QuarkusApplication
 			.filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.sorted((a,b) -> a.getDate().compareTo(b.getDate()))
 			.forEach(b -> routes.add("/bill/" + b.getType().getName().toLowerCase() + "/" + b.getNumber()));
-		
-		// Sorted Bills
-		routes.add("/bills/byrating/descending");
-		routes.add("/bills/byrating/ascending");
-		routes.add("/bills/bydate/descending");
-		routes.add("/bills/bydate/ascending");
 		
 		FileUtils.write(out, String.join("\n", routes), "UTF-8");
 	}
