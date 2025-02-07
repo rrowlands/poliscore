@@ -56,22 +56,23 @@ export class LegislatorsComponent implements OnInit {
   constructor(public config: ConfigService, private service: AppService, private router: Router, private route: ActivatedRoute, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) {}
 
   ngOnInit(): void {
-    this.route.fragment.subscribe(fragment => {
-      if (fragment) {
-        const params = new URLSearchParams(fragment);
-        let routeIndex = params.get('index');
-        let routeAscending = params.get('order');
-        let routeLocation = params.get('location');
-  
-        if (routeIndex === "state" && routeLocation) {
-          this.page.index = "ObjectsByLocation";
-          this.page.ascending = true;
-          this.myLocation = routeLocation.toLowerCase();
-          this.titleService.setTitle(convertStateCodeToName(this.myLocation.toUpperCase()) + " Legislators - PoliScore: AI Political Rating Service");
-          this.fetchLegislatorPageData(false, this.myLocation);
-        } else if (routeIndex && routeAscending) {
-          this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
-          if (isPlatformBrowser(this._platformId)) { 
+    if (isPlatformBrowser(this._platformId)) {
+      this.route.fragment.subscribe(fragment => {
+        if (fragment) {
+          const params = new URLSearchParams(fragment);
+          let routeIndex = params.get('index');
+          let routeAscending = params.get('order');
+          let routeLocation = params.get('location');
+    
+          if (routeIndex === "state" && routeLocation) {
+            this.page.index = "ObjectsByLocation";
+            this.page.ascending = true;
+            this.myLocation = routeLocation.toLowerCase();
+            this.titleService.setTitle(convertStateCodeToName(this.myLocation.toUpperCase()) + " Legislators - PoliScore: AI Political Rating Service");
+            this.fetchLegislatorPageData(false, this.myLocation);
+          } else if (routeIndex && routeAscending) {
+            this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
+            
             this.isRequestingData = true;
             let routeParams = false;
     
@@ -88,11 +89,19 @@ export class LegislatorsComponent implements OnInit {
               }
     
               this.page.ascending = routeAscending === "ascending";
+              console.log(this.legs);
+              // this.legs = undefined;
               this.fetchData();
               routeParams = true;
             }
     
             this.fetchLegislatorPageData(routeParams);
+          } else {
+            // Default behavior if no fragment is present
+            this.page.index = "ObjectsByLocation";
+            this.page.ascending = true;
+            this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
+            this.fetchLegislatorPageData();
           }
         } else {
           // Default behavior if no fragment is present
@@ -101,19 +110,13 @@ export class LegislatorsComponent implements OnInit {
           this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
           this.fetchLegislatorPageData();
         }
-      } else {
-        // Default behavior if no fragment is present
-        this.page.index = "ObjectsByLocation";
-        this.page.ascending = true;
-        this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
-        this.fetchLegislatorPageData();
-      }
-    });
-  
-    this.filteredOptions = this.myControl.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filter(value || '')),
-    );
+      });
+    
+      this.filteredOptions = this.myControl.valueChanges.pipe(
+        startWith(''),
+        map(value => this._filter(value || '')),
+      );
+    }
   }
   
 
@@ -192,7 +195,8 @@ export class LegislatorsComponent implements OnInit {
       this.myControl.setValue("");
 
       this.myLocation = id.substring(6);
-      this.router.navigate(['/legislators/state/' + this.myLocation.toLowerCase()]);
+      // this.router.navigate(['/legislators/state/' + this.myLocation.toLowerCase()]);
+      this.router.navigate([], { fragment: `index=state&location=${this.myLocation}` });
 
       this.fetchLegislatorPageData(false, this.myLocation);
     } else {
@@ -288,6 +292,7 @@ export class LegislatorsComponent implements OnInit {
 
       if (state == null && !routeParams && hasntChangedUrl) {
         this.router.navigate([], { fragment: `index=state&location=${this.myLocation.toLowerCase()}` });
+        // this.router.navigate(['/legislators/state/' + this.myLocation.toLowerCase()]);
       }
     }).finally(() => {
       if (!routeParams) {

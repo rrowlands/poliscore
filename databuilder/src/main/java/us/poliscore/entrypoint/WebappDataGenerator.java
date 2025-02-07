@@ -96,7 +96,7 @@ public class WebappDataGenerator implements QuarkusApplication
 		routes.add("/congress/independent");
 		
 		// All states
-		Arrays.asList(states).stream().forEach(s -> routes.add("/legislators/state/" + s.toLowerCase()));
+//		Arrays.asList(states).stream().forEach(s -> routes.add("/legislators/state/" + s.toLowerCase()));
 		
 		// All legislator routes
 		routes.add("/legislators");
@@ -134,7 +134,7 @@ public class WebappDataGenerator implements QuarkusApplication
 			routes.add(url + prefix + "/congress/independent");
 			
 			// All states
-			Arrays.asList(states).stream().forEach(s -> routes.add(url + prefix + "/legislators/state/" + s.toLowerCase()));
+//			Arrays.asList(states).stream().forEach(s -> routes.add(url + prefix + "/legislators/state/" + s.toLowerCase()));
 			
 			// All legislator routes
 			routes.add(url + prefix + "/legislators");

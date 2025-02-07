@@ -20,7 +20,7 @@ cd ../poliscore
 mvn install
 
 cd databuilder
-mvn exec:java -Dquarkus.devservices.enabled=false
+mvn exec:java -Dquarkus.devservices.enabled=false -Dvertx.options.warningExceptionTime=-1
 cd ..
 
 ./deploy.sh

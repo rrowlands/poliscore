@@ -44,6 +44,7 @@
                 </mat-autocomplete>
             </div>
             
+            <ng-container *ngIf="legs">
             <mat-card *ngFor="let leg of legs" class="example-card" appearance="outlined">
                 <a [href]="config.legislatorIdToAbsolutePath(leg.id ?? leg.legislatorId!)">
                     <div class="left">
@@ -68,6 +69,7 @@
                     </div>
                 </a>
             </mat-card>
+            </ng-container>
 
             <mat-card *ngIf="hasMoreContent && isRequestingData" class="loading-card vertical-layout" appearance="outlined">
                 <div class="loading">
