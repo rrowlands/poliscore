@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ConfigService } from '../config.service';
 import {MatSelectModule} from '@angular/material/select';
 
@@ -22,8 +22,19 @@ export class HeaderComponent {
   public namespace: String = "us/congress";
   public years = [2026, 2024];
 
-  constructor(public config: ConfigService) { 
+  constructor(public config: ConfigService, private router: Router) { 
     this.year = config.getYear();
+
+    this.removeLatestYear();
+  }
+
+  private removeLatestYear(): void {
+    const urlSegments = this.router.url.split('/');
+    
+    if (urlSegments.length > 1 && urlSegments[1] === 'congress') {
+      this.years.shift();
+      this.year = this.years[0];
+    }
   }
 
   public yearDisplayLabel(year: number) {

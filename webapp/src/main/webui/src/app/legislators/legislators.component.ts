@@ -56,6 +56,8 @@ export class LegislatorsComponent implements OnInit {
   constructor(public config: ConfigService, private service: AppService, private router: Router, private route: ActivatedRoute, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) {}
 
   ngOnInit(): void {
+    // We want all calls to 'fetchLegislatorPageData' wrapped in 'isPlatformBrowser' because fetchLegislatorPageData
+    // resolves the user's ip to a state location and returns personalized data (which we don't want cached in SSG).
     if (isPlatformBrowser(this._platformId)) {
       this.route.fragment.subscribe(fragment => {
         if (fragment) {
@@ -98,15 +100,11 @@ export class LegislatorsComponent implements OnInit {
             this.fetchLegislatorPageData(routeParams);
           } else {
             // Default behavior if no fragment is present
-            this.page.index = "ObjectsByLocation";
-            this.page.ascending = true;
             this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
             this.fetchLegislatorPageData();
           }
         } else {
           // Default behavior if no fragment is present
-          this.page.index = "ObjectsByLocation";
-          this.page.ascending = true;
           this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
           this.fetchLegislatorPageData();
         }
@@ -236,7 +234,7 @@ export class LegislatorsComponent implements OnInit {
       this.fetchLegislatorPageData();
     } else {
       this.router.navigate([], { fragment: `index=${routeIndex}&order=${this.page.ascending ? 'ascending' : 'descending'}` });
-      this.fetchData();
+      // this.fetchData();
     }
 
     if (event && menuTrigger) {
@@ -279,6 +277,8 @@ export class LegislatorsComponent implements OnInit {
   }
 
   fetchLegislatorPageData(routeParams: boolean = false, state: string | null = null) {
+    this.isRequestingData = true;
+
     this.service.getLegislatorPageData(state).then(data => {
       if (!routeParams) {
         this.legs = data.legislators;

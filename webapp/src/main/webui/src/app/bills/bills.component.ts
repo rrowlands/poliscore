@@ -1,7 +1,7 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { AppService } from '../app.service';
 import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue, Bill, issueMap } from '../model';
-import { CommonModule, KeyValuePipe } from '@angular/common';
+import { CommonModule, isPlatformBrowser, KeyValuePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {MatCardModule} from '@angular/material/card'; 
@@ -50,48 +50,52 @@ export class BillsComponent implements OnInit {
     pageSize: 25
   };
 
-  constructor(public config: ConfigService, private service: AppService, private router: Router, private route: ActivatedRoute, private titleService: Title) {}
+  constructor(public config: ConfigService, @Inject(PLATFORM_ID) private _platformId: Object, private service: AppService, private router: Router, private route: ActivatedRoute, private titleService: Title) {}
 
   ngOnInit(): void
   {
     this.titleService.setTitle("Bills - PoliScore: AI Political Rating Service");
 
-    this.route.fragment.subscribe(fragment => {
-      if (fragment) {
-        const params = new URLSearchParams(fragment);
-        let routeIndex = params.get('index');
-        let routeAscending = params.get('ascending');
+    // We don't want to cache any of the returned bill data because it will display the wrong data for a second if they load
+    // the page with query parameters
+    if (isPlatformBrowser(this._platformId)) {
+      this.route.fragment.subscribe(fragment => {
+        if (fragment) {
+          const params = new URLSearchParams(fragment);
+          let routeIndex = params.get('index');
+          let routeAscending = params.get('ascending');
 
-        if ((routeIndex != null && routeIndex.length > 0)) {
-          if (routeIndex === "byrating") {
-            this.page.index = "ObjectsByRating";
-          } else if (routeIndex === "bydate") {
-            this.page.index = "ObjectsByDate";
-          } else if (routeIndex === "byimpact") {
-            this.page.index = "ObjectsByImpact";
-          } else if (routeIndex && routeIndex.length > 0) {
-            this.page.index = "ObjectsByIssueImpact";
-            this.page.sortKey = routeIndex!;
+          if ((routeIndex != null && routeIndex.length > 0)) {
+            if (routeIndex === "byrating") {
+              this.page.index = "ObjectsByRating";
+            } else if (routeIndex === "bydate") {
+              this.page.index = "ObjectsByDate";
+            } else if (routeIndex === "byimpact") {
+              this.page.index = "ObjectsByImpact";
+            } else if (routeIndex && routeIndex.length > 0) {
+              this.page.index = "ObjectsByIssueImpact";
+              this.page.sortKey = routeIndex!;
+            }
+
+            this.page.ascending = routeAscending === "ascending";
           }
 
-          this.page.ascending = routeAscending === "ascending";
+          this.fetchData();
+        } else {
+          this.fetchData();
         }
+      });
 
-        this.fetchData();
-      } else {
-        this.fetchData();
-      }
-    });
-
-    this.filteredOptions = this.myControl.valueChanges
-      .pipe(
-        startWith(''),
-        debounceTime(400),
-        distinctUntilChanged(),
-        switchMap(val => {
-          return this.filter(val || '')
-        })       
-      );
+      this.filteredOptions = this.myControl.valueChanges
+        .pipe(
+          startWith(''),
+          debounceTime(400),
+          distinctUntilChanged(),
+          switchMap(val => {
+            return this.filter(val || '')
+          })       
+        );
+    }
   }
 
   private filter(value: string): Observable<[string, string][]> {
@@ -194,7 +198,7 @@ export class BillsComponent implements OnInit {
     // this.router.navigate(['/bills', routeIndex, this.page.ascending? "ascending" : "descending"]);
     this.router.navigate([], { fragment: `index=${routeIndex}&ascending=${this.page.ascending ? 'ascending' : 'descending'}` });
 
-    this.fetchData();
+    // this.fetchData();
 
     if (event && menuTrigger) {
       event.stopPropagation();
