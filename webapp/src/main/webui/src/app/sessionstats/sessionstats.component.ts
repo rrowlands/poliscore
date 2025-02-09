@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement, Tooltip} from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { AppService } from '../app.service';
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
 import { Bill, colorForGrade, getBenefitToSocietyIssue, gradeForStats, issueKeyToLabel, issueKeyToLabelSmall, Legislator, SessionStats } from '../model';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatCardModule } from '@angular/material/card'; 
@@ -82,7 +82,7 @@ export class SessionStatsComponent {
     }
   };
 
-  constructor(public config: ConfigService, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
+  constructor(public config: ConfigService, private meta: Meta, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
 
   ngOnInit(): void {
     this.route.params.subscribe(newParams => {
@@ -118,11 +118,34 @@ export class SessionStatsComponent {
   
         if (stats == null) { return; }
   
-        this.titleService.setTitle(stats?.session + "th Congress Stats - PoliScore: AI Political Rating Service");
+        this.updateMetaTags();
   
         this.buildBarChartData();
       });
     }
+  }
+
+  updateMetaTags(): void {
+    let year = this.config.getYear();
+
+    let pageTitle = this.stats?.session + "th Congress Stats - PoliScore: AI Political Rating Service";
+    const pageDescription = this.config.appDescription();
+    const pageUrl = "https://poliscore.us/" + year + "/congress";
+    const imageUrl = 'https://poliscore.us/' + year + '/images/poliscore-word-whitebg.png';
+
+    this.titleService.setTitle(pageTitle);
+    
+    this.meta.updateTag({ property: 'og:title', content: pageTitle });
+    this.meta.updateTag({ property: 'og:description', content: pageDescription });
+    this.meta.updateTag({ property: 'og:url', content: pageUrl });
+    this.meta.updateTag({ property: 'og:image', content: imageUrl });
+    this.meta.updateTag({ property: 'og:type', content: 'website' });
+
+    // Twitter meta tags (optional)
+    this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+    this.meta.updateTag({ name: 'twitter:title', content: pageTitle });
+    this.meta.updateTag({ name: 'twitter:description', content: pageDescription });
+    this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
   }
 
   getInterpretation() {

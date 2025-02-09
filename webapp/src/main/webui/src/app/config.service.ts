@@ -50,6 +50,11 @@ export class ConfigService {
     return (congress - 1) * 2 + 1789 + 1;
   }
 
+  public appDescription(): string
+  {
+    return "PoliScore uses AI to 'grade' bills and produce statistics which are aggregated up to legislators. This results in comprehensive performance metrics for congress which are rooted in policy.";
+  }
+
   // public billIdToPath(billId: string): string
   // {
   //   return billId.replace('BIL/us/congress/' + this.congress + '/', '');

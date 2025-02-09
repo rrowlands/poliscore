@@ -9,7 +9,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card'; 
 import { MatTableModule } from '@angular/material/table';
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { ConfigService } from '../config.service';
 import { HeaderComponent } from '../header/header.component';
@@ -148,7 +148,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
     pageSize: 25
   };
 
-  constructor(public config: ConfigService, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
+  constructor(public config: ConfigService, private meta: Meta, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
 
   ngOnInit(): void {
     this.legId = this.route.snapshot.paramMap.get('id') as string;
@@ -186,9 +186,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
       if (leg.interpretation != null && leg.interpretation.issueStats.stats['OverallBenefitToSociety'] < 0 && params.get('ascending') == null)
         this.page.ascending = true;
   
-      this.titleService.setTitle(
-        leg.name.official_full + " - PoliScore: AI Political Rating Service"
-      );
+      this.updateMetaTags();
   
       this.refreshBillData();
   
@@ -211,6 +209,36 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
     }
   }
 
+  updateMetaTags(): void {
+    if (!this.leg) return;
+
+    let session = parseInt(this.legId!.split("/")[3]);
+    let year = this.config.congressToYear(session);
+
+    const pageTitle = this.leg!.name.official_full + " - PoliScore: AI Political Rating Service";
+
+    let pageDescription = "Waiting for more data - Legislator interpretatons require at least a hundred bill interactions in order to ensure accuracy.";
+    if (this.leg!.interpretation && this.leg!.interpretation!.longExplain)
+      pageDescription = this.gradeForLegislator() + " - " + this.leg!.interpretation!.longExplain!.split(/\n+/)[0].trim();
+
+    const pageUrl = `https://poliscore.us` + this.config.legislatorIdToAbsolutePath(this.legId!);
+    const imageUrl = this.photoForLegislator();
+
+    this.titleService.setTitle(pageTitle);
+    
+    this.meta.updateTag({ property: 'og:title', content: pageTitle });
+    this.meta.updateTag({ property: 'og:description', content: pageDescription });
+    this.meta.updateTag({ property: 'og:url', content: pageUrl });
+    this.meta.updateTag({ property: 'og:image', content: imageUrl });
+    this.meta.updateTag({ property: 'og:type', content: 'website' });
+
+    // Twitter meta tags (optional)
+    this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+    this.meta.updateTag({ name: 'twitter:title', content: pageTitle });
+    this.meta.updateTag({ name: 'twitter:description', content: pageDescription });
+    this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
+  }
+
   upForReelection() {
     return this.leg && this.leg!.terms![this.leg!.terms!.length - 1].endDate === (new Date().getFullYear() + 1) + '-01-03';
   }
@@ -227,6 +255,10 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
           statusProgress: i.statusProgress
         }));
         // .sort((a, b) => b.date.getTime() - a.date.getTime());
+  }
+
+  photoForLegislator(): string {
+    return 'https://poliscore-prod-public.s3.amazonaws.com/' + this.leg?.id + '.jpg';
   }
 
   gradeForLegislator(): string {

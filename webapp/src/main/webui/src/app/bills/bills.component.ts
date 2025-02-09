@@ -12,7 +12,7 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Observable, debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs';
 import { BillComponent } from '../bill/bill.component';
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
 import { descriptionForBill, gradeForBill, subtitleForBill } from '../bills';
 import { ConfigService } from '../config.service';
 import { HeaderComponent } from '../header/header.component';
@@ -50,11 +50,11 @@ export class BillsComponent implements OnInit {
     pageSize: 25
   };
 
-  constructor(public config: ConfigService, @Inject(PLATFORM_ID) private _platformId: Object, private service: AppService, private router: Router, private route: ActivatedRoute, private titleService: Title) {}
+  constructor(public config: ConfigService, private meta: Meta, @Inject(PLATFORM_ID) private _platformId: Object, private service: AppService, private router: Router, private route: ActivatedRoute, private titleService: Title) {}
 
   ngOnInit(): void
   {
-    this.titleService.setTitle("Bills - PoliScore: AI Political Rating Service");
+    this.updateMetaTags();
 
     // We don't want to cache any of the returned bill data because it will display the wrong data for a second if they load
     // the page with query parameters
@@ -108,6 +108,29 @@ export class BillsComponent implements OnInit {
     // });
 
     return this.service.queryBills(filterValue);
+  }
+
+  updateMetaTags(): void {
+    let year = this.config.getYear();
+
+    let pageTitle = "Bills - PoliScore: AI Political Rating Service";
+    const pageDescription = this.config.appDescription();
+    const pageUrl = "https://poliscore.us/" + year + "/bills";
+    const imageUrl = 'https://poliscore.us/' + year + '/images/poliscore-word-whitebg.png';
+
+    this.titleService.setTitle(pageTitle);
+    
+    this.meta.updateTag({ property: 'og:title', content: pageTitle });
+    this.meta.updateTag({ property: 'og:description', content: pageDescription });
+    this.meta.updateTag({ property: 'og:url', content: pageUrl });
+    this.meta.updateTag({ property: 'og:image', content: imageUrl });
+    this.meta.updateTag({ property: 'og:type', content: 'website' });
+
+    // Twitter meta tags (optional)
+    this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+    this.meta.updateTag({ name: 'twitter:title', content: pageTitle });
+    this.meta.updateTag({ name: 'twitter:description', content: pageDescription });
+    this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
   }
 
   @HostListener('window:scroll', ['$event'])

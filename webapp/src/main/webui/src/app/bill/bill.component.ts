@@ -7,7 +7,7 @@ import { CommonModule, isPlatformBrowser, isPlatformServer } from '@angular/comm
 import { HttpClient, HttpHandler } from '@angular/common/http';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Chart, ChartConfiguration, BarController, CategoryScale, LinearScale, BarElement, Tooltip} from 'chart.js'
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { ConfigService } from '../config.service';
 import { HeaderComponent } from '../header/header.component';
@@ -71,7 +71,7 @@ export class BillComponent implements OnInit {
     }
   };
 
-  constructor(public config: ConfigService, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
+  constructor(public config: ConfigService, private meta: Meta, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
 
   @HostListener('window:resize', ['$event'])
   onResize() {
@@ -101,9 +101,34 @@ export class BillComponent implements OnInit {
       }
 
       this.loading = false;
-      this.titleService.setTitle(bill.name + " - Bill - PoliScore: AI Political Rating Service");
+      this.updateMetaTags();
       this.buildBarChartData();
     });
+  }
+
+  updateMetaTags(): void {
+    let billId = this.bill?.id ?? this.bill?.billId!;
+    let billSession = parseInt(billId.split("/")[3]);
+    let year = this.config.congressToYear(billSession);
+
+    const pageTitle = this.bill!.name + " - Bill - PoliScore: AI Political Rating Service";
+    const pageDescription = this.gradeForBill() + " (" + this.bill?.cosponsors.length + " cosponsors) - " + this.bill!.interpretation.shortExplain!.replace(/[\r\n]/g, '');
+    const pageUrl = `https://poliscore.us` + this.config.billIdToAbsolutePath(billId);
+    const imageUrl = 'https://poliscore.us/' + year + '/images/billonly.png';
+
+    this.titleService.setTitle(pageTitle);
+    
+    this.meta.updateTag({ property: 'og:title', content: pageTitle });
+    this.meta.updateTag({ property: 'og:description', content: pageDescription });
+    this.meta.updateTag({ property: 'og:url', content: pageUrl });
+    this.meta.updateTag({ property: 'og:image', content: imageUrl });
+    this.meta.updateTag({ property: 'og:type', content: 'website' });
+
+    // Twitter meta tags (optional)
+    this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+    this.meta.updateTag({ name: 'twitter:title', content: pageTitle });
+    this.meta.updateTag({ name: 'twitter:description', content: pageDescription });
+    this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
   }
 
   getCongressGovBillType() {

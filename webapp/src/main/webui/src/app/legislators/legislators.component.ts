@@ -11,7 +11,7 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Observable, map, startWith } from 'rxjs';
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
 import { descriptionForLegislator, gradeForLegislator, subtitleForLegislator, upForReelection } from '../legislators';
 import { HeaderComponent } from '../header/header.component';
 import { ConfigService } from '../config.service';
@@ -53,9 +53,11 @@ export class LegislatorsComponent implements OnInit {
     pageSize: 25
   };
 
-  constructor(public config: ConfigService, private service: AppService, private router: Router, private route: ActivatedRoute, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) {}
+  constructor(public config: ConfigService, private meta: Meta, private service: AppService, private router: Router, private route: ActivatedRoute, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) {}
 
   ngOnInit(): void {
+    this.updateMetaTags();
+
     // We want all calls to 'fetchLegislatorPageData' wrapped in 'isPlatformBrowser' because fetchLegislatorPageData
     // resolves the user's ip to a state location and returns personalized data (which we don't want cached in SSG).
     if (isPlatformBrowser(this._platformId)) {
@@ -70,10 +72,10 @@ export class LegislatorsComponent implements OnInit {
             this.page.index = "ObjectsByLocation";
             this.page.ascending = true;
             this.myLocation = routeLocation.toLowerCase();
-            this.titleService.setTitle(convertStateCodeToName(this.myLocation.toUpperCase()) + " Legislators - PoliScore: AI Political Rating Service");
+            this.updateMetaTags();
             this.fetchLegislatorPageData(false, this.myLocation);
           } else if (routeIndex && routeAscending) {
-            this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
+            this.updateMetaTags();
             
             this.isRequestingData = true;
             let routeParams = false;
@@ -100,12 +102,12 @@ export class LegislatorsComponent implements OnInit {
             this.fetchLegislatorPageData(routeParams);
           } else {
             // Default behavior if no fragment is present
-            this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
+            this.updateMetaTags();
             this.fetchLegislatorPageData();
           }
         } else {
           // Default behavior if no fragment is present
-          this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
+          this.updateMetaTags();
           this.fetchLegislatorPageData();
         }
       });
@@ -117,6 +119,31 @@ export class LegislatorsComponent implements OnInit {
     }
   }
   
+  updateMetaTags(): void {
+    let year = this.config.getYear();
+
+    let pageTitle = "Legislators - PoliScore: AI Political Rating Service";
+    if (this.myLocation != null && this.page != null && this.page.index === 'ObjectsByLocation')
+      pageTitle = convertStateCodeToName(this.myLocation.toUpperCase()) + " Legislators - PoliScore: AI Political Rating Service"
+
+    const pageDescription = this.config.appDescription();
+    const pageUrl = "https://poliscore.us/" + year + "/legislators";
+    const imageUrl = 'https://poliscore.us/' + year + '/images/poliscore-word-whitebg.png';
+
+    this.titleService.setTitle(pageTitle);
+    
+    this.meta.updateTag({ property: 'og:title', content: pageTitle });
+    this.meta.updateTag({ property: 'og:description', content: pageDescription });
+    this.meta.updateTag({ property: 'og:url', content: pageUrl });
+    this.meta.updateTag({ property: 'og:image', content: imageUrl });
+    this.meta.updateTag({ property: 'og:type', content: 'website' });
+
+    // Twitter meta tags (optional)
+    this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+    this.meta.updateTag({ name: 'twitter:title', content: pageTitle });
+    this.meta.updateTag({ name: 'twitter:description', content: pageDescription });
+    this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
+  }
 
   private _filter(value: string): [string, string][] {
     const filterValue = value.toLowerCase();
@@ -215,7 +242,7 @@ export class LegislatorsComponent implements OnInit {
 
     this.legs = [];
 
-    this.titleService.setTitle("Legislators - PoliScore: AI Political Rating Service");
+    this.updateMetaTags();
 
     let routeIndex = "";
     if (sortKey) {

@@ -3,6 +3,8 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { Meta, Title } from '@angular/platform-browser';
+import { ConfigService } from '../config.service';
 
 @Component({
   selector: 'about',
@@ -17,9 +19,10 @@ export class AboutComponent implements OnInit {
 
   public donateBarHidden = true;
 
-  constructor(public dialog: MatDialog) { }
+  constructor(public config: ConfigService, public dialog: MatDialog, private meta: Meta, private titleService: Title) { }
 
   ngOnInit(): void {
+    this.updateMetaTags();
     setTimeout(() => {
       this.isPreload = false;
     }, 100);
@@ -43,6 +46,29 @@ export class AboutComponent implements OnInit {
 
   clickPrivacyPolicy() {
     this.dialog.open(DisclaimerDialogComponent);
+  }
+
+  updateMetaTags(): void {
+    let year = this.config.getYear();
+
+    let pageTitle = "About - PoliScore: AI Political Rating Service";
+    const pageDescription = this.config.appDescription();
+    const pageUrl = "https://poliscore.us/" + year + "/about";
+    const imageUrl = 'https://poliscore.us/' + year + '/images/poliscore-word-whitebg.png';
+
+    this.titleService.setTitle(pageTitle);
+    
+    this.meta.updateTag({ property: 'og:title', content: pageTitle });
+    this.meta.updateTag({ property: 'og:description', content: pageDescription });
+    this.meta.updateTag({ property: 'og:url', content: pageUrl });
+    this.meta.updateTag({ property: 'og:image', content: imageUrl });
+    this.meta.updateTag({ property: 'og:type', content: 'website' });
+
+    // Twitter meta tags (optional)
+    this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+    this.meta.updateTag({ name: 'twitter:title', content: pageTitle });
+    this.meta.updateTag({ name: 'twitter:description', content: pageDescription });
+    this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
   }
 }
 
