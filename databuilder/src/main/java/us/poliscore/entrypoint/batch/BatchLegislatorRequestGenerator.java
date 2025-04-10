@@ -120,6 +120,13 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 	
 	protected void interpret(Legislator leg)
 	{
+		int interactionCount = legInterp.getInteractionsForInterpretation(leg).size();
+		if (interactionCount < 100)
+		{
+			Log.info("Skipping " + leg.getId() + " (" + leg.getName().getOfficial_full() + ") because he did not have at least 100 interactions. He only had " + interactionCount);
+			return;
+		}
+		
 		legInterp.updateInteractionsInterp(leg);
 		
 		DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
@@ -127,24 +134,17 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		List<String> billMsgs = new ArrayList<String>();
 		Set<String> includedBills = new HashSet<String>();
 		
-		if (stats.getLetterGrade().equals("F")) {
-			// If they got an F we just want to roast them as hard as we can. List their worst bills.
+		// Include the top bills which explain the legislator's grade 
+		if (stats.getLetterGrade().equals("A") || stats.getLetterGrade().equals("B"))
+			includeBillsByGrade(leg, billMsgs, includedBills, 20, false);
+		else if (stats.getLetterGrade().equals("C")) {
+			includeBillsByGrade(leg, billMsgs, includedBills, 13, false);
+			includeBillsByGrade(leg, billMsgs, includedBills, 7, true);
+		} else if (stats.getLetterGrade().equals("D")) {
+			includeBillsByGrade(leg, billMsgs, includedBills, 7, false);
+			includeBillsByGrade(leg, billMsgs, includedBills, 13, true);
+		} else
 			includeBillsByGrade(leg, billMsgs, includedBills, 20, true);
-		} else {
-			// Start with top most impactful bills
-			billMsgs.add("Legislator's Most Impactful Bills:");
-			if (stats.getLetterGrade().equals("A") || stats.getLetterGrade().equals("B"))
-				includeBillsByImpact(leg, billMsgs, includedBills, 20, false);
-			else if (stats.getLetterGrade().equals("C")) {
-				includeBillsByImpact(leg, billMsgs, includedBills, 13, false);
-				includeBillsByImpact(leg, billMsgs, includedBills, 7, true);
-			} else if (stats.getLetterGrade().equals("D")) {
-				includeBillsByImpact(leg, billMsgs, includedBills, 7, false);
-				includeBillsByImpact(leg, billMsgs, includedBills, 13, true);
-			} else
-				includeBillsByImpact(leg, billMsgs, includedBills, 20, true);
-		}
-			
 		
 		// Include the top bills which explain the legislator's top scoring issues.
 		if (stats.getLetterGrade().equals("A") || stats.getLetterGrade().equals("B"))
@@ -220,9 +220,9 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		var billsByGrade = legInterp.getInteractionsForInterpretation(leg).stream().filter(i -> i.getIssueStats() != null);
 		
 		if (ascending)
-			billsByGrade = billsByGrade.sorted(Comparator.comparingInt(LegislatorBillInteraction::getRating));
+			billsByGrade = billsByGrade.sorted(Comparator.comparingInt(LegislatorBillInteraction::getWeightedRating));
 		else
-			billsByGrade = billsByGrade.sorted(Comparator.comparingInt(LegislatorBillInteraction::getOverallRating).reversed());
+			billsByGrade = billsByGrade.sorted(Comparator.comparingInt(LegislatorBillInteraction::getWeightedRating).reversed());
 		
 		for (val interact : billsByGrade.limit(amount).collect(Collectors.toList()))
 		{

@@ -164,6 +164,25 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	@JsonIgnore public int getOverallImpact() { return getImpact(); }
 	@JsonIgnore public int getOverallRating() { return getRating(); }
 	
+	/**
+	 * Returns a rating multiplied by the judgement weight
+	 */
+	@JsonIgnore public int getWeightedRating()
+	{
+//		return calculateWeightedRating(getRating(), statusProgress, this.getJudgementWeight());
+		
+		return (int) Math.round(getRating() * getJudgementWeight());
+	}
+	
+//	public static int calculateWeightedRating(int rating, float statusProgress, float judgementWeight)
+//	{
+//		double statusTerm = statusProgress * 0.25d;
+//		double ratingTerm = (((double)rating + 100d) / 200d) * 1.0d;
+//		double judgementTerm = ((judgementWeight + 0.5d) / 1.5d) * 0.5d;
+//		
+//		return (int) Math.round(statusTerm + ratingTerm + judgementTerm );
+//	}
+	
 	public int getImpact(TrackedIssue issue)
 	{
 		return Math.round( (float)Bill.calculateImpact(issueStats.getStat(issue), statusProgress, cosponsorPercent) * getJudgementWeight() );

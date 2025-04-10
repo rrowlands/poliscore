@@ -8885,185 +8885,6 @@
   },
   {
     "id": {
-      "bioguide": "G000551",
-      "thomas": "01708",
-      "govtrack": 400162,
-      "opensecrets": "N00025284",
-      "votesmart": 28253,
-      "fec": [
-        "H2AZ07070"
-      ],
-      "cspan": 1003551,
-      "wikipedia": "Ra\u00fal Grijalva",
-      "house_history": 14261,
-      "ballotpedia": "Raul Grijalva",
-      "maplight": 268,
-      "icpsr": 20305,
-      "wikidata": "Q946606",
-      "google_entity_id": "kg:/m/024s1z",
-      "pictorial": 12912
-    },
-    "name": {
-      "first": "Ra\u00fal",
-      "middle": "M.",
-      "last": "Grijalva",
-      "official_full": "Ra\u00fal M. Grijalva"
-    },
-    "bio": {
-      "birthday": "1948-02-19",
-      "gender": "M"
-    },
-    "terms": [
-      {
-        "type": "rep",
-        "start": "2003-01-07",
-        "end": "2005-01-03",
-        "state": "AZ",
-        "district": 7,
-        "party": "Democrat",
-        "url": "http://www.house.gov/grijalva"
-      },
-      {
-        "type": "rep",
-        "start": "2005-01-04",
-        "end": "2007-01-03",
-        "state": "AZ",
-        "district": 7,
-        "party": "Democrat",
-        "url": "http://www.house.gov/grijalva"
-      },
-      {
-        "type": "rep",
-        "start": "2007-01-04",
-        "end": "2009-01-03",
-        "state": "AZ",
-        "district": 7,
-        "party": "Democrat",
-        "url": "http://www.house.gov/grijalva"
-      },
-      {
-        "type": "rep",
-        "start": "2009-01-06",
-        "end": "2011-01-03",
-        "state": "AZ",
-        "district": 7,
-        "party": "Democrat",
-        "url": "http://www.house.gov/grijalva"
-      },
-      {
-        "type": "rep",
-        "start": "2011-01-05",
-        "end": "2013-01-03",
-        "state": "AZ",
-        "district": 7,
-        "party": "Democrat",
-        "url": "http://www.house.gov/grijalva",
-        "address": "1511 Longworth HOB; Washington DC 20515-0307",
-        "phone": "202-225-2435",
-        "fax": "202-225-1541",
-        "contact_form": "http://grijalva.house.gov/?sectionid=49&amp;sectiontree=2,49",
-        "office": "1511 Longworth House Office Building"
-      },
-      {
-        "type": "rep",
-        "start": "2013-01-03",
-        "end": "2015-01-03",
-        "state": "AZ",
-        "party": "Democrat",
-        "district": 3,
-        "url": "http://grijalva.house.gov",
-        "address": "1511 Longworth HOB; Washington DC 20515-0303",
-        "phone": "202-225-2435",
-        "fax": "202-225-1541",
-        "contact_form": "https://grijalvaforms.house.gov/email-raul",
-        "office": "1511 Longworth House Office Building",
-        "rss_url": "http://grijalva.house.gov/common/rss/?rss=13"
-      },
-      {
-        "type": "rep",
-        "start": "2015-01-06",
-        "end": "2017-01-03",
-        "state": "AZ",
-        "party": "Democrat",
-        "district": 3,
-        "url": "http://grijalva.house.gov",
-        "address": "1511 Longworth HOB; Washington DC 20515-0303",
-        "phone": "202-225-2435",
-        "fax": "202-225-1541",
-        "contact_form": "https://grijalvaforms.house.gov/email-raul",
-        "office": "1511 Longworth House Office Building",
-        "rss_url": "http://grijalva.house.gov/common/rss/?rss=13"
-      },
-      {
-        "type": "rep",
-        "start": "2017-01-03",
-        "end": "2019-01-03",
-        "state": "AZ",
-        "district": 3,
-        "party": "Democrat",
-        "phone": "202-225-2435",
-        "url": "https://grijalva.house.gov",
-        "rss_url": "http://grijalva.house.gov/common/rss/?rss=13",
-        "address": "1511 Longworth House Office Building; Washington DC 20515-0303",
-        "office": "1511 Longworth House Office Building",
-        "fax": "202-225-1541"
-      },
-      {
-        "type": "rep",
-        "start": "2019-01-03",
-        "end": "2021-01-03",
-        "state": "AZ",
-        "district": 3,
-        "party": "Democrat",
-        "phone": "202-225-2435",
-        "address": "1511 Longworth House Office Building Washington DC 20515-0303",
-        "office": "1511 Longworth House Office Building",
-        "url": "https://grijalva.house.gov",
-        "rss_url": "http://grijalva.house.gov/common/rss/?rss=13"
-      },
-      {
-        "type": "rep",
-        "start": "2021-01-03",
-        "end": "2023-01-03",
-        "state": "AZ",
-        "district": 3,
-        "party": "Democrat",
-        "url": "https://grijalva.house.gov",
-        "rss_url": "http://grijalva.house.gov/common/rss/?rss=13",
-        "address": "1511 Longworth House Office Building Washington DC 20515-0303",
-        "office": "1511 Longworth House Office Building",
-        "phone": "202-225-2435"
-      },
-      {
-        "type": "rep",
-        "start": "2023-01-03",
-        "end": "2025-01-03",
-        "state": "AZ",
-        "district": 7,
-        "party": "Democrat",
-        "url": "https://grijalva.house.gov",
-        "rss_url": "http://grijalva.house.gov/common/rss/?rss=13",
-        "address": "1203 Longworth House Office Building Washington DC 20515-0307",
-        "office": "1203 Longworth House Office Building",
-        "phone": "202-225-2435"
-      },
-      {
-        "type": "rep",
-        "start": "2025-01-03",
-        "end": "2027-01-03",
-        "state": "AZ",
-        "district": 7,
-        "party": "Democrat",
-        "url": "https://grijalva.house.gov",
-        "rss_url": "http://grijalva.house.gov/common/rss/?rss=13",
-        "address": "1203 Longworth House Office Building Washington DC 20515-0307",
-        "office": "1203 Longworth House Office Building",
-        "phone": "202-225-2435"
-      }
-    ]
-  },
-  {
-    "id": {
       "bioguide": "G000558",
       "thomas": "01922",
       "govtrack": 412278,
@@ -11297,8 +11118,8 @@
         "party": "Republican",
         "url": "https://www.lankford.senate.gov",
         "contact_form": "https://www.lankford.senate.gov/contact/email",
-        "address": "316 Hart Senate Office Building Washington DC 20510",
-        "office": "316 Hart Senate Office Building",
+        "address": "731 Hart Senate Office Building Washington DC 20510",
+        "office": "731 Hart Senate Office Building",
         "phone": "202-224-5754"
       }
     ]
@@ -17428,7 +17249,8 @@
         "url": "https://www.schiff.senate.gov",
         "address": "112 Hart Senate Office Building Washington DC 20510",
         "office": "112 Hart Senate Office Building",
-        "phone": "202-224-3841"
+        "phone": "202-224-3841",
+        "fax": "202-228-0026"
       }
     ]
   },
@@ -19592,7 +19414,8 @@
         "rss_url": "http://chrissmith.house.gov/news/rss.aspx",
         "address": "2373 Rayburn House Office Building Washington DC 20515-3004",
         "office": "2373 Rayburn House Office Building",
-        "phone": "202-225-3765"
+        "phone": "202-225-3765",
+        "fax": "202-225-7768"
       }
     ]
   },
@@ -28834,8 +28657,8 @@
         "state_rank": "junior",
         "party": "Democrat",
         "url": "https://www.gallego.senate.gov",
-        "address": "188 Russell Senate Office Building Washington DC 20510",
-        "office": "188 Russell Senate Office Building",
+        "address": "302 Hart Senate Office Building Washington DC 20510",
+        "office": "302 Hart Senate Office Building",
         "phone": "202-224-4521"
       }
     ]
@@ -31254,8 +31077,8 @@
         "party": "Republican",
         "url": "https://www.sullivan.senate.gov",
         "contact_form": "https://www.sullivan.senate.gov/contact/email",
-        "address": "302 Hart Senate Office Building Washington DC 20510",
-        "office": "302 Hart Senate Office Building",
+        "address": "706 Hart Senate Office Building Washington DC 20510",
+        "office": "706 Hart Senate Office Building",
         "phone": "202-224-3004"
       }
     ]
@@ -32172,8 +31995,8 @@
         "party": "Democrat",
         "url": "https://www.cortezmasto.senate.gov",
         "contact_form": "https://www.cortezmasto.senate.gov/contact",
-        "address": "520 Hart Senate Office Building Washington DC 20510",
-        "office": "520 Hart Senate Office Building",
+        "address": "309 Hart Senate Office Building Washington DC 20510",
+        "office": "309 Hart Senate Office Building",
         "phone": "202-224-3542"
       }
     ]
@@ -32920,8 +32743,8 @@
         "state_rank": "junior",
         "party": "Democrat",
         "url": "https://www.bluntrochester.senate.gov",
-        "address": "B40A Dirksen Senate Office Building Washington DC 20510",
-        "office": "B40a Dirksen Senate Office Building",
+        "address": "513 Hart Senate Office Building Washington DC 20510",
+        "office": "513 Hart Senate Office Building",
         "phone": "202-224-2441"
       }
     ]
@@ -33465,8 +33288,8 @@
         "state_rank": "junior",
         "party": "Republican",
         "url": "https://www.banks.senate.gov",
-        "address": "B85 Russell Senate Office Building Washington DC 20510",
-        "office": "B85 Russell Senate Office Building",
+        "address": "303 Hart Senate Office Building Washington DC 20510",
+        "office": "303 Hart Senate Office Building",
         "phone": "202-224-4814"
       }
     ]
@@ -33989,8 +33812,8 @@
         "party": "Republican",
         "url": "https://www.budd.senate.gov",
         "contact_form": "https://www.budd.senate.gov/contact/",
-        "address": "304 Russell Senate Office Building Washington DC 20510",
-        "office": "304 Russell Senate Office Building",
+        "address": "354 Russell Senate Office Building Washington DC 20510",
+        "office": "354 Russell Senate Office Building",
         "phone": "202-224-3154"
       }
     ]
@@ -35391,8 +35214,8 @@
         "party": "Republican",
         "url": "https://www.hydesmith.senate.gov",
         "contact_form": "https://www.hydesmith.senate.gov/contact-senator",
-        "address": "702 Hart Senate Office Building Washington DC 20510",
-        "office": "702 Hart Senate Office Building",
+        "address": "528 Hart Senate Office Building Washington DC 20510",
+        "office": "528 Hart Senate Office Building",
         "phone": "202-224-5054"
       }
     ]
@@ -37325,8 +37148,8 @@
         "state_rank": "junior",
         "party": "Democrat",
         "url": "https://www.slotkin.senate.gov",
-        "address": "825B Hart Senate Office Building Washington DC 20510",
-        "office": "825b Hart Senate Office Building",
+        "address": "291 Russell Senate Office Building Washington DC 20510",
+        "office": "291 Russell Senate Office Building",
         "phone": "202-224-4822"
       }
     ]
@@ -38037,8 +37860,8 @@
         "state_rank": "junior",
         "party": "Democrat",
         "url": "https://www.kim.senate.gov",
-        "address": "B40D Dirksen Senate Office Building Washington DC 20510",
-        "office": "B40d Dirksen Senate Office Building",
+        "address": "520 Hart Senate Office Building Washington DC 20510",
+        "office": "520 Hart Senate Office Building",
         "phone": "202-224-4744"
       }
     ]
@@ -40977,8 +40800,8 @@
         "party": "Democrat",
         "url": "https://www.hickenlooper.senate.gov",
         "contact_form": "https://www.hickenlooper.senate.gov/contact/",
-        "address": "374 Russell Senate Office Building Washington DC 20510",
-        "office": "374 Russell Senate Office Building",
+        "address": "316 Hart Senate Office Building Washington DC 20510",
+        "office": "316 Hart Senate Office Building",
         "phone": "202-224-5941",
         "fax": "202-224\u20133115"
       }
@@ -42915,7 +42738,8 @@
         "url": "https://bentz.house.gov",
         "address": "409 Cannon House Office Building Washington DC 20515-3702",
         "office": "409 Cannon House Office Building",
-        "phone": "202-225-6730"
+        "phone": "202-225-6730",
+        "fax": "202-225-5774"
       }
     ]
   },
@@ -43784,8 +43608,8 @@
         "class": 2,
         "party": "Democrat",
         "state_rank": "senior",
-        "address": "303 Hart Senate Office Building Washington DC 20510",
-        "office": "303 Hart Senate Office Building",
+        "address": "317 Hart Senate Office Building Washington DC 20510",
+        "office": "317 Hart Senate Office Building",
         "phone": "202-224-3521",
         "url": "https://www.ossoff.senate.gov",
         "contact_form": "https://www.ossoff.senate.gov/contact-us/"
@@ -43844,8 +43668,8 @@
         "party": "Democrat",
         "url": "https://www.warnock.senate.gov",
         "contact_form": "https://www.warnock.senate.gov/contact/",
-        "address": "416 Russell Senate Office Building Washington DC 20510",
-        "office": "416 Russell Senate Office Building",
+        "address": "717 Hart Senate Office Building Washington DC 20510",
+        "office": "717 Hart Senate Office Building",
         "phone": "202-224-3643",
         "fax": "202-228\u20130724"
       }
@@ -44731,8 +44555,8 @@
         "party": "Republican",
         "url": "https://www.britt.senate.gov",
         "contact_form": "https://www.britt.senate.gov/contact/",
-        "address": "502 Hart Senate Office Building Washington DC 20510",
-        "office": "502 Hart Senate Office Building",
+        "address": "416 Russell Senate Office Building Washington DC 20510",
+        "office": "416 Russell Senate Office Building",
         "phone": "202-224-5744"
       }
     ]
@@ -47200,7 +47024,8 @@
         "url": "https://hoyle.house.gov",
         "address": "1620 Longworth House Office Building Washington DC 20515-3704",
         "office": "1620 Longworth House Office Building",
-        "phone": "202-225-6416"
+        "phone": "202-225-6416",
+        "fax": "202-225-0032"
       },
       {
         "type": "rep",
@@ -49034,8 +48859,8 @@
         "party": "Republican",
         "url": "https://www.mccormick.senate.gov",
         "contact_form": "https://mccormick.senate.gov/",
-        "address": "B40C Dirksen Senate Office Building Washington DC 20510",
-        "office": "B40c Dirksen Senate Office Building",
+        "address": "702 Hart Senate Office Building Washington DC 20510",
+        "office": "702 Hart Senate Office Building",
         "phone": "202-224-6324"
       }
     ]
@@ -49442,7 +49267,7 @@
       "official_full": "Dave Min"
     },
     "bio": {
-      "gender": "F",
+      "gender": "M",
       "birthday": "1976-03-05"
     },
     "terms": [
@@ -50072,7 +49897,8 @@
       "official_full": "Kimberlyn King-Hinds"
     },
     "bio": {
-      "gender": "F"
+      "gender": "F",
+      "birthday": "1975-04-10"
     },
     "terms": [
       {
@@ -50860,40 +50686,6 @@
   },
   {
     "id": {
-      "bioguide": "T000489",
-      "fec": [
-        "H4TX18237"
-      ],
-      "govtrack": 457022,
-      "wikipedia": "Sylvester Turner",
-      "wikidata": "Q16751186"
-    },
-    "name": {
-      "first": "Sylvester",
-      "last": "Turner",
-      "official_full": "Sylvester Turner"
-    },
-    "bio": {
-      "gender": "M",
-      "birthday": "1954-09-27"
-    },
-    "terms": [
-      {
-        "type": "rep",
-        "start": "2025-01-03",
-        "end": "2027-01-03",
-        "state": "TX",
-        "district": 18,
-        "party": "Democrat",
-        "address": "1318 Longworth House Office Building Washington DC 20515-4318",
-        "office": "1318 Longworth House Office Building",
-        "phone": "202-225-3816",
-        "url": "https://sylvesterturner.house.gov"
-      }
-    ]
-  },
-  {
-    "id": {
       "bioguide": "G000603",
       "fec": [
         "H4TX26149"
@@ -51314,6 +51106,89 @@
         "address": "B40B Dirksen Senate Office Building Washington DC 20510",
         "office": "B40b Dirksen Senate Office Building",
         "phone": "202-224-3041"
+      }
+    ]
+  },
+  {
+    "id": {
+      "bioguide": "P000622",
+      "fec": [
+        "H6FL01390"
+      ],
+      "votesmart": 67909,
+      "cspan": 135015,
+      "wikipedia": "Jimmy Patronis",
+      "wikidata": "Q6201036",
+      "govtrack": 457034,
+      "ballotpedia": "Jimmy Patronis",
+      "house_history": 36507226671,
+      "google_entity_id": "kg:/m/03d5p39"
+    },
+    "name": {
+      "first": "Jimmy",
+      "middle": "Theo",
+      "last": "Patronis",
+      "suffix": "Jr.",
+      "official_full": "Jimmy Patronis"
+    },
+    "bio": {
+      "gender": "M",
+      "birthday": "1972-04-13"
+    },
+    "terms": [
+      {
+        "type": "rep",
+        "start": "2025-04-02",
+        "end": "2027-01-03",
+        "state": "FL",
+        "district": 1,
+        "party": "Republican",
+        "url": "https://patronis.house.gov/",
+        "contact_form": "https://patronis.house.gov/contact/email-me",
+        "address": "2021 Rayburn House Office Building Washington DC 20515-0901",
+        "office": "2021 Rayburn House Office Building",
+        "phone": "202-225-4136"
+      }
+    ]
+  },
+  {
+    "id": {
+      "bioguide": "F000484",
+      "fec": [
+        "H6FL06258"
+      ],
+      "votesmart": 172909,
+      "wikipedia": "Randy Fine",
+      "wikidata": "Q59240328",
+      "govtrack": 457035,
+      "ballotpedia": "Randy Fine",
+      "house_history": 36507226672,
+      "google_entity_id": "kg:/g/11fhvxds1p"
+    },
+    "name": {
+      "first": "Randall",
+      "middle": "Adam",
+      "nickname": "Randy",
+      "last": "Fine",
+      "official_full": "Randy Fine"
+    },
+    "bio": {
+      "gender": "M",
+      "birthday": "1974-04-20"
+    },
+    "terms": [
+      {
+        "type": "rep",
+        "start": "2025-04-02",
+        "end": "2027-01-03",
+        "state": "FL",
+        "district": 6,
+        "party": "Republican",
+        "url": "https://fine.house.gov/",
+        "contact_form": "hhttps://fine.house.gov/address_authentication?form=/contact/email-me",
+        "address": "244 Cannon House Office Building Washington DC 20515-0906",
+        "office": "244 Cannon House Office Building",
+        "phone": "202-225-2706"
       }
     ]
   }

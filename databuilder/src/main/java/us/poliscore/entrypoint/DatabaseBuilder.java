@@ -124,6 +124,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		imageBuilder.process();
 		billTextFetcher.process();
 		
+		importBillsFromS3();
 		importBills();
 		importLegislators();
 		importPartyStats();
@@ -165,8 +166,6 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	@SneakyThrows
 	private void importBills() {
-		importBillsFromS3();
-		
 		if (INTERPRET_NEW_BILLS) {
 			List<File> requests = billRequestGenerator.process();
 			
