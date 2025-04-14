@@ -10,7 +10,7 @@ fi
 set -e
 
 export NODE_OPTIONS="--max-old-space-size=8192"
-export BUCKET_NAME=poliscore-website2
+export BUCKET_NAME=poliscore-website1
 export YEAR=2026
 
 

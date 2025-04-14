@@ -88,7 +88,7 @@ export class LegislatorsComponent implements OnInit {
               } else if (routeIndex === "byimpact") {
                 this.page.index = "ObjectsByImpact";
               } else if (routeIndex && routeIndex.length > 0) {
-                this.page.index = "ObjectsByIssueImpact";
+                this.page.index = "ObjectsByIssueRating";
                 this.page.sortKey = routeIndex!;
               }
     
@@ -180,11 +180,9 @@ export class LegislatorsComponent implements OnInit {
 
       if (this.page.index === "ObjectsByDate") {
         this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.birthday;
-      } else if (this.page.index === "ObjectsByRating") {
+      } else if (this.page.index === "ObjectsByRating" || this.page.index === "ObjectsByIssueRating") {
         this.page.exclusiveStartKey = lastLeg.id + sep + getBenefitToSocietyIssue(lastLeg.interpretation!.issueStats)[1];
-      } else if (this.page.index === "ObjectsByImpact") {
-        this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.impact;
-      } else if (this.page.index === "ObjectsByIssueImpact") {
+      } else if (this.page.index === "ObjectsByImpact" || this.page.index === "ObjectsByIssueImpact") {
         this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.impact;
       } else if (this.page.index === "ObjectsByLocation") {
         let lastTerm = lastLeg.terms[lastLeg.terms.length - 1];
@@ -230,7 +228,7 @@ export class LegislatorsComponent implements OnInit {
     }
   }
 
-  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByLocation" | "ObjectsByImpact" | "ObjectsByIssueImpact",
+  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByLocation" | "ObjectsByImpact" | "ObjectsByIssueImpact" | "ObjectsByIssueRating",
               sortKey: string | undefined = undefined,
               menuTrigger: MatMenuTrigger | undefined = undefined,
               event: Event | undefined = undefined) {

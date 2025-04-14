@@ -197,6 +197,7 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return interpretation == null ? -1 : interpretation.getRating(); }
 	@JsonIgnore public void setRating(int rating) { }
+	@JsonIgnore public int getRating(TrackedIssue issue) { return interpretation.getRating(issue); }
 	
 	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPACT_INDEX }) public Long getImpact() { return getImpact(TrackedIssue.OverallBenefitToSociety); }
 	public void setImpact(Long impact) { impactMap.put(TrackedIssue.OverallBenefitToSociety, impact); }

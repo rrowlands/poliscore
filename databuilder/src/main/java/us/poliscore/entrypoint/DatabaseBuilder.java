@@ -121,7 +121,11 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		imageBuilder.process();
+		
+		// TODO : This is consistently returning 403 now. There's also problems where it can do like 40 requests on a leg before moving on
+//		imageBuilder.process();
+		
+		
 		billTextFetcher.process();
 		
 		importBillsFromS3();

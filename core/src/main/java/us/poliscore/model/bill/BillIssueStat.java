@@ -23,15 +23,15 @@ import us.poliscore.model.bill.Bill.BillSponsor;
 @DynamoDbBean
 @RegisterForReflection
 @NoArgsConstructor
-public class BillIssueImpact implements Persistable {
-	public static final String ID_CLASS_PREFIX = "BII";
+public class BillIssueStat implements Persistable {
+	public static final String ID_CLASS_PREFIX = "BIS";
 	
 	public static String getIndexPrimaryKey(TrackedIssue issue)
 	{
 		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber() + "/" + issue.name();
 	}
 	
-	public BillIssueImpact(TrackedIssue issue, int impact, Bill bill) {
+	public BillIssueStat(TrackedIssue issue, int impact, Bill bill) {
 		this.issue = issue;
 		this.impact = impact;
 		this.billId = bill.getId();
@@ -40,7 +40,7 @@ public class BillIssueImpact implements Persistable {
 		this.shortExplain = bill.getInterpretation().getShortExplain();
 		this.status = bill.getStatus();
 		this.introducedDate = bill.getIntroducedDate();
-		this.rating = bill.getRating();
+		this.rating = bill.getRating(issue);
 	}
 	
 	protected TrackedIssue issue;
@@ -60,6 +60,7 @@ public class BillIssueImpact implements Persistable {
 	
 	protected LocalDate introducedDate;
 	
+	@Getter(onMethod = @__({ @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_ISSUE_RATING_INDEX }) }))
 	protected int rating;
 	
 	// BIL/us/congress/118/hr/8580
@@ -68,7 +69,7 @@ public class BillIssueImpact implements Persistable {
 	@JsonIgnore @DynamoDbIgnore public String getSession() { return billId.split("/")[3]; }
 	@JsonIgnore @DynamoDbIgnore public LegislativeNamespace getNamespace() { return LegislativeNamespace.of(billId.split("/")[1] + "/" + billId.split("/")[2]); }
 	
-	@DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX })
+	@DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX, Persistable.OBJECT_BY_ISSUE_RATING_INDEX })
 	@JsonIgnore public String getIssuePK() { return ID_CLASS_PREFIX + "/" + getNamespace().getNamespace() + "/" + getSession() + "/" + issue.name(); }
 	@JsonIgnore public void setIssuePK(String pk) { }
 	

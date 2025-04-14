@@ -18,13 +18,13 @@
                         <mat-button-toggle (click)="togglePage('ObjectsByImpact')" [value]="'ObjectsByImpact'" value="bold">Impact <i *ngIf="page.index === 'ObjectsByImpact'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
                         <mat-button-toggle (click)="togglePage('ObjectsByDate')" [value]="'ObjectsByDate'" value="italic">Date <i *ngIf="page.index === 'ObjectsByDate'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
                         <mat-button-toggle (click)="togglePage('ObjectsByRating')" [value]="'ObjectsByRating'" value="bold">Grade <i *ngIf="page.index === 'ObjectsByRating'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
-                        <mat-button-toggle [value]="'ObjectsByIssueImpact'" #menuTrigger="matMenuTrigger" [matMenuTriggerFor]="sortMenu" value="bold">Issue <i *ngIf="page.index === 'ObjectsByIssueImpact'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
+                        <mat-button-toggle [value]="'ObjectsByIssueRating'" #menuTrigger="matMenuTrigger" [matMenuTriggerFor]="sortMenu" value="bold">Issue <i *ngIf="page.index === 'ObjectsByIssueRating'" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i></mat-button-toggle>
                     </mat-button-toggle-group>
 
                     <mat-menu #sortMenu="matMenu">
-                        <button mat-menu-item *ngFor="let issue of issueMap | keyvalue" (click)="togglePage('ObjectsByIssueImpact', issue.key, menuTrigger, $event)">
+                        <button mat-menu-item *ngFor="let issue of issueMap | keyvalue" (click)="togglePage('ObjectsByIssueRating', issue.key, menuTrigger, $event)">
                             {{ issue.value }}
-                            <i *ngIf="page.index === 'ObjectsByIssueImpact' && page.sortKey === issue.key" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i>
+                            <i *ngIf="page.index === 'ObjectsByIssueRating' && page.sortKey === issue.key" class="icon solid fa-solid sort-arrow" [ngClass]="{ 'fa-arrow-down': !page.ascending, 'fa-arrow-up': page.ascending }"></i>
                         </button>
                     </mat-menu>
                 </div>

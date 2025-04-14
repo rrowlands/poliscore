@@ -103,6 +103,7 @@ public class BillInterpretation implements Persistable
 	@JsonIgnore public void setDate(LocalDate date) { }
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return issueStats.getRating(); }
+	@JsonIgnore public Integer getRating(TrackedIssue issue) { return issueStats.getRating(issue); }
 	@JsonIgnore public void setRating(int rating) { }
 	
 	public static String generateId(String billId, Integer sliceIndex)

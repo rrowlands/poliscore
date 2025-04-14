@@ -117,6 +117,8 @@ public class IssueStats {
 		return getStat(issue, 0);
 	}
 	
+	@JsonIgnore public Integer getRating(TrackedIssue issue) { return getStat(issue); }
+	
 	@JsonIgnore
 	public int getStat(TrackedIssue issue, int defaultValue)
 	{

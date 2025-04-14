@@ -136,6 +136,7 @@ public class Bill implements Persistable {
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return interpretation.getRating(); }
 	@JsonIgnore public void setRating(int rating) { }
+	@JsonIgnore public int getRating(TrackedIssue issue) { return interpretation.getRating(issue); }
 	
 	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPACT_INDEX }) public int getImpact() { return getImpact(TrackedIssue.OverallBenefitToSociety); }
 	public void setImpact(int rating) { }

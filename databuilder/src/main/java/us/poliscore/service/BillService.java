@@ -25,7 +25,7 @@ import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
-import us.poliscore.model.bill.BillIssueImpact;
+import us.poliscore.model.bill.BillIssueStat;
 import us.poliscore.model.bill.BillStatus;
 import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
@@ -288,7 +288,7 @@ public class BillService {
 		ddb.put(b);
 		
 		for(TrackedIssue issue : TrackedIssue.values()) {
-			ddb.put(new BillIssueImpact(issue, b.getImpact(issue), b));
+			ddb.put(new BillIssueStat(issue, b.getImpact(issue), b));
 		}
 	}
 	

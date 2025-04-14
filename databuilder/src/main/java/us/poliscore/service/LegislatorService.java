@@ -25,7 +25,7 @@ import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorLegislativeTermSortedSet;
 import us.poliscore.model.legislator.LegislatorInterpretation;
-import us.poliscore.model.legislator.LegislatorIssueImpact;
+import us.poliscore.model.legislator.LegislatorIssueStat;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.MemoryObjectService;
 import us.poliscore.view.USCLegislatorView;
@@ -89,7 +89,7 @@ public class LegislatorService {
 		ddb.put(leg);
 		
 		for(TrackedIssue issue : TrackedIssue.values()) {
-			ddb.put(new LegislatorIssueImpact(issue, leg.getImpact(issue), leg));
+			ddb.put(new LegislatorIssueStat(issue, leg.getImpact(issue), leg));
 		}
 	}
 

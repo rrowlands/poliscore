@@ -73,7 +73,7 @@ export class BillsComponent implements OnInit {
             } else if (routeIndex === "byimpact") {
               this.page.index = "ObjectsByImpact";
             } else if (routeIndex && routeIndex.length > 0) {
-              this.page.index = "ObjectsByIssueImpact";
+              this.page.index = "ObjectsByIssueRating";
               this.page.sortKey = routeIndex!;
             }
 
@@ -157,12 +157,10 @@ export class BillsComponent implements OnInit {
 
       if (this.page.index === "ObjectsByDate") {
         this.page.exclusiveStartKey = lastBillId + sep + lastBill.introducedDate;
-      } else if (this.page.index === "ObjectsByRating") {
+      } else if (this.page.index === "ObjectsByRating" || this.page.index === "ObjectsByIssueRating") {
         this.page.exclusiveStartKey = lastBillId + sep + getBenefitToSocietyIssue(lastBill.interpretation!.issueStats)[1];
-      } else if (this.page.index === "ObjectsByImpact") {
+      } else if (this.page.index === "ObjectsByImpact" || this.page.index === "ObjectsByIssueImpact") {
          this.page.exclusiveStartKey = lastBillId + sep + lastBill.impact;
-      } else if (this.page.index === "ObjectsByIssueImpact") {
-        this.page.exclusiveStartKey = lastBillId + sep + lastBill.impact;
       } else {
         console.log("Unknown page index: " + this.page.index);
         return
@@ -195,7 +193,7 @@ export class BillsComponent implements OnInit {
     }
   }
 
-  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByImpact" | "ObjectsByIssueImpact",
+  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByImpact" | "ObjectsByIssueImpact" | "ObjectsByIssueRating",
                 sortKey: string | undefined = undefined,
                 menuTrigger: MatMenuTrigger | undefined = undefined,
                 event: Event | undefined = undefined) {

@@ -14,6 +14,8 @@ public interface Persistable {
 	
 	public static final String OBJECT_BY_ISSUE_IMPACT_INDEX = "ObjectsByIssueImpact";
 	
+	public static final String OBJECT_BY_ISSUE_RATING_INDEX = "ObjectsByIssueRating";
+	
 	public String getId();
 	public void setId(String id);
 	

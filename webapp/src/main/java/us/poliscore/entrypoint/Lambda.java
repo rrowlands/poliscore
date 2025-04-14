@@ -36,11 +36,11 @@ import us.poliscore.model.Persistable;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
-import us.poliscore.model.bill.BillIssueImpact;
+import us.poliscore.model.bill.BillIssueStat;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
-import us.poliscore.model.legislator.LegislatorIssueImpact;
+import us.poliscore.model.legislator.LegislatorIssueStat;
 import us.poliscore.model.session.SessionInterpretation;
 import us.poliscore.service.IpGeolocationService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
@@ -153,7 +153,7 @@ public class Lambda {
 		} else if (index.equals("TrackedIssue")) {
 			var issue = TrackedIssue.valueOf(sortKey);
 			stream = stream.filter(lbi -> lbi.getIssueStats().hasStat(issue));
-			comparator = (LegislatorBillInteraction a, LegislatorBillInteraction b) -> Integer.valueOf(a.getImpact(issue)).compareTo(b.getImpact(issue));
+			comparator = (LegislatorBillInteraction a, LegislatorBillInteraction b) -> Integer.valueOf(a.getRating(issue)).compareTo(b.getRating(issue));
 		} else {
 			throw new UnsupportedOperationException(index);
 		}
@@ -186,14 +186,14 @@ public class Lambda {
     	Integer year = _year == null ? Integer.valueOf(PoliscoreUtil.DEPLOYMENT_YEAR) : _year;
     	String storageBucket = Legislator.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + CongressionalSession.fromYear(year).getNumber();
     	
-    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25 && !index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX);
+    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25 && !index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX) && !index.equals(Persistable.OBJECT_BY_ISSUE_RATING_INDEX);
     	val cacheKey = storageBucket + "-" + index + "-" + ascending.toString() + (StringUtils.isBlank(sortKey) ? "" : "-" + sortKey);
     	if (cacheable && cachedLegislators.containsKey(cacheKey)) return cachedLegislators.get(cacheKey).stream().map(l -> (Persistable) l).toList();
     	
-    	if (index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
-    		storageBucket = LegislatorIssueImpact.getIndexPrimaryKey(TrackedIssue.valueOf(sortKey));
+    	if (index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_RATING_INDEX)) {
+    		storageBucket = LegislatorIssueStat.getIndexPrimaryKey(TrackedIssue.valueOf(sortKey));
     		sortKey = null;
-    		val legs = ddb.query(LegislatorIssueImpact.class, pageSize, index, ascending, startKey, sortKey, storageBucket);
+    		val legs = ddb.query(LegislatorIssueStat.class, pageSize, index, ascending, startKey, sortKey, storageBucket);
     		return legs.stream().map(l -> (Persistable) l).toList();
     	}
     	
@@ -271,15 +271,15 @@ public class Lambda {
     	Integer year = _year == null ? Integer.valueOf(PoliscoreUtil.DEPLOYMENT_YEAR) : _year;
     	String storageBucket = Bill.ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + CongressionalSession.fromYear(year).getNumber();
     	
-    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25 && StringUtils.isBlank(sortKey) && !index.startsWith(TRACKED_ISSUE_INDEX) && !index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX);
+    	val cacheable = StringUtils.isBlank(startKey) && pageSize == 25 && StringUtils.isBlank(sortKey) && !index.startsWith(TRACKED_ISSUE_INDEX) && !index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX) && !index.equals(Persistable.OBJECT_BY_ISSUE_RATING_INDEX);
     	val cacheKey = storageBucket + "-" + index + "-" + ascending.toString();
     	if (cacheable && cachedBills.containsKey(cacheKey)) return cachedBills.get(cacheKey).stream().map(l -> (Persistable) l).toList();
     	
     	List<Bill> bills;
-    	if (index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
-    		storageBucket = BillIssueImpact.getIndexPrimaryKey(TrackedIssue.valueOf(sortKey));
+    	if (index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_RATING_INDEX)) {
+    		storageBucket = BillIssueStat.getIndexPrimaryKey(TrackedIssue.valueOf(sortKey));
     		sortKey = null;
-    		val bii = ddb.query(BillIssueImpact.class, pageSize, index, ascending, startKey, sortKey, storageBucket);
+    		val bii = ddb.query(BillIssueStat.class, pageSize, index, ascending, startKey, sortKey, storageBucket);
     		return bii.stream().map(l -> (Persistable) l).toList();
     	} else {
     		bills = ddb.query(Bill.class, pageSize, index, ascending, startKey, sortKey, storageBucket);

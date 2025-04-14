@@ -41,7 +41,7 @@ import us.poliscore.model.dynamodb.DdbListPage;
 @ApplicationScoped
 public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 {
-	public static final String TABLE_NAME = "poliscore2";
+	public static final String TABLE_NAME = "poliscore1";
 	
 	public static final String HEAD_PAGE = "0";
 	
@@ -275,7 +275,7 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 	private String fieldForIndex(String index) {
 		if (index.equals(Persistable.OBJECT_BY_DATE_INDEX)) {
 			return "date";
-		} else if (index.equals(Persistable.OBJECT_BY_RATING_INDEX)) {
+		} else if (index.equals(Persistable.OBJECT_BY_RATING_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_RATING_INDEX)) {
 			return "rating";
 		} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
 			return "location";
@@ -289,7 +289,7 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 	private String readValue(String index, AttributeValue av) {
 		if (index.equals(Persistable.OBJECT_BY_DATE_INDEX)) {
 			return av.s();
-		} else if (index.equals(Persistable.OBJECT_BY_RATING_INDEX)) {
+		} else if (index.equals(Persistable.OBJECT_BY_RATING_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_RATING_INDEX)) {
 			return av.n();
 		} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
 			return av.s();
@@ -343,13 +343,17 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 //		if (pageSize != -1) {
 //			request.limit(pageSize);
 //		}
-		if (exclusiveStartKey != null && index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
+		if (exclusiveStartKey != null && (index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_RATING_INDEX))) {
 			HashMap<String,AttributeValue> map = new HashMap<String,AttributeValue>();
 			
 			map.put("issuePK", AttributeValue.fromS(storageBucket));
 			map.put("page", AttributeValue.fromS(HEAD_PAGE));
 			map.put("id", AttributeValue.fromS(exclusiveStartKey.split("~`~")[0]));
-			map.put("impact", AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
+			
+			if (index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX))
+				map.put("impact", AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
+			else
+				map.put("rating", AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
 			
 			request.exclusiveStartKey(map);
 		} else if (exclusiveStartKey != null) {

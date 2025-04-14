@@ -103,7 +103,7 @@ export interface IssueStats {
 }
 
 export class Page {
-  index?: "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImpact" | "ObjectsByIssueImpact";
+  index?: "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImpact" | "ObjectsByIssueImpact" | "ObjectsByIssueRating";
   ascending?: boolean;
   pageSize?: number;
   exclusiveStartKey?: string | number;

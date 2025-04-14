@@ -105,6 +105,19 @@ class PoliscoreStack extends Stack {
         	        .build())
         	    .build()
         	);
+        
+        table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
+        	    .indexName("ObjectsByIssueRating")
+        	    .partitionKey(Attribute.builder()
+        	        .name("issuePK")
+        	        .type(AttributeType.STRING)
+        	        .build())
+        	    .sortKey(Attribute.builder()
+        	        .name("rating")
+        	        .type(AttributeType.NUMBER)
+        	        .build())
+        	    .build()
+        	);
 
         
 

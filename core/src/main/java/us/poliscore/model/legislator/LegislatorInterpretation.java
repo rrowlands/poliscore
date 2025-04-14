@@ -18,6 +18,7 @@ import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Persistable;
+import us.poliscore.model.TrackedIssue;
 
 @Data
 @DynamoDbBean
@@ -75,6 +76,7 @@ public class LegislatorInterpretation implements Persistable
 	@JsonIgnore public void setDate(LocalDate date) { }
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return issueStats.getRating(); }
+	@JsonIgnore public Integer getRating(TrackedIssue issue) { return issueStats.getRating(issue); }
 
 	@JsonIgnore public void setRating(int rating) { }
 }

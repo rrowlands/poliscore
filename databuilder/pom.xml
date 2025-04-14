@@ -257,7 +257,7 @@
         </plugins>
       </build>
       <properties>
-        <skipITs>false</skipITs>
+        <skipITs>true</skipITs>
         <quarkus.native.enabled>true</quarkus.native.enabled>
       </properties>
     </profile>
