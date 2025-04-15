@@ -12,6 +12,10 @@ public interface Persistable {
 	
 	public static final String OBJECT_BY_IMPACT_INDEX = "ObjectsByImpact";
 	
+	public static final String OBJECT_BY_IMPACT_ABS_INDEX = "ObjectsByImpactAbs";
+	
+	public static final String OBJECT_BY_HOT_INDEX = "ObjectsByHot";
+	
 	public static final String OBJECT_BY_ISSUE_IMPACT_INDEX = "ObjectsByIssueImpact";
 	
 	public static final String OBJECT_BY_ISSUE_RATING_INDEX = "ObjectsByIssueRating";

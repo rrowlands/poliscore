@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, Inject, OnInit, PLATFORM_ID, Renderer2, ViewChild } from '@angular/core';
 import { AppService } from '../app.service';
-import convertStateCodeToName, { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade, issueKeyToLabelSmall, Page, hasValidInterpretation, issueMap } from '../model';
+import convertStateCodeToName, { Legislator, issueKeyToLabel, getBenefitToSocietyIssue, IssueStats, gradeForStats, BillInteraction, colorForGrade, issueKeyToLabelSmall, Page, hasValidInterpretation, issueMap, PageIndex } from '../model';
 import { HttpHeaders, HttpClient, HttpParams, HttpHandler } from '@angular/common/http';
 import { CommonModule, DatePipe, KeyValuePipe, isPlatformBrowser } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
@@ -143,7 +143,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   };
 
   public page: Page = {
-    index: "ObjectsByImpact",
+    index: "ObjectsByImpactAbs",
     ascending: undefined,
     pageSize: 25
   };
@@ -184,6 +184,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
       this.hasValidInterp = hasValidInterpretation(this.leg);
 
       if (leg.interpretation != null && leg.interpretation.issueStats.stats['OverallBenefitToSociety'] < 0 && params.get('ascending') == null)
+        this.page.index = "ObjectsByImpact";
         this.page.ascending = true;
   
       this.updateMetaTags();
@@ -416,30 +417,40 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   }
 
   togglePage(
-    index: "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImpact",
+    index: PageIndex,
     sortKey: string | undefined = undefined,
     menuTrigger: MatMenuTrigger | undefined = undefined,
     event: Event | undefined = undefined
   ) {
-    this.page.ascending = index === this.page.index && sortKey === this.page.sortKey ? !this.page.ascending : false;
-    this.page.index = index;
-    this.page.sortKey = sortKey;
+    if (index === "ObjectsByImpactAbs" && this.page.index === 'ObjectsByImpactAbs') {
+      this.page.index = "ObjectsByImpact";
+      this.page.ascending = false;
+    } else if (index === "ObjectsByImpact" && this.page.index === 'ObjectsByImpact' && this.page.ascending) {
+      this.page.index = "ObjectsByImpactAbs";
+      this.page.ascending = false;
+    } else if (index === "ObjectsByHot") {
+      if (this.page.index === "ObjectsByHot" && !this.page.ascending) return;
+      this.page.ascending = false;
+      this.page.index = index;
+    } else {
+      this.page.ascending = index === this.page.index && sortKey === this.page.sortKey ? !this.page.ascending : false;
+      this.page.index = index;
+    }
+
     this.page.exclusiveStartKey = undefined;
     this.hasMoreData = true;
+    this.page.sortKey = sortKey;
   
     this.leg!.interactions = [];
 
-    var urlIndex = "issue";
+    let routeIndex = "";
     if (sortKey) {
-      urlIndex = sortKey;
-    } else if (index === "ObjectsByDate") {
-      urlIndex = "bydate";
-    } else if (index === "ObjectsByRating") {
-      urlIndex = "bygrade"
-    } else if (index === "ObjectsByImpact") {
-      urlIndex = "byimpact"
+      routeIndex = sortKey;
+    } else {
+      routeIndex = this.page.index.replace("Objects", "").toLowerCase();
     }
-    this.router.navigate([], { fragment: `sort=${urlIndex}&ascending=${this.page.ascending}`, queryParamsHandling: 'merge', });
+
+    this.router.navigate([], { fragment: `sort=${routeIndex}&ascending=${this.page.ascending}`, queryParamsHandling: 'merge', });
   
     // Fetch new interactions
     this.fetchInteractions();

@@ -41,7 +41,7 @@ import us.poliscore.model.dynamodb.DdbListPage;
 @ApplicationScoped
 public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 {
-	public static final String TABLE_NAME = "poliscore1";
+	public static final String TABLE_NAME = "poliscore2";
 	
 	public static final String HEAD_PAGE = "0";
 	
@@ -281,6 +281,10 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 			return "location";
 		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
 			return "impact";
+		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_ABS_INDEX)) {
+			return "impactAbs";
+		} else if (index.equals(Persistable.OBJECT_BY_HOT_INDEX)) {
+			return "hot";
 		} else {
 			throw new UnsupportedOperationException();
 		}
@@ -294,6 +298,10 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 		} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
 			return av.s();
 		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
+			return av.n();
+		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_ABS_INDEX)) {
+			return av.n();
+		} else if (index.equals(Persistable.OBJECT_BY_HOT_INDEX)) {
 			return av.n();
 		} else {
 			throw new UnsupportedOperationException();
@@ -370,6 +378,8 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 			} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
 				map.put(fieldForIndex(index), AttributeValue.fromS(exclusiveStartKey.split("~`~")[1]));
 			} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
+				map.put(fieldForIndex(index), AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
+			} else if (index.equals(Persistable.OBJECT_BY_IMPACT_ABS_INDEX) || index.equals(Persistable.OBJECT_BY_HOT_INDEX)) {
 				map.put(fieldForIndex(index), AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
 			}
 			

@@ -1,6 +1,6 @@
-import { Component, HostListener, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { AppService } from '../app.service';
-import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue, Bill, issueMap } from '../model';
+import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue, Bill, issueMap, PageIndex } from '../model';
 import { CommonModule, isPlatformBrowser, KeyValuePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -45,12 +45,12 @@ export class BillsComponent implements OnInit {
   issueMap = issueMap;
 
   public page: Page = {
-    index: "ObjectsByImpact",
+    index: "ObjectsByHot",
     ascending: false,
     pageSize: 25
   };
 
-  constructor(public config: ConfigService, private meta: Meta, @Inject(PLATFORM_ID) private _platformId: Object, private service: AppService, private router: Router, private route: ActivatedRoute, private titleService: Title) {}
+  constructor(private cdr: ChangeDetectorRef, public config: ConfigService, private meta: Meta, @Inject(PLATFORM_ID) private _platformId: Object, private service: AppService, private router: Router, private route: ActivatedRoute, private titleService: Title) {}
 
   ngOnInit(): void
   {
@@ -72,6 +72,10 @@ export class BillsComponent implements OnInit {
               this.page.index = "ObjectsByDate";
             } else if (routeIndex === "byimpact") {
               this.page.index = "ObjectsByImpact";
+            } else if (routeIndex === "byimpactabs") {
+              this.page.index = "ObjectsByImpactAbs";
+            } else if (routeIndex === "byhot") {
+              this.page.index = "ObjectsByHot";
             } else if (routeIndex && routeIndex.length > 0) {
               this.page.index = "ObjectsByIssueRating";
               this.page.sortKey = routeIndex!;
@@ -159,8 +163,10 @@ export class BillsComponent implements OnInit {
         this.page.exclusiveStartKey = lastBillId + sep + lastBill.introducedDate;
       } else if (this.page.index === "ObjectsByRating" || this.page.index === "ObjectsByIssueRating") {
         this.page.exclusiveStartKey = lastBillId + sep + getBenefitToSocietyIssue(lastBill.interpretation!.issueStats)[1];
-      } else if (this.page.index === "ObjectsByImpact" || this.page.index === "ObjectsByIssueImpact") {
+      } else if (this.page.index === "ObjectsByImpact" || this.page.index === "ObjectsByImpactAbs" || this.page.index === "ObjectsByIssueImpact") {
          this.page.exclusiveStartKey = lastBillId + sep + lastBill.impact;
+      } else if (this.page.index === "ObjectsByHot") {
+        this.page.exclusiveStartKey = lastBillId + sep + lastBill.hot;
       } else {
         console.log("Unknown page index: " + this.page.index);
         return
@@ -193,12 +199,22 @@ export class BillsComponent implements OnInit {
     }
   }
 
-  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByImpact" | "ObjectsByIssueImpact" | "ObjectsByIssueRating",
-                sortKey: string | undefined = undefined,
-                menuTrigger: MatMenuTrigger | undefined = undefined,
-                event: Event | undefined = undefined) {
-    this.page.ascending = index === this.page.index && sortKey === this.page.sortKey ? !this.page.ascending : false;
-    this.page.index = index;
+  togglePage(index: PageIndex, sortKey: string | undefined = undefined, menuTrigger: MatMenuTrigger | undefined = undefined, event: Event | undefined = undefined) {
+    if (index === "ObjectsByImpactAbs" && this.page.index === 'ObjectsByImpactAbs') {
+      this.page.index = "ObjectsByImpact";
+      this.page.ascending = false;
+    } else if (index === "ObjectsByImpact" && this.page.index === 'ObjectsByImpact' && this.page.ascending) {
+      this.page.index = "ObjectsByImpactAbs";
+      this.page.ascending = false;
+    } else if (index === "ObjectsByHot") {
+      if (this.page.index === "ObjectsByHot" && !this.page.ascending) return;
+      this.page.ascending = false;
+      this.page.index = index;
+    } else {
+      this.page.ascending = index === this.page.index && sortKey === this.page.sortKey ? !this.page.ascending : false;
+      this.page.index = index;
+    }
+    
     this.page.exclusiveStartKey = undefined;
     this.hasMoreContent = true;
     this.page.sortKey = sortKey;
@@ -208,12 +224,8 @@ export class BillsComponent implements OnInit {
     let routeIndex = "";
     if (sortKey) {
       routeIndex = sortKey;
-    } else if (this.page.index === "ObjectsByDate") {
-      routeIndex = "bydate";
-    } else if (this.page.index === "ObjectsByRating") {
-      routeIndex = "byrating";
-    } else if (this.page.index === "ObjectsByImpact") {
-      routeIndex = "byimpact";
+    } else {
+      routeIndex = this.page.index.replace("Objects", "").toLowerCase();
     }
 
     // this.router.navigate(['/bills', routeIndex, this.page.ascending? "ascending" : "descending"]);
@@ -234,6 +246,8 @@ export class BillsComponent implements OnInit {
         }, 500);
       }, 300);
     }
+
+    window.setTimeout(() => {this.cdr.detectChanges()}, 1);
   }
 
   fetchData(replace: boolean = true) {

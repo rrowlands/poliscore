@@ -150,6 +150,10 @@ public class Lambda {
 			comparator = Comparator.comparing(LegislatorBillInteraction::getRating);
 		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX)) {
 			comparator = Comparator.comparing(LegislatorBillInteraction::getImpact);
+		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_ABS_INDEX)) {
+			comparator = Comparator.comparing(LegislatorBillInteraction::getImpactAbs);
+		} else if (index.equals(Persistable.OBJECT_BY_HOT_INDEX)) {
+			comparator = Comparator.comparing(LegislatorBillInteraction::getHot);
 		} else if (index.equals("TrackedIssue")) {
 			var issue = TrackedIssue.valueOf(sortKey);
 			stream = stream.filter(lbi -> lbi.getIssueStats().hasStat(issue));

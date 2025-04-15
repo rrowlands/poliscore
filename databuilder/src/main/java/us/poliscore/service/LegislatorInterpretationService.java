@@ -117,6 +117,17 @@ Based on these scores, this legislator has received the overall letter grade: {{
 				.collect(Collectors.toList());
 	}
 	
+	/**
+	 * Returns true if the legislator meets all prerequisite criteria for interpretation (i.e. at least 100 bill interactions)
+	 * 
+	 * @param leg
+	 * @return
+	 */
+	public boolean meetsInterpretationPrereqs(Legislator leg)
+	{
+		return getInteractionsForInterpretation(leg).size() >= 100;
+	}
+	
 //	protected void interpretMostRecentInteractions(Legislator leg)
 //	{
 //		int interpretedBills = 0;

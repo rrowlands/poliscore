@@ -1,6 +1,7 @@
 package us.poliscore.model.bill;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -123,7 +124,7 @@ public class Bill implements Persistable {
 		return Integer.valueOf(session.getNumber()).equals(this.session);
 	}
 	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX }) public String getStorageBucket() {
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX, OBJECT_BY_IMPACT_ABS_INDEX, OBJECT_BY_HOT_INDEX }) public String getStorageBucket() {
 		if (!StringUtils.isEmpty(this.getId()))
 			return this.getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 4));
 		
@@ -139,7 +140,14 @@ public class Bill implements Persistable {
 	@JsonIgnore public int getRating(TrackedIssue issue) { return interpretation.getRating(issue); }
 	
 	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPACT_INDEX }) public int getImpact() { return getImpact(TrackedIssue.OverallBenefitToSociety); }
-	public void setImpact(int rating) { }
+	public void setImpact(int impact) { }
+	
+	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPACT_ABS_INDEX }) public int getImpactAbs() { return Math.abs(getImpact()); }
+	public void setImpactAbs(int impact) { }
+	
+	// TODO : Use lastUpdateDate
+	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_HOT_INDEX }) public int getHot() { return (int)(getImpactAbs() * Math.exp(-0.02 * ChronoUnit.DAYS.between(introducedDate, LocalDate.now()))); }
+	public void setHot(int hot) { }
 	
 	public static String generateId(int congress, BillType type, int number)
 	{

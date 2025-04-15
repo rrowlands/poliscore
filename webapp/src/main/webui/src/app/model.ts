@@ -1,6 +1,7 @@
 
 export interface Bill {
   impact: number;
+  impactAbs: number;
   name: string;
   number: number;
   type: string;
@@ -12,6 +13,7 @@ export interface Bill {
   billId?: string;
   interpretation: BillInterpretation;
   rating?: number;
+  hot?: number;
   shortExplain?: string;
   status: { description: string, progress: number, sourceStatus: string };
 }
@@ -83,6 +85,8 @@ export class Legislator {
     photoError: boolean = false;
     birthday: string | undefined;
     impact!: number;
+    impactAbs!: number;
+    hot!: number;
 }
 
 export interface LegislatorPageData {
@@ -102,8 +106,10 @@ export interface IssueStats {
     stats: any;
 }
 
+export type PageIndex = "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImpact" | "ObjectsByImpactAbs" | "ObjectsByIssueImpact" | "ObjectsByIssueRating" | "ObjectsByHot";
+
 export class Page {
-  index?: "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImpact" | "ObjectsByIssueImpact" | "ObjectsByIssueRating";
+  index!: PageIndex;
   ascending?: boolean;
   pageSize?: number;
   exclusiveStartKey?: string | number;

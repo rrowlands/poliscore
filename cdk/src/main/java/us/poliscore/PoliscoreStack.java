@@ -94,6 +94,30 @@ class PoliscoreStack extends Stack {
                 .build());
         
         table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
+                .indexName("ObjectsByImpactAbs")
+                .partitionKey(Attribute.builder()
+                        .name("storageBucket")
+                        .type(AttributeType.STRING)
+                        .build())
+                .sortKey(Attribute.builder()
+                        .name("impactAbs")
+                        .type(AttributeType.NUMBER)
+                        .build())
+                .build());
+        
+        table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
+                .indexName("ObjectsByHot")
+                .partitionKey(Attribute.builder()
+                        .name("storageBucket")
+                        .type(AttributeType.STRING)
+                        .build())
+                .sortKey(Attribute.builder()
+                        .name("hot")
+                        .type(AttributeType.NUMBER)
+                        .build())
+                .build());
+        
+        table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
         	    .indexName("ObjectsByIssueImpact")
         	    .partitionKey(Attribute.builder()
         	        .name("issuePK")

@@ -39,6 +39,9 @@ public class LegislatorService {
 	@Inject
 	private DynamoDbPersistenceService ddb;
 	
+	@Inject
+	private LegislatorInterpretationService legInterp;
+	
 	@SneakyThrows
 	public void importLegislators()
 	{
@@ -88,8 +91,11 @@ public class LegislatorService {
 		leg.setInterpretation(interp);
 		ddb.put(leg);
 		
-		for(TrackedIssue issue : TrackedIssue.values()) {
-			ddb.put(new LegislatorIssueStat(issue, leg.getImpact(issue), leg));
+		if (legInterp.meetsInterpretationPrereqs(leg))
+		{
+			for(TrackedIssue issue : TrackedIssue.values()) {
+				ddb.put(new LegislatorIssueStat(issue, leg.getImpact(issue), leg));
+			}
 		}
 	}
 

@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, HostListener, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { AppService } from '../app.service';
-import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue, issueMap } from '../model';
+import convertStateCodeToName, { Legislator, gradeForStats, issueKeyToLabel, colorForGrade, issueKeyToLabelSmall, subtitleForStats, Page, states, getBenefitToSocietyIssue, issueMap, PageIndex } from '../model';
 import { CommonModule, KeyValuePipe, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -83,10 +83,12 @@ export class LegislatorsComponent implements OnInit {
             if ((routeIndex != null && routeIndex.length > 0)) {
               if (routeIndex === "byrating") {
                 this.page.index = "ObjectsByRating";
-              } else if (routeIndex === "byage") {
+              } else if (routeIndex === "bydate") {
                 this.page.index = "ObjectsByDate";
               } else if (routeIndex === "byimpact") {
                 this.page.index = "ObjectsByImpact";
+              } else if (routeIndex === "byimpactabs") {
+                this.page.index = "ObjectsByImpactAbs";
               } else if (routeIndex && routeIndex.length > 0) {
                 this.page.index = "ObjectsByIssueRating";
                 this.page.sortKey = routeIndex!;
@@ -182,7 +184,7 @@ export class LegislatorsComponent implements OnInit {
         this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.birthday;
       } else if (this.page.index === "ObjectsByRating" || this.page.index === "ObjectsByIssueRating") {
         this.page.exclusiveStartKey = lastLeg.id + sep + getBenefitToSocietyIssue(lastLeg.interpretation!.issueStats)[1];
-      } else if (this.page.index === "ObjectsByImpact" || this.page.index === "ObjectsByIssueImpact") {
+      } else if (this.page.index === "ObjectsByImpact" || this.page.index === "ObjectsByIssueImpact" || this.page.index === "ObjectsByImpactAbs") {
         this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.impact;
       } else if (this.page.index === "ObjectsByLocation") {
         let lastTerm = lastLeg.terms[lastLeg.terms.length - 1];
@@ -228,12 +230,22 @@ export class LegislatorsComponent implements OnInit {
     }
   }
 
-  togglePage(index: "ObjectsByDate" | "ObjectsByRating" | "ObjectsByLocation" | "ObjectsByImpact" | "ObjectsByIssueImpact" | "ObjectsByIssueRating",
-              sortKey: string | undefined = undefined,
-              menuTrigger: MatMenuTrigger | undefined = undefined,
-              event: Event | undefined = undefined) {
-    this.page.ascending = index === this.page.index && sortKey === this.page.sortKey ? !this.page.ascending : false;
-    this.page.index = index;
+  togglePage(index: PageIndex, sortKey: string | undefined = undefined, menuTrigger: MatMenuTrigger | undefined = undefined, event: Event | undefined = undefined) {
+    if (index === "ObjectsByImpactAbs" && this.page.index === 'ObjectsByImpactAbs') {
+      this.page.index = "ObjectsByImpact";
+      this.page.ascending = false;
+    } else if (index === "ObjectsByImpact" && this.page.index === 'ObjectsByImpact' && this.page.ascending) {
+      this.page.index = "ObjectsByImpactAbs";
+      this.page.ascending = false;
+    } else if (index === "ObjectsByHot") {
+      if (this.page.index === "ObjectsByHot" && !this.page.ascending) return;
+      this.page.ascending = false;
+      this.page.index = index;
+    } else {
+      this.page.ascending = index === this.page.index && sortKey === this.page.sortKey ? !this.page.ascending : false;
+      this.page.index = index;
+    }
+    
     this.page.exclusiveStartKey = undefined;
     this.hasMoreContent = true;
     this.page.sortKey = sortKey;
@@ -245,12 +257,8 @@ export class LegislatorsComponent implements OnInit {
     let routeIndex = "";
     if (sortKey) {
       routeIndex = sortKey;
-    } else if (this.page.index === "ObjectsByDate") {
-      routeIndex = "byage";
-    } else if (this.page.index === "ObjectsByRating") {
-      routeIndex = "byrating";
-    } else if (this.page.index === "ObjectsByImpact") {
-      routeIndex = "byimpact";
+    } else {
+      routeIndex = this.page.index.replace("Objects", "").toLowerCase();
     }
 
     if (this.page.index === "ObjectsByLocation") {

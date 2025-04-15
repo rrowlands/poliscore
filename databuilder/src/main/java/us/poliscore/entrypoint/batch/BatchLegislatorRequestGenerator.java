@@ -120,10 +120,9 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 	
 	protected void interpret(Legislator leg)
 	{
-		int interactionCount = legInterp.getInteractionsForInterpretation(leg).size();
-		if (interactionCount < 100)
+		if (legInterp.meetsInterpretationPrereqs(leg))
 		{
-			Log.info("Skipping " + leg.getId() + " (" + leg.getName().getOfficial_full() + ") because he did not have at least 100 interactions. He only had " + interactionCount);
+			Log.info("Skipping " + leg.getId() + " (" + leg.getName().getOfficial_full() + ") because he did not have at least 100 interactions.");
 			return;
 		}
 		
