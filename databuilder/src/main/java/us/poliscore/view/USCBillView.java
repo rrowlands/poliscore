@@ -1,7 +1,11 @@
 package us.poliscore.view;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -46,6 +50,47 @@ public class USCBillView {
 	protected USCBillSponsor sponsor;
 	
 	protected List<USCBillSponsor> cosponsors;
+	
+	private List<Action> actions;
+	
+	@JsonIgnore
+	public LocalDate getLastActionDate() {
+	    if (actions == null || actions.isEmpty()) return null;
+
+	    return actions.stream()
+	                  .map(Action::getActedAt)
+	                  .filter(Objects::nonNull)
+	                  .map(OffsetDateTime::toLocalDate)
+	                  .max(LocalDate::compareTo)
+	                  .orElse(null);
+	}
+
+	
+	@Data
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class Action {
+	    private String acted_at_raw;
+	    private String text;
+	    private String type;
+	    
+	    @JsonIgnore
+		public OffsetDateTime getActedAt() {
+		    if (acted_at_raw == null) return null;
+
+		    try {
+		        // First try parsing full datetime
+		        return OffsetDateTime.parse(acted_at_raw);
+		    } catch (DateTimeParseException e) {
+		        try {
+		            // Fallback: plain date
+		            LocalDate date = LocalDate.parse(acted_at_raw);
+		            return date.atStartOfDay().atOffset(ZoneOffset.UTC);
+		        } catch (DateTimeParseException e2) {
+		            return null;
+		        }
+		    }
+		}
+	}
 	
 	@Data
 	@JsonIgnoreProperties(ignoreUnknown = true)

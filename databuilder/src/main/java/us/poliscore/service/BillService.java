@@ -107,6 +107,7 @@ public class BillService {
     	bill.setIntroducedDate(view.getIntroduced_at());
     	bill.setSponsor(view.getSponsor() == null ? null : view.getSponsor().convert(session, memService));
     	bill.setCosponsors(view.getCosponsors().stream().map(s -> s.convert(session, memService)).collect(Collectors.toList()));
+    	bill.setLastActionDate(view.getLastActionDate());
     	
     	if (view.getSponsor() != null && !StringUtils.isBlank(view.getSponsor().getBioguide_id()))
     	{

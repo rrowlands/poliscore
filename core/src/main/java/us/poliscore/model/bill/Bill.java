@@ -73,6 +73,8 @@ public class Bill implements Persistable {
 	
 	protected LocalDate introducedDate;
 	
+	protected LocalDate lastActionDate;
+	
 	protected BillInterpretation interpretation;
 	
 	@JsonIgnore
@@ -146,7 +148,7 @@ public class Bill implements Persistable {
 	public void setImpactAbs(int impact) { }
 	
 	// TODO : Use lastUpdateDate
-	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_HOT_INDEX }) public int getHot() { return (int)(getImpactAbs() * Math.exp(-0.02 * ChronoUnit.DAYS.between(introducedDate, LocalDate.now()))); }
+	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_HOT_INDEX }) public int getHot() { return (int)(getImpactAbs() * Math.exp(-0.02 * ChronoUnit.DAYS.between(getHotDate(), LocalDate.now()))); }
 	public void setHot(int hot) { }
 	
 	public static String generateId(int congress, BillType type, int number)
@@ -157,6 +159,13 @@ public class Bill implements Persistable {
 	public int getImpact(TrackedIssue issue)
 	{
 		return calculateImpact(interpretation.getIssueStats().getStat(issue), status.getProgress(), getCosponsorPercent());
+	}
+	
+	private LocalDate getHotDate()
+	{
+		if (lastActionDate != null) return lastActionDate;
+		
+		return introducedDate;
 	}
 	
 	public static int calculateImpact(int rating, float statusProgress, float cosponsorPercent)
