@@ -59,12 +59,13 @@ export class HeaderComponent {
       }
 
       // Append hash parameters if present
-      if (currentUrl.hash) {
+      if (currentUrl.hash && !(year === 2024 && (currentUrl.hash.includes('hot') || currentUrl.hash.includes("byimpactabs")))) {
           newUrl += currentUrl.hash;
       }
 
       // Navigate to the new URL
       window.location.href = newUrl;
   }
+
 
 }
