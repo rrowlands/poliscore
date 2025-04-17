@@ -50,6 +50,8 @@ Based on these scores, this legislator has received the overall letter grade: {{
 	// Adding "for the voters" was found to sometimes add a nonsense sentence at the end, i.e. "voters should consider positives and negatives... bla bla bla". It's possible Chat GPT gets scared and over-thinks things if it knows it's informing voters.
 	// Even mentioning poliscore can cause AI to generate garbage like "that's why poliscore gave this legislator an a grade" and other garbage. Don't even mention Poliscore, there's no point.
 	
+//	TODO
+	// Before you grade the legislators again - I want an AI generated 'short' summary of what they've been up to, for display on the legislator card 
 	
 	@Inject
 	private LocalCachedS3Service s3;

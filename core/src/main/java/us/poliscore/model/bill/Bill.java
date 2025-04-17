@@ -161,7 +161,7 @@ public class Bill implements Persistable {
 	
 	public static int calculateImpact(int rating, float statusProgress, float cosponsorPercent)
 	{
-		double statusTerm = statusProgress*100000d * (statusProgress == 1.0f ? 100d : 1d);
+		double statusTerm = statusProgress*100000d * (statusProgress == 1.0f ? 2d : 1d);
 		double ratingTerm = Math.abs((double)rating/100f)*10000d;
 		double cosponsorTerm = cosponsorPercent*1000d;
 		int sign = rating < 0 ? -1 : 1;
