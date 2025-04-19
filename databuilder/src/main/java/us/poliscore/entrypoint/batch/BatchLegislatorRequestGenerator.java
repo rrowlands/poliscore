@@ -26,6 +26,7 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
+import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
@@ -73,20 +74,24 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 	
 	private long totalRequests = 0;
 	
+	private long skipped = 0;
+	
 	private List<BatchOpenAIRequest> requests = new ArrayList<BatchOpenAIRequest>();
 	
 	private List<File> writtenFiles = new ArrayList<File>();
 	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
-	public static void main(String[] args) {
-		Quarkus.run(BatchLegislatorRequestGenerator.class, args);
-	}
-	
 	public List<File> process() throws IOException
 	{
 		Log.info("Generating batch request to interpret legislators");
 		
+		PoliscoreUtil.CURRENT_SESSION = CongressionalSession.of(PoliscoreUtil.CURRENT_SESSION.getNumber() - 1);
+		legService.importLegislators();
+		billService.importUscBills();
+		rollCallService.importUscVotes();
+		
+		PoliscoreUtil.CURRENT_SESSION = CongressionalSession.of(PoliscoreUtil.CURRENT_SESSION.getNumber() + 1);
 		legService.importLegislators();
 		billService.importUscBills();
 		rollCallService.importUscVotes();
@@ -98,7 +103,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		for (Legislator l : memService.query(Legislator.class).stream()
 				.filter(l -> 
 					l.getInteractions().size() > 0
-//					&& (l.getBioguideId().equals("R000614"))
+//					&& (l.getBioguideId().equals("H000273"))
 					&& (!CHECK_S3_EXISTS || !s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class))
 				)
 				.sorted(Comparator.comparing(Legislator::getDate).reversed())
@@ -113,16 +118,19 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		
 		writeBlock(block++);
 		
-		Log.info("Batch legislator request generator complete. Generated " + totalRequests + " requests.");
+		Log.info("Batch legislator request generator complete. Generated " + totalRequests + " requests. Skipped " + skipped + " legislators.");
 		
 		return writtenFiles;
 	}
 	
 	protected void interpret(Legislator leg)
 	{
-		if (legInterp.meetsInterpretationPrereqs(leg))
+		legInterp.backfillInteractionsFromPreviousSession(leg);
+		
+		if (!legInterp.meetsInterpretationPrereqs(leg))
 		{
 			Log.info("Skipping " + leg.getId() + " (" + leg.getName().getOfficial_full() + ") because he did not have at least 100 interactions.");
+			skipped++;
 			return;
 		}
 		
@@ -307,4 +315,9 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
         Quarkus.waitForExit();
         return 0;
     }
+	
+	public static void main(String[] args) {
+		Quarkus.run(BatchLegislatorRequestGenerator.class, args);
+		Quarkus.asyncExit(0);
+	}
 }

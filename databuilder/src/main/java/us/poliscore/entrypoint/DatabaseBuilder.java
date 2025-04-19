@@ -53,7 +53,7 @@ public class DatabaseBuilder implements QuarkusApplication
 {
 	public static boolean INTERPRET_NEW_BILLS = true;
 	
-	public static boolean REINTERPRET_LEGISLATORS = false;
+	public static boolean REINTERPRET_LEGISLATORS = true;
 	
 	public static boolean REINTERPRET_PARTIES = false;
 	
@@ -126,12 +126,12 @@ public class DatabaseBuilder implements QuarkusApplication
 //		imageBuilder.process();
 		
 		
-		billTextFetcher.process();
+//		billTextFetcher.process();
 		
-		importBillsFromS3();
-		importBills();
+//		importBillsFromS3();
+//		importBills();
 		importLegislators();
-		importPartyStats();
+//		importPartyStats();
 		
 		webappDataGenerator.process();
 		

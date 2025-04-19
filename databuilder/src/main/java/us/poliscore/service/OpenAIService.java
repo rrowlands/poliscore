@@ -37,7 +37,7 @@ public class OpenAIService {
 	
 	public static final String PROVIDER = "openai";
 	
-	public static final String MODEL = "gpt-4o";
+	public static final String MODEL = "gpt-4.1";
 	
 	public static final int PROMPT_VERSION = 0;
 	

@@ -37,6 +37,8 @@ public class LegislatorInterpretation implements Persistable
 	
 	protected int hash;
 	
+	protected String shortExplain;
+	
 	protected String longExplain;
 	
 	public LegislatorInterpretation()

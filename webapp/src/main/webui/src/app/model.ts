@@ -100,6 +100,7 @@ export interface LegislatorInterpretation {
     legislatorId: string;
     metadata: any;
     longExplain: string;
+    shortExplain: string;
 }
 
 export interface IssueStats {

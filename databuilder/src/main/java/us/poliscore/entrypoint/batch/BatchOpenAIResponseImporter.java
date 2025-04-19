@@ -4,12 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -27,10 +24,7 @@ import us.poliscore.Environment;
 import us.poliscore.PartyBillLinker;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIResponse;
-import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.DoubleIssueStats;
-import us.poliscore.model.IssueStats;
-import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
@@ -41,6 +35,7 @@ import us.poliscore.model.bill.BillText;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
 import us.poliscore.model.legislator.LegislatorInterpretation;
+import us.poliscore.model.legislator.LegislatorInterpretationParser;
 import us.poliscore.model.session.SessionInterpretation;
 import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
 import us.poliscore.parsing.BillSlicer;
@@ -172,8 +167,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		interp.setIssueStats(stats.toIssueStats());
 		
 		val interpText = resp.getResponse().getBody().getChoices().get(0).getMessage().getContent();
-//		new LegislatorInterpretationParser(interp).parse(interpText);
-		interp.setLongExplain(interpText);
+		new LegislatorInterpretationParser(interp).parse(interpText);
 		
 		if (interp.getIssueStats() == null || !interp.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety) || StringUtils.isBlank(interp.getLongExplain())) {
 			throw new RuntimeException("Unable to parse valid issue stats for legislator " + leg.getId());

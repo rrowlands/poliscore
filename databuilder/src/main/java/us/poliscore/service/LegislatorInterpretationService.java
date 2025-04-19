@@ -19,15 +19,19 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.LegislativeChamber;
+import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.VoteStatus;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
+import us.poliscore.model.legislator.LegislatorInterpretation;
+import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCosponsor;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillVote;
+import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryObjectService;
 
@@ -44,14 +48,17 @@ You are part of a U.S. non-partisan oversight committee which has graded the rec
 
 {{stats}}
 
-Based on these scores, this legislator has received the overall letter grade: {{letterGrade}}. You will be given bill interaction summaries of this politician’s recent legislative history, grouped sorted by their impact to the relevant policy area grades, as well as the legislators most influential bills (or laws). Please generate a layman's, concise, three paragraph, {{analysisType}}, highlighting any {{behavior}}, identifying trends, referencing specific bill titles (in quotes), and pointing out major focuses and priorities of the legislator. Do not include the legislator's policy area grade scores and do not mention their letter grade in your summary.
+Based on these scores, this legislator has received the overall letter grade: {{letterGrade}}. You will be given bill interaction summaries of this politician’s recent legislative history, grouped sorted by their impact to the relevant policy area grades, as well as the legislators most influential bills (or laws). In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Short Report:') in your response. Do not include the section instructions in your response. Do not include the legislator's policy area grade scores and do not mention their letter grade. Your target audience is voters in the general public and may span a wide variety of educational and cultural backgrounds. Avoid using politically divisive words or phrases (such as 'social equity') as it may give the impression that your analysis was partisan. Do not include any formatting or non human-readable text.
+
+Short Report:
+Generate a layman's, concise, single sentence describing the primary focuses of the representative, not more than 150 characters. Should start with "Focuses on". Should not include the name of the representative. 
+
+Long Report:
+Generate a layman's, concise, three paragraph, {{analysisType}}, highlighting any {{behavior}}, identifying trends, referencing specific bill titles (in quotes), and pointing out major focuses and priorities of the legislator. When referring to the legislator, please use their name in this section, rather than "the legislator".
 			""";
 	// Adding "non-partisan" to this prompt was considered, however it was found that adding it causes Chat GPT to add a "both sides" paragraph at the end, even on legislators with a very poor score. For that reason, it was removed, as our goal here is to help inform voters, not confuse them with "both sides" type rhetoric.
 	// Adding "for the voters" was found to sometimes add a nonsense sentence at the end, i.e. "voters should consider positives and negatives... bla bla bla". It's possible Chat GPT gets scared and over-thinks things if it knows it's informing voters.
-	// Even mentioning poliscore can cause AI to generate garbage like "that's why poliscore gave this legislator an a grade" and other garbage. Don't even mention Poliscore, there's no point.
-	
-//	TODO
-	// Before you grade the legislators again - I want an AI generated 'short' summary of what they've been up to, for display on the legislator card 
+	// Even mentioning poliscore can cause AI to generate garbage like "that's why poliscore gave this legislator an a grade" and other garbage. Don't even mention Poliscore, there's no point. 
 	
 	@Inject
 	private LocalCachedS3Service s3;
@@ -67,6 +74,9 @@ Based on these scores, this legislator has received the overall letter grade: {{
 	
 	@Inject
 	private MemoryObjectService memService;
+	
+	@Inject
+	private DynamoDbPersistenceService ddb;
 	
 	@Inject
 	private OpenAIService ai;
@@ -106,6 +116,20 @@ Based on these scores, this legislator has received the overall letter grade: {{
 		if (interact instanceof LegislatorBillSponsor) return 3;
 		else if (interact instanceof LegislatorBillCosponsor) return 2;
 		else return 1;
+	}
+	
+	// Backfill the interactions until we get to 1000
+	public void backfillInteractionsFromPreviousSession(Legislator leg)
+	{
+		val prevLeg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber() - 1, leg.getBioguideId()), Legislator.class).orElse(null);
+		if (prevLeg == null) return;
+		
+		val prevInteracts = prevLeg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed()).iterator();
+		while (leg.getInteractionsPrivate1().size() < 1000 && prevInteracts.hasNext()) {
+			val n = prevInteracts.next();
+			if (n.getIssueStats() != null)
+				leg.getInteractionsPrivate1().add(n);
+		}
 	}
 	
 	public List<LegislatorBillInteraction> getInteractionsForInterpretation(Legislator leg)

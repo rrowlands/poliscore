@@ -6,6 +6,9 @@ export function descriptionForLegislator(leg: Legislator, small: boolean = false
     if (!hasValidInterpretation(leg))
       return "Waiting for more data ...";
 
+    if (leg.interpretation!.shortExplain && leg.interpretation!.shortExplain.length > 0)
+      return leg.interpretation!.shortExplain;
+
     var issueStats: any = Object.entries(leg?.interpretation?.issueStats?.stats)
       .filter(kv => kv[0] != "OverallBenefitToSociety")
       .sort((a,b) => Math.abs(b[1] as number) - Math.abs(a[1] as number))

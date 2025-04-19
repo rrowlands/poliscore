@@ -111,27 +111,12 @@ public class BillInterpretationParser {
 	}
 	
 	private void processLongForm(String line) {
-//		if (summaryHeader.contains(line.toLowerCase())) { return; }
-		
 		interp.setLongExplain(interp.getLongExplain() + "\n" + line);
 	}
 	
 	private void processShortForm(String line) {
-//		if (summaryHeader.contains(line.toLowerCase())) { return; }
-		
 		interp.setShortExplain(interp.getShortExplain() + "\n" + line);
 	}
-	
-//	private boolean setState(String line) {
-//		for (State s : State.values()) {
-//			if (s.matches(line)) {
-//				state = s;
-//				return true;
-//			}
-//		}
-//		
-//		return false;
-//	}
 	
 	private boolean setState(String line) {
 	    for (State s : State.values()) {
