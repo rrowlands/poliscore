@@ -90,6 +90,7 @@ export class BillComponent implements OnInit {
 
     this.service.getBill(this.billId).then(bill => {
       this.bill = bill;
+      console.log(bill.interpretation.metadata.model);
 
       if (bill == null)
         throw new Error("Backend did not return a bill for [" + this.billId + "]");

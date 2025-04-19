@@ -26,7 +26,12 @@ export interface BillInterpretation {
   longExplain: string;
   riders: string[];
   billId: string;
-  metadata: any;
+  metadata: BillMetadata;
+}
+
+export interface BillMetadata {
+  model: string;
+  date: string;
 }
 
 export interface BillSponsor {

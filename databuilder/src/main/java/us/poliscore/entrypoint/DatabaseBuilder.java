@@ -15,6 +15,7 @@ import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
+import io.vertx.core.VertxOptions;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -53,7 +54,7 @@ public class DatabaseBuilder implements QuarkusApplication
 {
 	public static boolean INTERPRET_NEW_BILLS = true;
 	
-	public static boolean REINTERPRET_LEGISLATORS = true;
+	public static boolean REINTERPRET_LEGISLATORS = false;
 	
 	public static boolean REINTERPRET_PARTIES = false;
 	
@@ -112,6 +113,11 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	protected void process() throws IOException
 	{
+		// Disable Vertx blocked thead checking
+		VertxOptions options = new VertxOptions();
+		options.setBlockedThreadCheckInterval(100000*60*60);
+		
+		
 		updateUscLegislators();
 		
 		s3.optimizeExists(BillInterpretation.class);
@@ -126,12 +132,12 @@ public class DatabaseBuilder implements QuarkusApplication
 //		imageBuilder.process();
 		
 		
-//		billTextFetcher.process();
+		billTextFetcher.process();
 		
-//		importBillsFromS3();
-//		importBills();
+		importBillsFromS3();
+		importBills();
 		importLegislators();
-//		importPartyStats();
+		importPartyStats();
 		
 		webappDataGenerator.process();
 		
@@ -228,13 +234,16 @@ public class DatabaseBuilder implements QuarkusApplication
 			val interpOp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class);
 			
 			if (interpOp.isPresent()) { interp = interpOp.get(); }
-			else {
+			
+			// If there exists an interp from a previous session, backfill the interactions until we get to 1000
+			if (legInterp.getInteractionsForInterpretation(leg).size() < 1000) {
 				// If an interpretation from this session doesn't exist, grab one from the previous session.
 				val prevInterpOp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber() - 1), LegislatorInterpretation.class);
 				
 				if (prevInterpOp.isPresent()) {
-					// Backfill the interactions until we get to 1000
-					interp = prevInterpOp.get();
+					if (interp == null)
+						interp = prevInterpOp.get();
+					
 					val prevLeg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber() - 1, leg.getBioguideId()), Legislator.class).orElseThrow();
 					
 					val prevInteracts = prevLeg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed()).iterator();
@@ -243,20 +252,6 @@ public class DatabaseBuilder implements QuarkusApplication
 						if (n.getIssueStats() != null)
 							leg.getInteractionsPrivate1().add(n);
 					}
-					
-					DoubleIssueStats stats = legInterp.calculateAgregateInteractionStats(leg);
-					interp.setIssueStats(stats.toIssueStats());
-					
-					leg.setInteractions(legInterp.getInteractionsForInterpretation(leg).stream()
-							.filter(i -> i.getIssueStats() != null)
-							.sorted((a,b) -> a.getDate().compareTo(b.getDate())).collect(Collectors.toCollection(LegislatorBillInteractionList::new)));
-					
-					leg.setInterpretation(interp);
-					
-					legInterp.calculateImpact(leg);
-					
-					legService.ddbPersist(leg, interp);
-					continue;
 				}
 			}
 			
