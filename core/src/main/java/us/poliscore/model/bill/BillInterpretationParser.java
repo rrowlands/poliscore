@@ -61,6 +61,8 @@ public class BillInterpretationParser {
 		
 		
 		// TODO : Clean?
+		
+		validateIssueStats(interp.getIssueStats());
 	}
 	
 	private void processContent(String line) {
@@ -76,6 +78,26 @@ public class BillInterpretationParser {
 			processLongForm(line);
 		}
 	}
+	
+	private void validateIssueStats(IssueStats stats) {
+	    int zeroCount = 0;
+	    int totalSet = 0;
+	    for (TrackedIssue issue : TrackedIssue.values()) {
+	        Integer val = stats.getStat(issue);
+	        if (val != null) {
+	            totalSet++;
+	            if (val == 0) zeroCount++;
+	        }
+	    }
+
+	    if (totalSet > 10 && zeroCount > totalSet * 0.5) {
+	        throw new IllegalArgumentException(
+	            "Malformed AI response: too many tracked issues were assigned a value of 0. " +
+	            "Only include an issue if it is truly relevant."
+	        );
+	    }
+	}
+
 	
 	private void clean(String dirty) {
 //		val summaryHeaders = new String[] { "summary of the predicted impact to society and why", "summary of the predicted impact to society", "summary of the bill and predicted impact to society and why", "summary of the bill and predicted impact to society", "summary of the bill and its predicted impact to society and why", "summary of the bill and its predicted impact to society", "Summary of the bill's predicted impact to society and why", "Summary of the bill's predicted impact to society", "summary of predicted impact to society and why", "summary of predicted impact to society", "summary of the impact to society", "summary of impact to society", "summary report", "summary of the impact", "summary of impact", "summary", "explanation" };

@@ -34,6 +34,8 @@ public class Bill implements Persistable {
 	
 	public static final String ID_CLASS_PREFIX = "BIL";
 	
+	public static final Double DEFAULT_IMPACT_LAW_WEIGHT = 100.0d;
+	
 	/**
 	 * An optional grouping mechanism, beyond the ID_CLASS_PREFIX concept, which allows you to group objects of the same class in different
 	 * "storage buckets". Really only used in DynamoDb at the moment, and is used for querying on the object indexes with objects that exist
@@ -145,10 +147,10 @@ public class Bill implements Persistable {
 	public void setImpact(int impact) { }
 	
 	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPACT_ABS_INDEX }) public int getImpactAbs() { return Math.abs(getImpact()); }
+	@JsonIgnore public int getImpactAbs(TrackedIssue issue, double lawWeight) { return Math.abs(getImpact(issue, lawWeight)); }
 	public void setImpactAbs(int impact) { }
 	
-	// TODO : Use lastUpdateDate
-	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_HOT_INDEX }) public int getHot() { return (int)(getImpactAbs() * Math.exp(-0.02 * ChronoUnit.DAYS.between(getHotDate(), LocalDate.now()))); }
+	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_HOT_INDEX }) public int getHot() { return (int)(getImpactAbs(TrackedIssue.OverallBenefitToSociety, 2.0d) * Math.exp(-0.02 * ChronoUnit.DAYS.between(getHotDate(), LocalDate.now()))); }
 	public void setHot(int hot) { }
 	
 	public static String generateId(int congress, BillType type, int number)
@@ -156,9 +158,11 @@ public class Bill implements Persistable {
 		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + congress + "/" + type.getName().toLowerCase() + "/" + number;
 	}
 	
-	public int getImpact(TrackedIssue issue)
+	@JsonIgnore public int getImpact(TrackedIssue issue) { return getImpact(issue, DEFAULT_IMPACT_LAW_WEIGHT); };
+	
+	@JsonIgnore public int getImpact(TrackedIssue issue, double lawWeight)
 	{
-		return calculateImpact(interpretation.getIssueStats().getStat(issue), status.getProgress(), getCosponsorPercent());
+		return calculateImpact(interpretation.getIssueStats().getStat(issue), status.getProgress(), getCosponsorPercent(), lawWeight);
 	}
 	
 	private LocalDate getHotDate()
@@ -167,10 +171,19 @@ public class Bill implements Persistable {
 		
 		return introducedDate;
 	}
-	
+
 	public static int calculateImpact(int rating, float statusProgress, float cosponsorPercent)
 	{
-		double statusTerm = statusProgress*100000d * (statusProgress == 1.0f ? 2d : 1d);
+		// 100 is the default 'lawWeight' for impact, and this is because when it comes to legislators, we want the legislator with the most sponsored
+		// laws to massively outweigh a legislator that otherwise just voted on the most bills. There is one specific scenario where we want the weight
+		// to be calculated differently, however, and that is when calculating the bill 'hot' index. In that scenario, we want laws to be important, but
+		// not always outweigh everything else, as we want the date to be a factor which sometimes outweighs the law weight.
+		return calculateImpact(rating, statusProgress, cosponsorPercent, DEFAULT_IMPACT_LAW_WEIGHT);
+	}
+	
+	public static int calculateImpact(int rating, float statusProgress, float cosponsorPercent, double lawWeight)
+	{
+		double statusTerm = statusProgress*100000d * (statusProgress == 1.0f ? lawWeight : 1d);
 		double ratingTerm = Math.abs((double)rating/100f)*10000d;
 		double cosponsorTerm = cosponsorPercent*1000d;
 		int sign = rating < 0 ? -1 : 1;
