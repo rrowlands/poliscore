@@ -125,6 +125,11 @@ public class IssueStats {
 		return stats.getOrDefault(issue, defaultValue);
 	}
 	
+	public void removeStat(TrackedIssue issue)
+	{
+		stats.remove(issue);
+	}
+	
 	public boolean hasStat(TrackedIssue issue)
 	{
 		return stats.containsKey(issue);

@@ -113,11 +113,6 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	protected void process() throws IOException
 	{
-		// Disable Vertx blocked thead checking
-		VertxOptions options = new VertxOptions();
-		options.setBlockedThreadCheckInterval(100000*60*60);
-		
-		
 		updateUscLegislators();
 		
 		s3.optimizeExists(BillInterpretation.class);
@@ -175,8 +170,8 @@ public class DatabaseBuilder implements QuarkusApplication
 		FileUtils.copyURLToFile(URI.create("https://unitedstates.github.io/congress-legislators/legislators-historical.json").toURL(), new File(dbRes, "legislators-historical.json"));
 	}
 	
-	@SneakyThrows
-	private void importBills() {
+	private void importBills() { importBills(false); }
+	@SneakyThrows private void importBills(boolean isRecursive) {
 		if (INTERPRET_NEW_BILLS) {
 			List<File> requests = billRequestGenerator.process();
 			
@@ -187,7 +182,8 @@ public class DatabaseBuilder implements QuarkusApplication
 					responseImporter.process(f);
 				}
 				
-				importBills();
+//				if (!isRecursive)
+//					importBills(true);
 			}
 		}
 	}

@@ -83,18 +83,20 @@ public class BillInterpretationParser {
 	    int zeroCount = 0;
 	    int totalSet = 0;
 	    for (TrackedIssue issue : TrackedIssue.values()) {
-	        Integer val = stats.getStat(issue);
-	        if (val != null) {
+	    	if (issue != TrackedIssue.OverallBenefitToSociety && stats.hasStat(issue)) {
 	            totalSet++;
-	            if (val == 0) zeroCount++;
+	            if (stats.getStat(issue) == 0) zeroCount++;
 	        }
 	    }
 
-	    if (totalSet > 10 && zeroCount > totalSet * 0.5) {
-	        throw new IllegalArgumentException(
-	            "Malformed AI response: too many tracked issues were assigned a value of 0. " +
-	            "Only include an issue if it is truly relevant."
-	        );
+	    if (totalSet == TrackedIssue.values().length-1 && zeroCount > 1) {
+	    	System.err.println("Malformed AI response for bill [" + this.interp.billId + "]: too many tracked issues were assigned a value of 0. Only include an issue if it is truly relevant. Zeros will be removed from issue stats.");
+	    	
+	    	for (TrackedIssue issue : TrackedIssue.values()) {
+		        if (stats.hasStat(issue) && stats.getStat(issue) == 0 && issue != TrackedIssue.OverallBenefitToSociety) {
+		        	stats.removeStat(issue);
+		        }
+		    }
 	    }
 	}
 

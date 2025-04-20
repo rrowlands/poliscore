@@ -94,9 +94,8 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		
 		s3.optimizeExists(BillInterpretation.class);
 		s3.optimizeExists(BillText.class);
-		s3.optimizeExists(CBOBillAnalysis.class);
 		
-//		List<String> specificFetch = Arrays.asList("BIL/us/congress/118/s/1", "BIL/us/congress/118/s/4677");
+//		List<String> specificFetch = Arrays.asList("BIL/us/congress/119/hr/809");
 		
 		for (Bill b : memService.query(Bill.class).stream()
 //				.filter(b -> specificFetch.contains(b.getId()))
