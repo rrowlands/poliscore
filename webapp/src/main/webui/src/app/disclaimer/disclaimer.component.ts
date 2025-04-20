@@ -27,7 +27,12 @@ export class DisclaimerComponent {
   openDialog(): void {
     this.tooltipVisible = false;
     this.dialog.open(DisclaimerDialogComponent, {
-      data: { large: this.large, metadata: this.metadata, disclaimerComponent: this }
+      data: { large: this.large, metadata: this.metadata, disclaimerComponent: this },
+      width: '80vw',
+      maxWidth: '95vw',
+      minWidth: '80vw',
+      maxHeight: '90vh',
+      autoFocus: false // (optional: prevents auto-scrolling to the input)
     });
   }
 }
