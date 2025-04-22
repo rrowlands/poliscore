@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,10 +33,10 @@ import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.legislator.LegislatorInterpretation;
-import us.poliscore.parsing.BillSlicer;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
+import us.poliscore.service.OpenAIService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.MemoryObjectService;
 import us.poliscore.service.storage.S3PersistenceService;
@@ -212,7 +211,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 			
 			String billMsg = "- " + interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
 			
-			if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+			if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < OpenAIService.MAX_SECTION_LENGTH ) {
 				billMsgs.add(billMsg);
 				includedBills.add(interact.getBillId());
 			} else {
@@ -235,7 +234,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		{
 			val bill = memService.get(interact.getBillId(), Bill.class).orElseThrow();
 			val billMsg = "- " + interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
-			if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+			if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < OpenAIService.MAX_SECTION_LENGTH ) {
 				billMsgs.add(billMsg);
 				includedBills.add(interact.getBillId());
 			} else {
@@ -256,7 +255,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		{
 			val bill = memService.get(interact.getBillId(), Bill.class).orElseThrow();
 			val billMsg = "- " + interact.describe() + " \"" + interact.getBillName() + "\" (" + bill.getStatus().getDescription() + "): " + interact.getShortExplain();
-			if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < BillSlicer.MAX_SECTION_LENGTH ) {
+			if ( (String.join("\n", billMsgs) + "\n" + billMsg).length() < OpenAIService.MAX_SECTION_LENGTH ) {
 				billMsgs.add(billMsg);
 				includedBills.add(interact.getBillId());
 			} else {

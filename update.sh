@@ -26,7 +26,16 @@ mvn install
 
 
 cd databuilder
-mvn exec:java -Dquarkus.devservices.enabled=false -Dquarkus.launch.devmode=false -Dvertx.options.warningExceptionTime=-1 -Dtest-containers.disabled=true
+#mvn exec:java -Dquarkus.devservices.enabled=false -Dquarkus.launch.devmode=false -Dvertx.options.warningExceptionTime=-1 -Dtest-containers.disabled=true
+
+mvn exec:java \
+  -Dquarkus.devservices.enabled=false \
+  -Dquarkus.launch.devmode=false \
+  -Dvertx.options.warningExceptionTime=-1 \
+  -Dtest-containers.disabled=true \
+2>&1 | ./vertx.silencer
+
+
 
 #mvn package -Dquarkus.package.type=uber-jar
 #java -jar target/databuilder-0.0.1-SNAPSHOT-runner.jar

@@ -206,9 +206,9 @@ public class BillInterpretationService {
 //		
 //		bill.setText(billText);
 //		
-//		if (billText.getXml().length() >= BillSlicer.MAX_SECTION_LENGTH)
+//		if (billText.getXml().length() >= OpenAIService.MAX_SECTION_LENGTH)
 //    	{
-//    		List<BillSlice> slices = new XMLBillSlicer().slice(bill, bill.getText(), BillSlicer.MAX_SECTION_LENGTH);
+//    		List<BillSlice> slices = new XMLBillSlicer().slice(bill, bill.getText(), OpenAIService.MAX_SECTION_LENGTH);
 //    		List<AISliceInterpretationMetadata> sliceMetadata = new ArrayList<AISliceInterpretationMetadata>();
 //    		List<BillInterpretation> sliceInterps = new ArrayList<BillInterpretation>();
 //    		

@@ -39,12 +39,12 @@ public class TextBillSlicer implements BillSlicer {
 //			while (scanner.hasNextLine()) {
 //			  String line = scanner.nextLine();
 //			  
-//			  if (prev != null && prev.length() + cur.length() >= BillSlicer.MAX_SECTION_LENGTH)
+//			  if (prev != null && prev.length() + cur.length() >= OpenAIService.MAX_SECTION_LENGTH)
 //			  {
 //				  sections.add(prev.toString());
 //				  prev = null;
 //			  }
-//			  if (cur.length() >= BillSlicer.MAX_SECTION_LENGTH)
+//			  if (cur.length() >= OpenAIService.MAX_SECTION_LENGTH)
 //			  {
 //				  sections.add(cur.toString());
 //				  cur = new StringBuilder();
@@ -65,7 +65,7 @@ public class TextBillSlicer implements BillSlicer {
 //						  cur = new StringBuilder();
 //					  }
 //				  }
-//				  else if (cur.length() + line.length() >= BillSlicer.MAX_SECTION_LENGTH)
+//				  else if (cur.length() + line.length() >= OpenAIService.MAX_SECTION_LENGTH)
 //				  {
 //					  sections.add(cur.toString());
 //					  cur = new StringBuilder();

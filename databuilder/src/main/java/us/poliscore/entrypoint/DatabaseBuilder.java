@@ -15,7 +15,6 @@ import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
-import io.vertx.core.VertxOptions;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -26,6 +25,7 @@ import us.poliscore.entrypoint.batch.BatchLegislatorRequestGenerator;
 import us.poliscore.entrypoint.batch.BatchOpenAIResponseImporter;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.LegislativeNamespace;
+import us.poliscore.model.Persistable;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
@@ -148,15 +148,21 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
-			// TODO : We unfortunately can't add this back now that we have "hot" since the hot values need to decay...
-//			if (!ddb.exists(b.getId(), Bill.class)) {
+			if (!ddb.exists(b.getId(), Bill.class)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				billService.ddbPersist(b, interp);
 				amount++;
-//			}
+			}
 		}
 		
 		Log.info("Created " + amount + " missing bills in ddb from s3");
+		Log.info("Decaying hot values");
+		
+		// Decay first x hot values
+		for (Bill b : ddb.query(Bill.class, 1000, Persistable.OBJECT_BY_HOT_INDEX, false, null, null))
+		{
+			ddb.put(b);
+		}
 	}
 	
 	@SneakyThrows
@@ -314,6 +320,6 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	public static void main(String[] args) {
 		Quarkus.run(DatabaseBuilder.class, args);
-		Quarkus.asyncExit(0);
+		Quarkus.waitForExit();
 	}
 }

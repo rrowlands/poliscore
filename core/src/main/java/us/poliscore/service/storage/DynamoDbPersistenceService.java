@@ -41,7 +41,7 @@ import us.poliscore.model.dynamodb.DdbListPage;
 @ApplicationScoped
 public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 {
-	public static final String TABLE_NAME = "poliscore1";
+	public static final String TABLE_NAME = "poliscore2";
 	
 	public static final String HEAD_PAGE = "0";
 	
@@ -324,7 +324,7 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 	public <T extends Persistable> PaginatedList<T> query(Class<T> clazz, int pageSize, String index, Boolean ascending, String exclusiveStartKey, String sortKey)
 	{
 		
-		return query(clazz, -1, null, null, null, null, Persistable.getClassStorageBucket(clazz));
+		return query(clazz, pageSize, index, ascending, exclusiveStartKey, sortKey, Persistable.getClassStorageBucket(clazz));
 	}
 	
 	@SneakyThrows
@@ -401,7 +401,10 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 			lastEvaluatedKey = page.lastEvaluatedKey() == null ? null : readValue(index, page.lastEvaluatedKey().get(field));
 		}
 		
-		return new PaginatedList<T>(results.stream().limit(pageSize).toList(), pageSize, exclusiveStartKey, lastEvaluatedKey);
+		if (pageSize != -1)
+			results = results.stream().limit(pageSize).toList();
+		
+		return new PaginatedList<T>(results, pageSize, exclusiveStartKey, lastEvaluatedKey);
 	}
 
 	@Override

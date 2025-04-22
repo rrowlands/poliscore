@@ -234,7 +234,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			val billText = s3.get(BillText.generateId(bill.getId()), BillText.class).orElseThrow();
 			bill.setText(billText);
 			
-			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, BillSlicer.MAX_SECTION_LENGTH);
+			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, OpenAIService.MAX_SECTION_LENGTH);
 			
 			bi.setMetadata(OpenAIService.metadata(slices.get(sliceIndex)));
 			bi.setId(BillInterpretation.generateId(billId, sliceIndex));
@@ -247,7 +247,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			
 			val billText = s3.get(BillText.generateId(bill.getId()), BillText.class).orElseThrow();
 			
-			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, BillSlicer.MAX_SECTION_LENGTH);
+			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, OpenAIService.MAX_SECTION_LENGTH);
 			
 			if (slices.size() <= 1) { throw new RuntimeException("Expected multiple slices on [" + billId + "] since OpenAI did not include benefit to society issue stat"); }
 			

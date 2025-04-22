@@ -8,6 +8,7 @@ import java.util.Scanner;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import io.quarkus.logging.Log;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.TrackedIssue;
 
@@ -89,8 +90,8 @@ public class BillInterpretationParser {
 	        }
 	    }
 
-	    if (totalSet == TrackedIssue.values().length-1 && zeroCount > 1) {
-	    	System.err.println("Malformed AI response for bill [" + this.interp.billId + "]: too many tracked issues were assigned a value of 0. Only include an issue if it is truly relevant. Zeros will be removed from issue stats.");
+	    if (Math.abs(totalSet - TrackedIssue.values().length) <= 2 && zeroCount > 1) {
+	    	Log.error("Malformed AI response for bill [" + this.interp.billId + "]: too many tracked issues were assigned a value of 0. Only include an issue if it is truly relevant. Zeros will be removed from issue stats.");
 	    	
 	    	for (TrackedIssue issue : TrackedIssue.values()) {
 		        if (stats.hasStat(issue) && stats.getStat(issue) == 0 && issue != TrackedIssue.OverallBenefitToSociety) {

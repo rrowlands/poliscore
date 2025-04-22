@@ -37,7 +37,6 @@ import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.model.session.SessionInterpretation;
 import us.poliscore.model.session.SessionInterpretation.PartyBillInteraction;
 import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
-import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.LocalFilePersistenceService;
@@ -280,8 +279,8 @@ public class PartyInterpretationService {
 	}
 	
 	private void createRequest(Party party, String sysMsg, String userMsg) {
-		if (userMsg.length() >= XMLBillSlicer.MAX_SECTION_LENGTH) {
-			throw new RuntimeException("Max user message length exceeded on " + party.getName() + " (" + userMsg.length() + " > " + XMLBillSlicer.MAX_SECTION_LENGTH);
+		if (userMsg.length() >= OpenAIService.MAX_SECTION_LENGTH) {
+			throw new RuntimeException("Max user message length exceeded on " + party.getName() + " (" + userMsg.length() + " > " + OpenAIService.MAX_SECTION_LENGTH);
 		}
 		
 		List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();
