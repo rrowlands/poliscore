@@ -33,7 +33,6 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import us.poliscore.model.legislator.Legislator;
-import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.storage.MemoryObjectService;
 
@@ -90,10 +89,10 @@ public class S3ImageDatabaseBuilder implements QuarkusApplication {
 				upload(bytes.get(), leg.getId() + ".jpg");
 				success++;
 			}
-			catch (IOException e)
+			catch (Throwable t)
 			{
 				Log.warn("Could not find image for congressman " + leg.getName().getOfficial_full() + " " + leg.getBioguideId());
-				e.printStackTrace();
+				t.printStackTrace();
 			}
 		}
 		
@@ -138,116 +137,194 @@ public class S3ImageDatabaseBuilder implements QuarkusApplication {
 	 * @return
 	 */
 	@SneakyThrows
-	private String scrapeImageUrlFromMemberPage(Legislator leg)
-	{
-		val fallback = "https://www.congress.gov/img/member/" + leg.getBioguideId().toLowerCase() + "_200.jpg";
-		
-		val memberUrl = "https://www.congress.gov/member/" + leg.getName().getFirst().toLowerCase().replace(" ", "-") + "-" + leg.getName().getLast().toLowerCase().replace(" ", "-")+ "/" + leg.getBioguideId();
-		
-		val opis = urlFetch(leg, memberUrl);
-		
-		if (!opis.isPresent()) return fallback;
-		
-		val html = new String(opis.get(), "UTF-8");
-		
-		// JOOX can't read HTML
-//		val img = $(XMLBillSlicer.toDoc(html)).find(".overview-member-column-picture > img");
+	private String scrapeImageUrlFromMemberPage(Legislator leg) {
+	    val fallback = "https://www.congress.gov/img/member/" + leg.getBioguideId().toLowerCase() + "_200.jpg";
+
+	    val memberUrl = "https://www.congress.gov/member/"
+	        + leg.getName().getFirst().toLowerCase().replace(" ", "-")
+	        + "-"
+	        + leg.getName().getLast().toLowerCase().replace(" ", "-")
+	        + "/"
+	        + leg.getBioguideId();
+
+	    // Reuse the exact SSL setup as before
+	    KeyStore keyStore = KeyStore.getInstance("PKCS12");
+	    keyStore.load(S3ImageDatabaseBuilder.class.getResourceAsStream("keystore"), "changeit".toCharArray());
+
+	    SSLContext sslContext = SSLContexts.custom()
+	        .loadKeyMaterial(keyStore, null)
+	        .build();
+
+	    CloseableHttpClient httpClient = HttpClients.custom()
+	        .setSSLContext(sslContext)
+	        .build();
+
+	    val get = new HttpGet(memberUrl);
+	    get.addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:126.0) Gecko/20100101 Firefox/126.0");
+	    get.addHeader("Accept", "text/html");
+
+	    HttpResponse resp = httpClient.execute(get);
+	    int status = resp.getStatusLine().getStatusCode();
+	    @Cleanup InputStream is = resp.getEntity().getContent();
+
+	    if (status >= 400) {
+	        Log.warn("[" + leg.getBioguideId() + "] Failed to fetch member page: HTTP " + status);
+	        return fallback;
+	    }
+
+	    val html = IOUtils.toString(is, "UTF-8");
+	    val img = Jsoup.parse(html).selectFirst(".overview-member-column-picture > img");
+
+	    if (img == null) {
+	        return fallback;
+	    } else {
+	        return "https://www.congress.gov" + img.attr("src");
+	    }
+	}
+
+	
+	@SneakyThrows
+	private Optional<byte[]> getImage(Legislator leg) {
+	    String url = scrapeImageUrlFromMemberPage(leg);
+
+	    final int MAX_RETRIES = 5;
+	    int attempt = 0;
+	    int backoffMs = 2000;
+
+	    while (attempt < MAX_RETRIES) {
+	        attempt++;
+
+	        // Re-create HTTP client + SSL context every time (same as before)
+	        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+	        keyStore.load(S3ImageDatabaseBuilder.class.getResourceAsStream("keystore"), "changeit".toCharArray());
+
+	        SSLContext sslContext = SSLContexts.custom()
+	            .loadKeyMaterial(keyStore, null)
+	            .build();
+
+	        CloseableHttpClient httpClient = HttpClients.custom()
+	            .setSSLContext(sslContext)
+	            .build();
+
+	        val get = new HttpGet(url);
+	        get.addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:126.0) Gecko/20100101 Firefox/126.0");
+	        get.addHeader("Accept", "image/avif,image/webp,*/*");
+	        get.addHeader("Sec-Fetch-Dest", "image");
+
+	        HttpResponse resp = httpClient.execute(get);
+	        int status = resp.getStatusLine().getStatusCode();
+
+	        @Cleanup InputStream is = resp.getEntity().getContent();
+
+	        if (status == 429 || status == 403) {
+	            Log.warn("[" + leg.getBioguideId() + "] Received " + status + " (rate limit). Waiting " + backoffMs + "ms...");
+	            Thread.sleep(backoffMs);
+	            backoffMs = Math.min(backoffMs * 2, 60000); // max 1 minute
+	            continue;
+	        }
+
+	        if (status >= 400) {
+	            val body = IOUtils.toString(is, "UTF-8");
+	            Log.warn("[" + leg.getBioguideId() + "] HTTP " + status + ": " + body.substring(0, Math.min(body.length(), 300)));
+	            return Optional.empty(); // don't retry 404s, 500s, etc.
+	        }
+
+	        byte[] image = IOUtils.toByteArray(is);
+	        if (!isJPEG(image)) {
+	            Log.warn("[" + leg.getBioguideId() + "] Invalid image data. Waiting " + backoffMs + "ms...");
+	            Thread.sleep(backoffMs);
+	            backoffMs = Math.min(backoffMs * 2, 60000);
+	            continue;
+	        }
+
+	        return Optional.of(image);
+	    }
+
+	    Log.warn("[" + leg.getBioguideId() + "] Exceeded retry limit.");
+	    return Optional.empty();
+	}
+
+	
+//	@SneakyThrows
+//	private Optional<byte[]> getImage(Legislator leg) throws IOException, InterruptedException
+//	{
+//		val url = scrapeImageUrlFromMemberPage(leg);
 //		
-//		if (img.isEmpty()) {
-//			return fallback;
-//		} else {
-//			return img.attr("src");
+//		val op = urlFetch(leg, url);
+//		
+//		if (op.isPresent() && !isJPEG(op.get())) {
+//			if (lastWaitMs2 == -1) lastWaitMs2 = 2000;
+//			else lastWaitMs2 = lastWaitMs2 * 2;
+//			
+//			if (lastWaitMs2 > 20000) {
+//				Log.warn("Too many requests when fetching " + leg.getBioguideId());
+//				lastWaitMs2 = -1;
+//				return Optional.empty();
+//			}
+//			Log.warn("congress.gov sent invalid bytes for " + leg.getName().getOfficial_full() + " " + leg.getBioguideId() + ". Retrying in " + lastWaitMs2 + " miliseconds");
+//			Thread.sleep(lastWaitMs2);
+//			
+//			return getImage(leg);
 //		}
-		
-		val img = Jsoup.parse(html).selectFirst(".overview-member-column-picture > img");
-		
-		if (img == null) {
-			return fallback;
-		} else {
-			return "https://www.congress.gov" + img.attr("src");
-		}
-	}
-	
-	@SneakyThrows
-	private Optional<byte[]> getImage(Legislator leg) throws IOException, InterruptedException
-	{
-		val url = scrapeImageUrlFromMemberPage(leg);
-		
-		val op = urlFetch(leg, url);
-		
-		if (op.isPresent() && !isJPEG(op.get())) {
-			if (lastWaitMs2 == -1) lastWaitMs2 = 2000;
-			else lastWaitMs2 = lastWaitMs2 * 2;
-			
-			if (lastWaitMs2 > 20000) {
-				Log.warn("Too many requests when fetching " + leg.getBioguideId());
-				lastWaitMs2 = -1;
-				return Optional.empty();
-			}
-			Log.warn("congress.gov sent invalid bytes for " + leg.getName().getOfficial_full() + " " + leg.getBioguideId() + ". Retrying in " + lastWaitMs2 + " miliseconds");
-			Thread.sleep(lastWaitMs2);
-			
-			return getImage(leg);
-		}
-		
-		return op;
-	}
-	
-	@SneakyThrows
-	private Optional<byte[]> urlFetch(Legislator leg, String url) {
-		String keyPassphrase = "changeit";
-
-		KeyStore keyStore = KeyStore.getInstance("PKCS12");
-		keyStore.load(S3ImageDatabaseBuilder.class.getResourceAsStream("keystore"), keyPassphrase.toCharArray());
-
-		SSLContext sslContext = SSLContexts.custom()
-		        .loadKeyMaterial(keyStore, null)
-		        .build();
-
-		CloseableHttpClient httpClient = HttpClients.custom().setSSLContext(sslContext).build();
-		
-		// Congress.gov is pretty picky about some of these headers. Without them you can get back an html file or just gibberish
-		val get = new HttpGet(url);
-		get.addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:126.0) Gecko/20100101 Firefox/126.0");
-		get.addHeader("Accept", "image/avif,image/webp,*/*");
-		get.addHeader("Sec-Fetch-Dest", "image");
-		
-		HttpResponse resp = httpClient.execute(get);
-		@Cleanup InputStream is = resp.getEntity().getContent();
-		
-		val statusCode = resp.getStatusLine().getStatusCode();
-		
-		if (statusCode == 429 || statusCode == 403) // Too many requests. Backoff and try again
-		{
-			if (lastWaitMs == -1) lastWaitMs = 2000;
-			else lastWaitMs = lastWaitMs * 2;
-			
-			if (lastWaitMs > 300000) {
-				Log.warn("Too many requests when fetching " + leg.getBioguideId());
-				lastWaitMs = -1;
-				return Optional.empty();
-			}
-			
-			Log.warn("[" + leg.getBioguideId() + " " + leg.getName().getOfficial_full() + "] Received " + statusCode + ". Will wait " + lastWaitMs + " miliseconds and try again.");
-			
-			Thread.sleep(lastWaitMs);
-			
-			return urlFetch(leg, url);
-		}
-		
-		lastWaitMs = -1;
-		
-		if (statusCode >= 400) {
-			val body = IOUtils.toString(is, "UTF-8");
-			Log.warn("[" + leg.getBioguideId() + " " + leg.getName().getOfficial_full() + "] Received response code " + resp.getStatusLine().getStatusCode() + " and body " + body.substring(0, Math.min(body.length(), 300)));
-			
-			return Optional.empty();
-		}
-		else
-		{
-			return Optional.of(IOUtils.toByteArray(is));
-		}
-	}
+//		
+//		return op;
+//	}
+//	
+//	@SneakyThrows
+//	private Optional<byte[]> urlFetch(Legislator leg, String url) {
+//		String keyPassphrase = "changeit";
+//
+//		KeyStore keyStore = KeyStore.getInstance("PKCS12");
+//		keyStore.load(S3ImageDatabaseBuilder.class.getResourceAsStream("keystore"), keyPassphrase.toCharArray());
+//
+//		SSLContext sslContext = SSLContexts.custom()
+//		        .loadKeyMaterial(keyStore, null)
+//		        .build();
+//
+//		CloseableHttpClient httpClient = HttpClients.custom().setSSLContext(sslContext).build();
+//		
+//		// Congress.gov is pretty picky about some of these headers. Without them you can get back an html file or just gibberish
+//		val get = new HttpGet(url);
+//		get.addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:126.0) Gecko/20100101 Firefox/126.0");
+//		get.addHeader("Accept", "image/avif,image/webp,*/*");
+//		get.addHeader("Sec-Fetch-Dest", "image");
+//		
+//		HttpResponse resp = httpClient.execute(get);
+//		@Cleanup InputStream is = resp.getEntity().getContent();
+//		
+//		val statusCode = resp.getStatusLine().getStatusCode();
+//		
+//		if (statusCode == 429 || statusCode == 403) // Too many requests. Backoff and try again
+//		{
+//			if (lastWaitMs == -1) lastWaitMs = 2000;
+//			else lastWaitMs = lastWaitMs * 2;
+//			
+//			if (lastWaitMs > 300000) {
+//				Log.warn("Too many requests when fetching " + leg.getBioguideId());
+//				lastWaitMs = -1;
+//				return Optional.empty();
+//			}
+//			
+//			Log.warn("[" + leg.getBioguideId() + " " + leg.getName().getOfficial_full() + "] Received " + statusCode + ". Will wait " + lastWaitMs + " miliseconds and try again.");
+//			
+//			Thread.sleep(lastWaitMs);
+//			
+//			return urlFetch(leg, url);
+//		}
+//		
+//		lastWaitMs = -1;
+//		
+//		if (statusCode >= 400) {
+//			val body = IOUtils.toString(is, "UTF-8");
+//			Log.warn("[" + leg.getBioguideId() + " " + leg.getName().getOfficial_full() + "] Received response code " + resp.getStatusLine().getStatusCode() + " and body " + body.substring(0, Math.min(body.length(), 300)));
+//			
+//			return Optional.empty();
+//		}
+//		else
+//		{
+//			return Optional.of(IOUtils.toByteArray(is));
+//		}
+//	}
 	
 	@SneakyThrows
 	private void upload(byte[] image, String key)

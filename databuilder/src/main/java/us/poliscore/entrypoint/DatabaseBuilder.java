@@ -122,9 +122,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		
-		// TODO : This is consistently returning 403 now. There's also problems where it can do like 40 requests on a leg before moving on
-//		imageBuilder.process();
+		imageBuilder.process();
 		
 		
 		billTextFetcher.process();
@@ -320,6 +318,6 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	public static void main(String[] args) {
 		Quarkus.run(DatabaseBuilder.class, args);
-		Quarkus.waitForExit();
+		Quarkus.asyncExit(0);
 	}
 }
