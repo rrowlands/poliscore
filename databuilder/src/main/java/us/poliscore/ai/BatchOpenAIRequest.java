@@ -71,6 +71,11 @@ public class BatchOpenAIRequest {
 		public BatchOpenAIBody(List<BatchBillMessage> messages) {
 			this.messages = messages;
 		}
+		
+		public BatchOpenAIBody(List<BatchBillMessage> messages, String model) {
+			this.messages = messages;
+			this.model = model;
+		}
 	}
 	
 	@Data

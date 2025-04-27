@@ -14,7 +14,6 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Node;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -41,6 +40,8 @@ import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.press.BillArticleRecognizer;
 import us.poliscore.press.GoogleSearchResponse;
+import us.poliscore.press.GoogleSearchResponse.Item;
+import us.poliscore.press.RedditFetcher;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
@@ -86,7 +87,7 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 			You are part of a non-partisan oversight committee, tasked to read and summarize the provided analysis, focusing especially on any predictions the analysis might make towards the bill's impact to society, as well as any explanations or high-level logic as to how or why. If possible, please include information about the author as well as any organization they may be a part of. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Summary:') in your response. Do not include the section instructions in your response.
 			
 			Author:
-			Write the name of the organization and/or author responsible for drafting the analysis, or N/A if it is not clear from the text. If the text has both an author and an organization, write the organization followed by the first / last name of the author (e.g. 'New York Times - Joe Schmoe'). If the text comes from social media and there is a singular author, you may write the name of the user and the website it was written (e.g. 'Reddit - <username>'). If the text was taken from social media and there are many authors, you may place the name of the social media website (e.g. 'Reddit').
+			Write the name of the organization and/or author responsible for drafting the analysis, or N/A if it is not clear from the text. If the text has both an author and an organization, write the organization followed by the first / last name of the author (e.g. 'New York Times - Joe Schmoe'). If the text comes from social media and there is a singular author, you may write the name of the user and the website it was written (e.g. 'Reddit - <username>'). If the text was taken from social media and there is more than one author, you shall only place the name of the social media website (e.g. 'Reddit'). Do NOT write for example, Reddit (notably users candre23, nosecohn, wolfehr, and others on r/NeutralPolitics), simply write "Reddit (r/NeutralPolitics)".
 			
 			Stats:
 			Upon reading the interpretation, please write how you think the author would score the bill on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Your scoring here should be a sentiment analysis of the provided text, categorized by issue. If the analysis recommends voting against the bill, these scores should be negative, otherwise if it recommends voting for the bill they should be positive.
@@ -107,6 +108,7 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 		PRESS_INTERPRETATION_PROMPT = PRESS_INTERPRETATION_PROMPT_TEMPLATE.replaceFirst("\\{issuesList\\}", issues);
 	}
 	
+	public static String AI_MODEL = "gpt-4.1-mini";
 	
 	@Inject
 	private MemoryObjectService memService;
@@ -161,8 +163,9 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 		
 		Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
 		
-		processBill(b);
+//		processBill(b);
 //		processOriginFetch(b, new InterpretationOrigin("url", "title"), Jsoup.parse(new File("/Users/rrowlands/dev/projects/poliscore/databuilder/src/main/resources/ace-ccr.html")));
+		processOrigin(b, new InterpretationOrigin("https://www.reddit.com/r/NeutralPolitics/comments/1jawsml/what_are_the_pros_and_cons_of_voting_for_hr1968", "What are the PROS and CONS of voting for H.R.1968 - Full-Year Continuing Appropriations and Extensions Act, 2025?"));
 		
 		writeBlock(block++);
 		
@@ -200,38 +203,64 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 	    	{
 				if (!item.getLink().endsWith(".pdf") && StringUtils.isBlank(item.getFileFormat()))
 				{
-					var linkResp = Jsoup.connect(item.getLink()).followRedirects(true).userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:126.0) Gecko/20100101 Firefox/126.0").ignoreHttpErrors(true).execute();
+					val origin = new InterpretationOrigin(item.getLink(), item.getTitle());
 					
-					if (linkResp.statusCode() >= 200 && linkResp.statusCode() < 400)
-					{
-						val origin = new InterpretationOrigin(item.getLink(), item.getTitle());
-						
-						processOriginFetch(b, origin, linkResp.parse());
-					}
+					processOrigin(b, origin);
 				}
-			} catch (javax.net.ssl.SSLHandshakeException e) {
-	            Log.warn("SSL error connecting to " + item.getLink() + ": " + e.getMessage());
 	        } catch (Exception e) {
 	            Log.warn("General error connecting to " + item.getLink() + ": " + e.getMessage());
 	        }
 		}
 	}
 	
-	@SneakyThrows
-	private void processOriginFetch(Bill b, InterpretationOrigin origin, Document fetched)
+	private void processOrigin(Bill b, InterpretationOrigin origin)
 	{
-		// Clean up the HTML to remove things we know we don't want to process
-		var body = fetched.body();
-		body.select("script,.hidden,style,noscript").remove(); // Strip scripts
-		body.select("[style~=(?i)display:\\s*none|visibility:\\s*hidden|opacity:\\s*0]").remove(); // Strip hidden elements
-		for (Node node : body.childNodes()) { if (node.nodeName().equals("#comment")) { node.remove(); } } // Strip comments
-		body.select("nav, footer, header, aside").remove(); // Strip navigational content
-		for (String className : new String[]{"navbar", "menu", "sidebar", "footer", "legal"}) { body.select("." + className).remove(); } // Strip common classes
+		String articleText = null;
 		
-//		var text = StringUtils.join(" ", body.nodeStream().filter(n -> n instanceof Element && ((Element)n).text().length() > 50).map(n -> ((Element)n).text()).toList());
+		if (origin.getUrl().contains("reddit.com/"))
+		{
+			articleText = RedditFetcher.fetch(origin);
+		}
+		else
+		{
+			articleText = processHtmlOrigin(b, origin);
+		}
 		
-		String articleText = body.text();
+		if (articleText != null)
+		{
+			processArticle(b, origin, articleText);
+		}
+	}
+	
+	@SneakyThrows
+	private String processHtmlOrigin(Bill b, InterpretationOrigin origin)
+	{
+		var linkResp = Jsoup.connect(origin.getUrl()).followRedirects(true).userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:126.0) Gecko/20100101 Firefox/126.0").ignoreHttpErrors(true).execute();
 		
+		if (linkResp.statusCode() >= 200 && linkResp.statusCode() < 400)
+		{
+			var fetched = linkResp.parse();
+			
+			// Clean up the HTML to remove things we know we don't want to process
+			var body = fetched.body();
+			body.select("script,.hidden,style,noscript").remove(); // Strip scripts
+			body.select("[style~=(?i)display:\\s*none|visibility:\\s*hidden|opacity:\\s*0]").remove(); // Strip hidden elements
+			for (Node node : body.childNodes()) { if (node.nodeName().equals("#comment")) { node.remove(); } } // Strip comments
+			body.select("nav, footer, header, aside").remove(); // Strip navigational content
+			for (String className : new String[]{"navbar", "menu", "sidebar", "footer", "legal"}) { body.select("." + className).remove(); } // Strip common classes
+			
+//			var text = StringUtils.join(" ", body.nodeStream().filter(n -> n instanceof Element && ((Element)n).text().length() > 50).map(n -> ((Element)n).text()).toList());
+			
+			String articleText = body.text();
+			
+			return articleText;
+		}
+		
+		return null;
+	}
+	
+	protected void processArticle(Bill b, InterpretationOrigin origin, String articleText)
+	{
 		float confidence = BillArticleRecognizer.recognize(b, articleText, origin.getUrl());
 		
 		System.out.println("Confidence that " + origin.getUrl() + " is written about bill " + b.getId() + " resolved to " + confidence);
@@ -268,7 +297,7 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 		
 		requests.add(new BatchOpenAIRequest(
 				data,
-				new BatchOpenAIBody(messages)
+				new BatchOpenAIBody(messages, AI_MODEL)
 		));
 		
 		tokenLen += (userMsg.length() / 4);
