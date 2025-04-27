@@ -27,6 +27,25 @@ import us.poliscore.model.legislator.Legislator.LegislatorName;
 @UtilityClass
 public class BillArticleRecognizer {
 
+	/**
+	 * URLs for which we always return zero confidence
+	 * 
+	 * These URLS are typically congressional trackers and will not provide us with interpretations or news about a bill and need to be blacklisted
+	 * because otherwise they will result in a very high confidence score.
+	 * */
+    private static final List<String> URL_BLACKLIST = Arrays.asList(
+        "fastdemocracy.com",
+        "congress.gov",
+        "govtrack.us",
+        "quiverquant.com",
+        "house.gov",
+        "billtrack50.com",
+        "opencongress.org",
+        "legiscan.com",
+        "clerk.house.gov",
+        "clerk.senate.gov"
+    );
+	
     // Primary date formats to check
     private static final List<DateTimeFormatter> DATE_FORMATTERS = Arrays.asList(
         DateTimeFormatter.ofPattern("MMMM d, yyyy"),
@@ -153,6 +172,13 @@ public class BillArticleRecognizer {
      * Computes a confidence score [0..1] that the given article text and URL refer to the provided bill.
      */
     public float recognize(Bill bill, String article, String url) {
+    	String u = url.toLowerCase(Locale.ROOT);
+        for (String bad : URL_BLACKLIST) {
+            if (u.contains(bad)) {
+                return 0f;
+            }
+        }
+    	
         String text = article.toLowerCase(Locale.ROOT);
 
         float idScore        = scoreTypeNumber(bill, text);

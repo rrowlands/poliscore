@@ -6,7 +6,9 @@ import java.util.List;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.service.OpenAIService;
 
 @Data
@@ -16,7 +18,7 @@ import us.poliscore.service.OpenAIService;
 public class BatchOpenAIRequest {
 	// {"custom_id": "request-1", "method": "POST", "url": "/v1/chat/completions", "body": {"model": "gpt-3.5-turbo-0125", "messages": [{"role": "system", "content": "You are a helpful assistant."},{"role": "user", "content": "Hello world!"}],"max_tokens": 1000}}
 	
-	private String custom_id;
+	private CustomData custom_id;
 	
 	private String method = "POST";
 	
@@ -25,8 +27,25 @@ public class BatchOpenAIRequest {
 	private BatchOpenAIBody body;
 	
 	public BatchOpenAIRequest(String id, BatchOpenAIBody body) {
-		this.custom_id = id;
+		this.custom_id = new CustomData(id);
 		this.body = body;
+	}
+	
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class CustomData
+	{
+		private String oid;
+	}
+	
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class CustomOriginData extends CustomData
+	{
+		private InterpretationOrigin origin;
 	}
 	
 	@Data

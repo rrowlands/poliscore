@@ -8,6 +8,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import us.poliscore.ai.BatchOpenAIRequest.CustomData;
 
 @Data
 @RegisterForReflection
@@ -18,7 +19,7 @@ public class BatchOpenAIResponse {
 	
 	protected String id;
 	
-	protected String custom_id;
+	protected CustomData custom_id;
 	
 	protected String error;
 	

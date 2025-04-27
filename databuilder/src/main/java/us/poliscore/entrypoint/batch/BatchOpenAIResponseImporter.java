@@ -23,6 +23,7 @@ import lombok.val;
 import us.poliscore.Environment;
 import us.poliscore.PartyBillLinker;
 import us.poliscore.PoliscoreUtil;
+import us.poliscore.ai.BatchOpenAIRequest.CustomOriginData;
 import us.poliscore.ai.BatchOpenAIResponse;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.Party;
@@ -38,7 +39,6 @@ import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.model.legislator.LegislatorInterpretationParser;
 import us.poliscore.model.session.SessionInterpretation;
 import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
-import us.poliscore.parsing.BillSlicer;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
@@ -117,11 +117,11 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 					throw new RuntimeException(err);
 				}
 				
-				if (resp.getCustom_id().startsWith(BillInterpretation.ID_CLASS_PREFIX)) {
+				if (resp.getCustom_id().getOid().startsWith(BillInterpretation.ID_CLASS_PREFIX)) {
 					importBill(resp);
-				} else if (resp.getCustom_id().startsWith(LegislatorInterpretation.ID_CLASS_PREFIX)) {
+				} else if (resp.getCustom_id().getOid().startsWith(LegislatorInterpretation.ID_CLASS_PREFIX)) {
 					importLegislator(resp);
-				} else if (resp.getCustom_id().startsWith(SessionInterpretation.ID_CLASS_PREFIX)) {
+				} else if (resp.getCustom_id().getOid().startsWith(SessionInterpretation.ID_CLASS_PREFIX)) {
 					importParty(resp);
 				} else {
 					throw new UnsupportedOperationException("Unexpected object type " + resp.getCustom_id());
@@ -152,7 +152,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	private void importLegislator(final BatchOpenAIResponse resp) {
 //		if (!resp.getCustom_id().contains("D000197")) return;
 		
-		val leg = memService.get(resp.getCustom_id().replace(LegislatorInterpretation.ID_CLASS_PREFIX, Legislator.ID_CLASS_PREFIX), Legislator.class).orElseThrow();
+		val leg = memService.get(resp.getCustom_id().getOid().replace(LegislatorInterpretation.ID_CLASS_PREFIX, Legislator.ID_CLASS_PREFIX), Legislator.class).orElseThrow();
 		
 //		if (ddb.exists(leg.getId(), Legislator.class)) return;
 		
@@ -194,11 +194,11 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		PartyInterpretation partyInterp;
 		
-		if (resp.getCustom_id().contains(Party.DEMOCRAT.name())) {
+		if (resp.getCustom_id().getOid().contains(Party.DEMOCRAT.name())) {
 			partyInterp = sessionInterp.getDemocrat();
-		} else if (resp.getCustom_id().contains(Party.REPUBLICAN.name())) {
+		} else if (resp.getCustom_id().getOid().contains(Party.REPUBLICAN.name())) {
 			partyInterp = sessionInterp.getRepublican();
-		} else if (resp.getCustom_id().contains(Party.INDEPENDENT.name())) {
+		} else if (resp.getCustom_id().getOid().contains(Party.INDEPENDENT.name())) {
 			partyInterp = sessionInterp.getIndependent();
 		} else {
 			throw new UnsupportedOperationException();
@@ -211,7 +211,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	}
 
 	private void importBill(final BatchOpenAIResponse resp) {
-		String billId = resp.getCustom_id().replace(BillInterpretation.ID_CLASS_PREFIX, Bill.ID_CLASS_PREFIX);
+		String billId = resp.getCustom_id().getOid().replace(BillInterpretation.ID_CLASS_PREFIX, Bill.ID_CLASS_PREFIX);
 		
 		Integer sliceIndex = null;
 		val dashSplit = billId.split("-");
@@ -227,6 +227,11 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		BillInterpretation bi = new BillInterpretation();
 		bi.setBill(bill);
+		
+		if (resp.getCustom_id() instanceof CustomOriginData)
+		{
+			bi.setOrigin(((CustomOriginData) resp.getCustom_id()).getOrigin());
+		}
 		
 		if (sliceIndex == null)
 		{

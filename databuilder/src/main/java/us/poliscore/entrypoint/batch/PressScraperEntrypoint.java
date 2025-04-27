@@ -152,7 +152,7 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 		writtenFiles = new ArrayList<File>();
 		
 		
-		Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
+		Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 2984), Bill.class).get();
 		
 		processBill(b);
 //		processOriginFetch(b, new InterpretationOrigin("url", "title"), Jsoup.parse(new File("/Users/rrowlands/dev/projects/poliscore/databuilder/src/main/resources/ace-ccr.html")));
@@ -230,12 +230,6 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 		
 		var prompt = PRESS_INTERPRETATION_PROMPT.replace("{{billIdentifier}}", b.getNamespace().getNamespace().replace("/", " ") + ", " + b.getOriginatingChamber().getName() + ", " + b.getType().getName() + " " + b.getNumber());
 		createRequest(oid, prompt, text);
-		
-		val bi = new BillInterpretation();
-		bi.setOrigin(origin);
-		bi.setId(oid);
-		bi.setBillId(b.getId());
-//		ddb.put(bi);
 	}
 	
 	private void createRequest(String oid, String sysMsg, String userMsg) {
