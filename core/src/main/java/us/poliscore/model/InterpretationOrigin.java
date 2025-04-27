@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 
@@ -15,9 +16,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 public class InterpretationOrigin {
 	public static final InterpretationOrigin POLISCORE = new InterpretationOrigin("https://poliscore.us", "PoliScore");
 	
-	public String url;
+	@NonNull public String url;
 	
-	public String title;
+	@NonNull public String title;
 	
 	@DynamoDbIgnore
 	@JsonIgnore
@@ -42,11 +43,11 @@ public class InterpretationOrigin {
 
             // Split by '.' and take the first part of the domain
             // Example: "example.com" -> "example"
-            int dotIndex = host.indexOf('.');
-            String domainPart = (dotIndex == -1) ? host : host.substring(0, dotIndex);
+//            int dotIndex = host.indexOf('.');
+//            String domainPart = (dotIndex == -1) ? host : host.substring(0, dotIndex);
 
             // Keep only alphanumeric characters
-            String cleaned = domainPart.replaceAll("[^A-Za-z0-9]", "");
+            String cleaned = host.replaceAll("[^A-Za-z0-9]", "");
 
             // Limit to max 6 characters
             if (cleaned.length() > 6) {
@@ -60,5 +61,18 @@ public class InterpretationOrigin {
         	e.printStackTrace();
             return "unknown";
         }
+    }
+	
+	@Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof InterpretationOrigin)) return false;
+        InterpretationOrigin that = (InterpretationOrigin) o;
+        return this.getIdHash().equals(that.getIdHash());
+    }
+
+    @Override
+    public int hashCode() {
+        return getIdHash().hashCode();
     }
 }

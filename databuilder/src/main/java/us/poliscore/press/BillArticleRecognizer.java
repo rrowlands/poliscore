@@ -43,7 +43,10 @@ public class BillArticleRecognizer {
         "opencongress.org",
         "legiscan.com",
         "clerk.house.gov",
-        "clerk.senate.gov"
+        "clerk.senate.gov",
+        "cbo.gov",
+        "whitegouse.gov",
+        "senate.gov"
     );
 	
     // Primary date formats to check
@@ -172,6 +175,9 @@ public class BillArticleRecognizer {
      * Computes a confidence score [0..1] that the given article text and URL refer to the provided bill.
      */
     public float recognize(Bill bill, String article, String url) {
+    	if (article.length() < 1000)
+    		return 0f;
+    	
     	String u = url.toLowerCase(Locale.ROOT);
         for (String bad : URL_BLACKLIST) {
             if (u.contains(bad)) {

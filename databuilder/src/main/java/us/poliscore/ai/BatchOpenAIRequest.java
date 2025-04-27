@@ -26,6 +26,11 @@ public class BatchOpenAIRequest {
 	
 	private BatchOpenAIBody body;
 	
+	public BatchOpenAIRequest(CustomData id, BatchOpenAIBody body) {
+		this.custom_id = id;
+		this.body = body;
+	}
+	
 	public BatchOpenAIRequest(String id, BatchOpenAIBody body) {
 		this.custom_id = new CustomData(id);
 		this.body = body;
@@ -36,7 +41,7 @@ public class BatchOpenAIRequest {
 	@AllArgsConstructor
 	public static class CustomData
 	{
-		private String oid;
+		protected String oid;
 	}
 	
 	@Data
@@ -45,7 +50,9 @@ public class BatchOpenAIRequest {
 	@AllArgsConstructor
 	public static class CustomOriginData extends CustomData
 	{
-		private InterpretationOrigin origin;
+		protected InterpretationOrigin origin;
+		
+		public CustomOriginData(InterpretationOrigin origin, String oid) { this.origin = origin; this.oid = oid; }
 	}
 	
 	@Data

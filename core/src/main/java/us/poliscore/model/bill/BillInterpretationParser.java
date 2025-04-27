@@ -22,6 +22,7 @@ public class BillInterpretationParser {
 	
 	public static enum State {
 		STATS("(?i)Stats:"),
+		AUTHOR("(?i)Author:"),
 		TITLE("(?i)Title:", "(?i)Bill Title:"),
 		RIDERS("(?i)Riders:"),
 		SHORT_REPORT("(?i)Short Report:"),
@@ -45,6 +46,7 @@ public class BillInterpretationParser {
 	public void parse(String text) {
 		interp.setShortExplain("");
 		interp.setLongExplain("");
+		interp.setAuthor("");
 		interp.setRiders(new ArrayList<String>());
 		interp.setIssueStats(new IssueStats());
 		
@@ -69,6 +71,8 @@ public class BillInterpretationParser {
 	private void processContent(String line) {
 		if (State.STATS.equals(state)) {
 			processStat(line);
+		} else if (State.AUTHOR.equals(state)) {
+			processAuthor(line);
 		} else if (State.TITLE.equals(state)) {
 			processTitle(line);
 		} else if (State.RIDERS.equals(state)) {
@@ -117,6 +121,11 @@ public class BillInterpretationParser {
 		{
 			interp.getIssueStats().setStat(stat.getLeft(), stat.getRight());
 		}
+	}
+	
+	private void processAuthor(String line) {
+		if (!line.toLowerCase().equals("n/a"))
+			interp.setAuthor(line);
 	}
 	
 	private void processTitle(String line) {

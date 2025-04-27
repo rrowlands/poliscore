@@ -32,6 +32,7 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
+import us.poliscore.ai.BatchOpenAIRequest.CustomOriginData;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.model.TrackedIssue;
@@ -76,15 +77,21 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 			You will be given what is suspected, but not guaranteed, to be an analysis of the following United States bill currently in congress.
 			{{billIdentifier}}
 			
-			If the provided text is NOT an analysis of this bill, or if the analysis is of a different bill, you are to immediately respond 'NO_INTERPRETATION' and EXIT. If you determine this is a valid analysis of the bill, then your instructions are as follows. 
+			The first thing you must determine is if this text offers any interesting or useful analysis of the bill in question, and if this text would reasonably be considered as a "Bill Interpretation". A "Bill Interpretation" in this context, is one in which the author provides opinions, analysis, gives a voting recommendation and/or endorsement of a bill, or otherwise predicts an impact to society of a particular bill.
+			
+			If the provided text is NOT an interpretation of this bill or if the interpretation is of a different bill, you are to immediately respond only as 'NO_INTERPRETATION' and EXIT.
+			
+			IF you determine this is a valid interpretation of the bill, then your instructions are as follows:
 			
 			You are part of a non-partisan oversight committee, tasked to read and summarize the provided analysis, focusing especially on any predictions the analysis might make towards the bill's impact to society, as well as any explanations or high-level logic as to how or why. If possible, please include information about the author as well as any organization they may be a part of. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Summary:') in your response. Do not include the section instructions in your response.
 			
-			Organization or Author:
-			Write the name of the organization or author responsible for drafting the analysis, or N/A if it is not clear from the text. If the text has both an author and an organization, write the organization instead of the first / last name of the author.
+			Author:
+			Write the name of the organization and/or author responsible for drafting the analysis, or N/A if it is not clear from the text. If the text has both an author and an organization, write the organization followed by the first / last name of the author (e.g. 'New York Times - Joe Schmoe'). If the text comes from social media and there is a singular author, you may write the name of the user and the website it was written (e.g. 'Reddit - <username>'). If the text was taken from social media and there are many authors, you may place the name of the social media website (e.g. 'Reddit').
 			
-			Favorability:
-			A number, from -100 (very unfavorable) to 0 (neutral) to 100 (very favorable), representing how favorable the analysis is of the bill in question. If the analysis recommends voting against the bill, this score should be negative, otherwise if it recommends voting for the bill it should be positive. 
+			Stats:
+			Upon reading the interpretation, please write how you think the author would score the bill on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Your scoring here should be a sentiment analysis of the provided text, categorized by issue. If the analysis recommends voting against the bill, these scores should be negative, otherwise if it recommends voting for the bill they should be positive.
+			
+			{issuesList} 
 			
 			Short Report:
 			A single paragraph concise report which gives a detailed, but not repetitive summary of the analysis, the author's opinion or stance on the bill, any high level goals, and it's predictions of the bill's expected impact to society.
@@ -152,7 +159,7 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 		writtenFiles = new ArrayList<File>();
 		
 		
-		Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 2984), Bill.class).get();
+		Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
 		
 		processBill(b);
 //		processOriginFetch(b, new InterpretationOrigin("url", "title"), Jsoup.parse(new File("/Users/rrowlands/dev/projects/poliscore/databuilder/src/main/resources/ace-ccr.html")));
@@ -165,31 +172,48 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 	}
 	
 	@SneakyThrows
-	private void processBill(Bill b)
-	{
-		final String query = b.getType().getName().toUpperCase() + " " + b.getNumber() + " " + b.getName();
-		val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
-		
-		final String url = "https://customsearch.googleapis.com/customsearch/v1?key=" + secretService.getGoogleSearchSecret() + "&cx=" + GOOGLE_CUSTOM_SEARCH_ENGINE_ID + "&q=" + encodedQuery;
-		String sResp = fetchUrl(url);
-		
-		val resp = new ObjectMapper().readValue(sResp, GoogleSearchResponse.class);
-		
-		for (val item : resp.getItems())
+	private void processBill(Bill b) {
+	    final String query = b.getType().getName().toUpperCase() + " " + b.getNumber() + " " + b.getName();
+	    val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+
+	    // Fetch two pages and get 20 results
+	    fetchAndProcessSearchResults(b, encodedQuery, 1);
+	    fetchAndProcessSearchResults(b, encodedQuery, 11);
+	}
+
+	@SneakyThrows
+	private void fetchAndProcessSearchResults(Bill b, String encodedQuery, int startIndex) {
+	    final String url = "https://customsearch.googleapis.com/customsearch/v1?key=" + 
+	                        secretService.getGoogleSearchSecret() + 
+	                        "&cx=" + GOOGLE_CUSTOM_SEARCH_ENGINE_ID + 
+	                        "&q=" + encodedQuery + 
+	                        "&start=" + startIndex;
+
+	    String sResp = fetchUrl(url);
+	    val resp = new ObjectMapper().readValue(sResp, GoogleSearchResponse.class);
+
+	    if (resp.getItems() == null) return;
+
+	    for (val item : resp.getItems())
 		{
-			if (!item.getLink().endsWith(".pdf") && StringUtils.isBlank(item.getFileFormat()))
-			{
-				System.out.println(item.getLink());
-				
-				var linkResp = Jsoup.connect(item.getLink()).followRedirects(true).userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:126.0) Gecko/20100101 Firefox/126.0").ignoreHttpErrors(true).execute();
-				
-				if (linkResp.statusCode() >= 200 && linkResp.statusCode() < 400)
+	    	try
+	    	{
+				if (!item.getLink().endsWith(".pdf") && StringUtils.isBlank(item.getFileFormat()))
 				{
-					val origin = new InterpretationOrigin(item.getLink(), item.getTitle());
+					var linkResp = Jsoup.connect(item.getLink()).followRedirects(true).userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:126.0) Gecko/20100101 Firefox/126.0").ignoreHttpErrors(true).execute();
 					
-					processOriginFetch(b, origin, linkResp.parse());
+					if (linkResp.statusCode() >= 200 && linkResp.statusCode() < 400)
+					{
+						val origin = new InterpretationOrigin(item.getLink(), item.getTitle());
+						
+						processOriginFetch(b, origin, linkResp.parse());
+					}
 				}
-			}
+			} catch (javax.net.ssl.SSLHandshakeException e) {
+	            Log.warn("SSL error connecting to " + item.getLink() + ": " + e.getMessage());
+	        } catch (Exception e) {
+	            Log.warn("General error connecting to " + item.getLink() + ": " + e.getMessage());
+	        }
 		}
 	}
 	
@@ -221,6 +245,7 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 	private void interpretArticle(Bill b, InterpretationOrigin origin, String body)
 	{
 		String oid = BillInterpretation.generateId(b.getId(), origin, null);
+		var data = new CustomOriginData(origin, oid);
 		
 		String text = "title: " + origin.getTitle() + "\nurl: " + origin.getUrl() + "\n\n";
 		
@@ -229,12 +254,12 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 			text = text.substring(0, OpenAIService.MAX_REQUEST_LENGTH);
 		
 		var prompt = PRESS_INTERPRETATION_PROMPT.replace("{{billIdentifier}}", b.getNamespace().getNamespace().replace("/", " ") + ", " + b.getOriginatingChamber().getName() + ", " + b.getType().getName() + " " + b.getNumber());
-		createRequest(oid, prompt, text);
+		createRequest(data, prompt, text);
 	}
 	
-	private void createRequest(String oid, String sysMsg, String userMsg) {
+	private void createRequest(CustomOriginData data, String sysMsg, String userMsg) {
 		if (userMsg.length() > OpenAIService.MAX_REQUEST_LENGTH) {
-			throw new RuntimeException("Max user message length exceeded on " + oid + " (" + userMsg.length() + " > " + OpenAIService.MAX_REQUEST_LENGTH);
+			throw new RuntimeException("Max user message length exceeded on " + data.getOid() + " (" + userMsg.length() + " > " + OpenAIService.MAX_REQUEST_LENGTH);
 		}
 		
 		List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();
@@ -242,7 +267,7 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 		messages.add(new BatchBillMessage("user", userMsg));
 		
 		requests.add(new BatchOpenAIRequest(
-				oid,
+				data,
 				new BatchOpenAIBody(messages)
 		));
 		

@@ -26,6 +26,7 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIRequest.CustomOriginData;
 import us.poliscore.ai.BatchOpenAIResponse;
 import us.poliscore.model.DoubleIssueStats;
+import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.model.Party;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
@@ -249,7 +250,12 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			bi.setId(BillInterpretation.generateId(billId, sliceIndex));
 		}
 		
-		new BillInterpretationParser(bi).parse(resp.getResponse().getBody().getChoices().get(0).getMessage().getContent());
+		var interpText = resp.getResponse().getBody().getChoices().get(0).getMessage().getContent();
+		
+		if (interpText.contains("NO_INTERPRETATION"))
+			return;
+		
+		new BillInterpretationParser(bi).parse(interpText);
 		
 		if (!bi.getIssueStats().hasStat(TrackedIssue.OverallBenefitToSociety)) {
 			if (sliceIndex != null) {throw new RuntimeException("Did not find OverallBenefitToSociety stat on interpretation");  }
@@ -280,10 +286,12 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		s3.put(bi);
 		
-		if (sliceIndex == null) {
+		if (bi.getOrigin().equals(InterpretationOrigin.POLISCORE) && sliceIndex == null) {
 			billService.ddbPersist(bill, bi);
 			
 			importedBills.add(billId);
+		} else {
+			ddb.put(bi);
 		}
 	}
 	
