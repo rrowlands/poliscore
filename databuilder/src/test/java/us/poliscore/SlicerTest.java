@@ -29,12 +29,12 @@ public class SlicerTest {
 	@Test
 	public void testXmlSliceAppropriationsBill() throws Exception
 	{
-		OpenAIService.MAX_SECTION_LENGTH = 80000;
+		OpenAIService.MAX_REQUEST_LENGTH = 80000;
 		
 		Bill bill = BillGen.gen();
 		bill.setText(BillGen.genTxt(bill, BillGen.btx118hr8550));
 		
-		List<BillSlice> sliced = new XMLBillSlicer().slice(bill, bill.getText(), OpenAIService.MAX_SECTION_LENGTH);
+		List<BillSlice> sliced = new XMLBillSlicer().slice(bill, bill.getText(), OpenAIService.MAX_REQUEST_LENGTH);
 		
 		Assertions.assertTrue(sliced.size() > 1);
 		Assertions.assertTrue(sliced.size() < 6);
@@ -45,7 +45,7 @@ public class SlicerTest {
 		{
 //			Assert.assertTrue(sliced.get(i).getText().length() > 0);
 			
-			if (sliced.get(i).getText().length() >= OpenAIService.MAX_SECTION_LENGTH)
+			if (sliced.get(i).getText().length() >= OpenAIService.MAX_REQUEST_LENGTH)
 			{
 				System.out.println(sliced.get(i));
 				Assertions.fail("Slice " + i + " was too long (" + sliced.get(i).getText().length() + ")");
@@ -74,12 +74,12 @@ public class SlicerTest {
 	@Test
 	public void testXmlSliceLargeBill() throws Exception
 	{
-		OpenAIService.MAX_SECTION_LENGTH = 80000;
+		OpenAIService.MAX_REQUEST_LENGTH = 80000;
 		
 		Bill bill = BillGen.gen();
 		bill.setText(BillGen.genTxt(bill, BillGen.btx118hr3935));
 		
-		List<BillSlice> sliced = new XMLBillSlicer().slice(bill, bill.getText(), OpenAIService.MAX_SECTION_LENGTH);
+		List<BillSlice> sliced = new XMLBillSlicer().slice(bill, bill.getText(), OpenAIService.MAX_REQUEST_LENGTH);
 		
 		Assertions.assertTrue(sliced.size() > 1);
 		
@@ -89,7 +89,7 @@ public class SlicerTest {
 		{
 //			Assert.assertTrue(sliced.get(i).getText().length() > 0);
 			
-			if (sliced.get(i).getText().length() >= OpenAIService.MAX_SECTION_LENGTH)
+			if (sliced.get(i).getText().length() >= OpenAIService.MAX_REQUEST_LENGTH)
 			{
 				System.out.println(sliced.get(i));
 				Assertions.fail("Slice " + i + " was too long (" + sliced.get(i).getText().length() + ")");
@@ -111,12 +111,12 @@ public class SlicerTest {
 	@Test
 	public void testXmlSliceSmallBill() throws Exception
 	{
-		OpenAIService.MAX_SECTION_LENGTH = 80000;
+		OpenAIService.MAX_REQUEST_LENGTH = 80000;
 		
 		Bill bill = BillGen.gen();
 		bill.setText(BillGen.genTxt(bill, BillGen.btx115hr806));
 		
-		List<BillSlice> sliced = new XMLBillSlicer().slice(bill, bill.getText(), OpenAIService.MAX_SECTION_LENGTH);
+		List<BillSlice> sliced = new XMLBillSlicer().slice(bill, bill.getText(), OpenAIService.MAX_REQUEST_LENGTH);
 		
 		Assertions.assertTrue(sliced.size() == 1);
 		
@@ -126,7 +126,7 @@ public class SlicerTest {
 		{
 //			Assert.assertTrue(sliced.get(i).getText().length() > 0);
 			
-			if (sliced.get(i).getText().length() >= OpenAIService.MAX_SECTION_LENGTH)
+			if (sliced.get(i).getText().length() >= OpenAIService.MAX_REQUEST_LENGTH)
 			{
 				System.out.println(sliced.get(i));
 				Assertions.fail("Slice " + i + " was too long (" + sliced.get(i).getText().length() + ")");

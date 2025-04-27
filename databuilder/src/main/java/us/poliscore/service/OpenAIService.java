@@ -44,7 +44,7 @@ public class OpenAIService {
 	// GPT-4o context window in tokens is 128,000
 	public static final int MAX_TOKENS = 3000;
 	
-	public static int MAX_SECTION_LENGTH = 3500000;
+	public static int MAX_REQUEST_LENGTH = 3500000;
 	
 	public static final int WAIT_BETWEEN_CALLS = 60; // in seconds
 	
@@ -66,7 +66,7 @@ public class OpenAIService {
 	@SneakyThrows
 	public String chat(String systemMsg, String userMsg)
     {
-		if (userMsg.length() > OpenAIService.MAX_SECTION_LENGTH) {
+		if (userMsg.length() > OpenAIService.MAX_REQUEST_LENGTH) {
 			throw new IndexOutOfBoundsException();
 		}
 		if (StringUtils.isEmpty(systemMsg) || StringUtils.isEmpty(userMsg)) {
@@ -105,7 +105,7 @@ public class OpenAIService {
     		out += ". FINISH_REASON: " + choice.getFinishReason();
     	}
     	
-    	nextCallTime = LocalDateTime.now().plusSeconds(Math.round(((double)userMsg.length() / (double)OpenAIService.MAX_SECTION_LENGTH) * (double)WAIT_BETWEEN_CALLS)).plusSeconds(2);
+    	nextCallTime = LocalDateTime.now().plusSeconds(Math.round(((double)userMsg.length() / (double)OpenAIService.MAX_REQUEST_LENGTH) * (double)WAIT_BETWEEN_CALLS)).plusSeconds(2);
     	
     	return out;
     }

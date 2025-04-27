@@ -214,9 +214,13 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		String billId = resp.getCustom_id().replace(BillInterpretation.ID_CLASS_PREFIX, Bill.ID_CLASS_PREFIX);
 		
 		Integer sliceIndex = null;
-		if (billId.contains("-")) {
-			sliceIndex = Integer.parseInt(billId.split("-")[1]);
-			billId = billId.split("-")[0];
+		val dashSplit = billId.split("-");
+		if (dashSplit.length == 2) {
+			sliceIndex = Integer.parseInt(dashSplit[1]);
+			billId = dashSplit[0];
+		} else if (dashSplit.length == 3) {
+			sliceIndex = Integer.parseInt(dashSplit[2]);
+			billId = dashSplit[0];
 		}
 		
 		val bill = ddb.get(billId, Bill.class).orElseThrow();
@@ -234,7 +238,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			val billText = s3.get(BillText.generateId(bill.getId()), BillText.class).orElseThrow();
 			bill.setText(billText);
 			
-			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, OpenAIService.MAX_SECTION_LENGTH);
+			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, OpenAIService.MAX_REQUEST_LENGTH);
 			
 			bi.setMetadata(OpenAIService.metadata(slices.get(sliceIndex)));
 			bi.setId(BillInterpretation.generateId(billId, sliceIndex));
@@ -247,7 +251,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			
 			val billText = s3.get(BillText.generateId(bill.getId()), BillText.class).orElseThrow();
 			
-			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, OpenAIService.MAX_SECTION_LENGTH);
+			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, OpenAIService.MAX_REQUEST_LENGTH);
 			
 			if (slices.size() <= 1) { throw new RuntimeException("Expected multiple slices on [" + billId + "] since OpenAI did not include benefit to society issue stat"); }
 			

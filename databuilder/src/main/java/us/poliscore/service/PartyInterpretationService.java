@@ -279,8 +279,8 @@ public class PartyInterpretationService {
 	}
 	
 	private void createRequest(Party party, String sysMsg, String userMsg) {
-		if (userMsg.length() >= OpenAIService.MAX_SECTION_LENGTH) {
-			throw new RuntimeException("Max user message length exceeded on " + party.getName() + " (" + userMsg.length() + " > " + OpenAIService.MAX_SECTION_LENGTH);
+		if (userMsg.length() >= OpenAIService.MAX_REQUEST_LENGTH) {
+			throw new RuntimeException("Max user message length exceeded on " + party.getName() + " (" + userMsg.length() + " > " + OpenAIService.MAX_REQUEST_LENGTH);
 		}
 		
 		List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();
