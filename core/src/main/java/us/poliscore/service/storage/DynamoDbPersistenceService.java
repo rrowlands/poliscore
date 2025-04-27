@@ -41,7 +41,7 @@ import us.poliscore.model.dynamodb.DdbListPage;
 @ApplicationScoped
 public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 {
-	public static final String TABLE_NAME = "poliscore1";
+	public static final String TABLE_NAME = "poliscore2";
 	
 	public static final String HEAD_PAGE = "0";
 	
@@ -277,6 +277,8 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 			return "date";
 		} else if (index.equals(Persistable.OBJECT_BY_RATING_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_RATING_INDEX)) {
 			return "rating";
+		} else if (index.equals(Persistable.OBJECT_BY_RATING_ABS_INDEX)) {
+			return "ratingAbs";
 		} else if (index.equals(Persistable.OBJECT_BY_LOCATION_INDEX)) {
 			return "location";
 		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
@@ -299,7 +301,7 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 			return av.s();
 		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
 			return av.n();
-		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_ABS_INDEX)) {
+		} else if (index.equals(Persistable.OBJECT_BY_IMPACT_ABS_INDEX) || index.equals(Persistable.OBJECT_BY_RATING_ABS_INDEX)) {
 			return av.n();
 		} else if (index.equals(Persistable.OBJECT_BY_HOT_INDEX)) {
 			return av.n();
@@ -379,7 +381,7 @@ public class DynamoDbPersistenceService implements ObjectStorageServiceIF
 				map.put(fieldForIndex(index), AttributeValue.fromS(exclusiveStartKey.split("~`~")[1]));
 			} else if (index.equals(Persistable.OBJECT_BY_IMPACT_INDEX) || index.equals(Persistable.OBJECT_BY_ISSUE_IMPACT_INDEX)) {
 				map.put(fieldForIndex(index), AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
-			} else if (index.equals(Persistable.OBJECT_BY_IMPACT_ABS_INDEX) || index.equals(Persistable.OBJECT_BY_HOT_INDEX)) {
+			} else if (index.equals(Persistable.OBJECT_BY_IMPACT_ABS_INDEX) || index.equals(Persistable.OBJECT_BY_HOT_INDEX) || index.equals(Persistable.OBJECT_BY_RATING_ABS_INDEX)) {
 				map.put(fieldForIndex(index), AttributeValue.fromN(exclusiveStartKey.split("~`~")[1]));
 			}
 			

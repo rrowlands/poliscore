@@ -1,13 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env bash
+echo "Running vertx.silencer colored‐segment test…"
 
-echo "Running vertx.silencer test..."
+# ANSI color codes
+CSI=$'\033['
+YELLOW="${CSI}33m"
+BLUE="${CSI}34m"
+GREEN="${CSI}32m"
+RED="${CSI}31m"
+RESET="${CSI}0m"
 
-# Simulated mixed log output
-cat <<EOF | ./vertx.silencer
-2025-04-21 11:41:20,000 INFO  [us.pol.ent.DatabaseBuilder] (Quarkus Main Thread) Normal startup.
+# What we expect after filtering:
+expected="2025-04-26 14:27:32,000 INFO  [us.pol.ent.Main] (main) Done"
 
-2025-04-21 11:41:25,178 WARN  [io.ver.cor.imp.BlockedThreadChecker] (vertx-blocked-thread-checker) Thread Thread[vert.x-worker-thread-1,5,build group] has been blocked for 3642267 ms, time limit is 3600000 ms: io.vertx.core.VertxException: Thread blocked
-	at java.base/jdk.internal.misc.Unsafe.park(Native Method)
+actual=$(cat <<EOF | ./vertx.silencer
+${YELLOW}2025-04-26 14:27:31,946 WARN${RESET}  [${BLUE}io.ver.cor.imp.BlockedThreadChecker${RESET}] (${GREEN}vertx-blocked-thread-checker) Thread Thread[vert.x-worker-thread-1,5,build group] has been blocked for 5263223 ms, time limit is 3600000 ms${RESET}
+${RED}	at java.base/jdk.internal.misc.Unsafe.park(Native Method)
 	at java.base/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)
 	at java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer\$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1758)
 	at java.base/java.util.concurrent.LinkedBlockingQueue.poll(LinkedBlockingQueue.java:460)
@@ -19,8 +26,23 @@ cat <<EOF | ./vertx.silencer
 	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
 	at java.base/java.util.concurrent.ThreadPoolExecutor\$Worker.run(ThreadPoolExecutor.java:642)
 	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
+	at java.base/java.lang.Thread.run(Thread.java:1583)${RESET}
 
-2025-04-21 11:41:30,000 INFO  [us.pol.ent.DatabaseBuilder] (Quarkus Main Thread) Build complete.
+2025-04-26 14:27:32,000 INFO  [us.pol.ent.Main] (main) Done
 EOF
+)
+
+if [[ "$actual" == "$expected" ]]; then
+  echo "✅ Colored‐segment test PASSED"
+  exit 0
+else
+  echo "❌ Colored‐segment test FAILED"
+  echo
+  echo "Expected:"
+  echo "$expected"
+  echo
+  echo "Got:"
+  echo "$actual"
+  exit 1
+fi
 

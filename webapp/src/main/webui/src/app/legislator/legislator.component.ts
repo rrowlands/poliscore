@@ -143,7 +143,7 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
   };
 
   public page: Page = {
-    index: "ObjectsByImpactAbs",
+    index: "ObjectsByRatingAbs",
     ascending: undefined,
     pageSize: 25
   };
@@ -167,6 +167,8 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
       this.page.index = "ObjectsByDate";
     } else if (routeIndex === "bygrade") {
       this.page.index = "ObjectsByRating";
+    } else if (routeIndex === "bygradeabs") {
+      this.page.index = "ObjectsByRatingAbs";
     } else if (routeIndex === "byimpact") {
       this.page.index = "ObjectsByImpact";
     } else if (routeIndex && routeIndex.length > 0) {
@@ -183,9 +185,9 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
       this.loading = false;
       this.hasValidInterp = hasValidInterpretation(this.leg);
 
-      if (leg.interpretation != null && leg.interpretation.issueStats.stats['OverallBenefitToSociety'] < 0 && params.get('ascending') == null)
-        this.page.index = "ObjectsByImpact";
-        this.page.ascending = true;
+      // if (leg.interpretation != null && leg.interpretation.issueStats.stats['OverallBenefitToSociety'] < 0 && params.get('ascending') == null)
+      //   this.page.index = "ObjectsByImpact";
+      //   this.page.ascending = true;
   
       this.updateMetaTags();
   
@@ -427,6 +429,12 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
       this.page.ascending = false;
     } else if (index === "ObjectsByImpact" && this.page.index === 'ObjectsByImpact' && this.page.ascending) {
       this.page.index = "ObjectsByImpactAbs";
+      this.page.ascending = false;
+    } else if (index === "ObjectsByRatingAbs" && this.page.index === 'ObjectsByRatingAbs') {
+      this.page.index = "ObjectsByRating";
+      this.page.ascending = false;
+    } else if (index === "ObjectsByRating" && this.page.index === 'ObjectsByRating' && this.page.ascending) {
+      this.page.index = "ObjectsByRatingAbs";
       this.page.ascending = false;
     } else if (index === "ObjectsByHot") {
       if (this.page.index === "ObjectsByHot" && !this.page.ascending) return;

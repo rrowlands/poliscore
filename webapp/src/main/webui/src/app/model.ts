@@ -112,7 +112,7 @@ export interface IssueStats {
     stats: any;
 }
 
-export type PageIndex = "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "TrackedIssue" | "ObjectsByImpact" | "ObjectsByImpactAbs" | "ObjectsByIssueImpact" | "ObjectsByIssueRating" | "ObjectsByHot";
+export type PageIndex = "ObjectsByLocation" | "ObjectsByDate" | "ObjectsByRating" | "ObjectsByRatingAbs" | "TrackedIssue" | "ObjectsByImpact" | "ObjectsByImpactAbs" | "ObjectsByIssueImpact" | "ObjectsByIssueRating" | "ObjectsByHot";
 
 export class Page {
   index!: PageIndex;

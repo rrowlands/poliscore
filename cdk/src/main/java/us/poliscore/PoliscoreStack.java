@@ -80,6 +80,17 @@ class PoliscoreStack extends Stack {
                         .type(AttributeType.NUMBER)
                         .build())
                 .build());
+        table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
+                .indexName("ObjectsByRatingAbs")
+                .partitionKey(Attribute.builder()
+                        .name("storageBucket")
+                        .type(AttributeType.STRING)
+                        .build())
+                .sortKey(Attribute.builder()
+                        .name("ratingAbs")
+                        .type(AttributeType.NUMBER)
+                        .build())
+                .build());
         
         table.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
                 .indexName("ObjectsByImpact")

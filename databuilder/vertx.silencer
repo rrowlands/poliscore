@@ -1,17 +1,37 @@
 #!/usr/bin/env awk -f
+#
+# vertx.silencer
+# - Strips ANSI color codes
+# - Strips trailing CR (\r)
+# - On a timestamped WARN line containing “BlockedThreadChecker”,
+#   skips that line + *all* subsequent non-timestamped lines
+# - Resumes printing once the next timestamped line appears
 
-BEGIN { skip = 0 }
-
-/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3} WARN  \[io\.ver\.cor\.imp\.BlockedThreadChecker\]/ {
-  skip = 1
-  next
-}
-
-/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}/ {
+BEGIN {
   skip = 0
 }
 
 {
+  # 1) Strip ANSI color sequences
+  gsub(/\x1b\[[0-9;]*[A-Za-z]/, "")
+
+  # 2) Strip trailing CR if present
+  sub(/\r$/, "")
+
+  # 3) Does this line start with a timestamp?
+  if ($0 ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9],[0-9][0-9][0-9]/) {
+    # a) If it’s our WARN + BlockedThreadChecker line, enter skip mode
+    if ($0 ~ /WARN/ ) {
+      if ($0 ~ /BlockedThreadChecker/) {
+        skip = 1
+        next
+      }
+    }
+    # b) Otherwise, it’s a “normal” timestamped line → exit skip mode
+    skip = 0
+  }
+
+  # 4) Print only if we’re not skipping
   if (!skip) print
 }
 

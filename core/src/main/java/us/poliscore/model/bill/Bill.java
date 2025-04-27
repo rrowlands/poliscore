@@ -26,6 +26,7 @@ import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.TrackedIssue;
+import us.poliscore.model.legislator.Legislator.LegislatorName;
 
 @Data
 @DynamoDbBean
@@ -128,7 +129,7 @@ public class Bill implements Persistable {
 		return Integer.valueOf(session.getNumber()).equals(this.session);
 	}
 	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX, OBJECT_BY_IMPACT_ABS_INDEX, OBJECT_BY_HOT_INDEX }) public String getStorageBucket() {
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_RATING_ABS_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX, OBJECT_BY_IMPACT_ABS_INDEX, OBJECT_BY_HOT_INDEX }) public String getStorageBucket() {
 		if (!StringUtils.isEmpty(this.getId()))
 			return this.getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 4));
 		
@@ -142,6 +143,9 @@ public class Bill implements Persistable {
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return interpretation.getRating(); }
 	@JsonIgnore public void setRating(int rating) { }
 	@JsonIgnore public int getRating(TrackedIssue issue) { return interpretation.getRating(issue); }
+	
+	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_ABS_INDEX }) public int getRatingAbs() { return Math.abs(interpretation.getRating()); }
+	@JsonIgnore public void setRatingAbs(int rating) { }
 	
 	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPACT_INDEX }) public int getImpact() { return getImpact(TrackedIssue.OverallBenefitToSociety); }
 	public void setImpact(int impact) { }
@@ -234,7 +238,7 @@ public class Bill implements Persistable {
 		protected Party party;
 		
 		@NonNull
-		protected String name;
+		protected LegislatorName name;
 		
 		@JsonIgnore
 		public String getId() {

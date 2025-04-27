@@ -15,6 +15,7 @@ import software.amazon.awssdk.utils.StringUtils;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.bill.Bill.BillSponsor;
 import us.poliscore.model.legislator.Legislator;
+import us.poliscore.model.legislator.Legislator.LegislatorName;
 import us.poliscore.service.storage.MemoryObjectService;
 
 @Data
@@ -110,8 +111,11 @@ public class USCBillView {
 		
 		public BillSponsor convert(String session, MemoryObjectService memService)
 		{
-			var sponsor = new BillSponsor(Legislator.generateId(LegislativeNamespace.US_CONGRESS, session, bioguide_id), name);
-			sponsor.setParty(memService.get(sponsor.getLegislatorId(), Legislator.class).get().getParty());
+			var legId = Legislator.generateId(LegislativeNamespace.US_CONGRESS, session, bioguide_id);
+			var leg = memService.get(legId, Legislator.class).get();
+			
+			var sponsor = new BillSponsor(legId, leg.getName());
+			sponsor.setParty(leg.getParty());
 			return sponsor;
 		}
 		

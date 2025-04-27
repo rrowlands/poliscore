@@ -8,6 +8,8 @@ public interface Persistable {
 	
 	public static final String OBJECT_BY_RATING_INDEX = "ObjectsByRating";
 	
+	public static final String OBJECT_BY_RATING_ABS_INDEX = "ObjectsByRatingAbs";
+	
 	public static final String OBJECT_BY_LOCATION_INDEX = "ObjectsByLocation";
 	
 	public static final String OBJECT_BY_IMPACT_INDEX = "ObjectsByImpact";

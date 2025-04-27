@@ -83,6 +83,8 @@ export class LegislatorsComponent implements OnInit {
             if ((routeIndex != null && routeIndex.length > 0)) {
               if (routeIndex === "byrating") {
                 this.page.index = "ObjectsByRating";
+              } else if (routeIndex === 'byratingabs') {
+                this.page.index = "ObjectsByRatingAbs";
               } else if (routeIndex === "bydate") {
                 this.page.index = "ObjectsByDate";
               } else if (routeIndex === "byimpact") {
@@ -184,6 +186,8 @@ export class LegislatorsComponent implements OnInit {
         this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.birthday;
       } else if (this.page.index === "ObjectsByRating" || this.page.index === "ObjectsByIssueRating") {
         this.page.exclusiveStartKey = lastLeg.id + sep + getBenefitToSocietyIssue(lastLeg.interpretation!.issueStats)[1];
+      } else if (this.page.index === "ObjectsByRatingAbs") {
+        this.page.exclusiveStartKey = lastLeg.id + sep + Math.abs(getBenefitToSocietyIssue(lastLeg.interpretation!.issueStats)[1]);
       } else if (this.page.index === "ObjectsByImpact" || this.page.index === "ObjectsByIssueImpact" || this.page.index === "ObjectsByImpactAbs") {
         this.page.exclusiveStartKey = lastLeg.id + sep + lastLeg.impact;
       } else if (this.page.index === "ObjectsByLocation") {
@@ -236,6 +240,12 @@ export class LegislatorsComponent implements OnInit {
       this.page.ascending = false;
     } else if (index === "ObjectsByImpact" && this.page.index === 'ObjectsByImpact' && this.page.ascending) {
       this.page.index = "ObjectsByImpactAbs";
+      this.page.ascending = false;
+    } else if (index === "ObjectsByRatingAbs" && this.page.index === 'ObjectsByRatingAbs') {
+      this.page.index = "ObjectsByRating";
+      this.page.ascending = false;
+    } else if (index === "ObjectsByRating" && this.page.index === 'ObjectsByRating' && this.page.ascending) {
+      this.page.index = "ObjectsByRatingAbs";
       this.page.ascending = false;
     } else if (index === "ObjectsByHot") {
       if (this.page.index === "ObjectsByHot" && !this.page.ascending) return;

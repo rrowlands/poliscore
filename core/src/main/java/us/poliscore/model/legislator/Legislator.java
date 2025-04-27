@@ -185,7 +185,7 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 		return ID_CLASS_PREFIX + "/" + ns.getNamespace() + "/" + session + "/" + bioguideId;
 	}
 	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX, Persistable.OBJECT_BY_IMPACT_ABS_INDEX}) public String getStorageBucket() {
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_RATING_ABS_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX, Persistable.OBJECT_BY_IMPACT_ABS_INDEX}) public String getStorageBucket() {
 		if (!StringUtils.isEmpty(this.getId()))
 			return this.getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 4));
 		
@@ -199,6 +199,9 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return interpretation == null ? -1 : interpretation.getRating(); }
 	@JsonIgnore public void setRating(int rating) { }
 	@JsonIgnore public int getRating(TrackedIssue issue) { return interpretation.getRating(issue); }
+	
+	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_ABS_INDEX }) public int getRatingAbs() { return interpretation == null ? -1 : Math.abs(interpretation.getRating()); }
+	@JsonIgnore public void setRatingAbs(int rating) { }
 	
 	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_IMPACT_INDEX }) public Long getImpact() { return getImpact(TrackedIssue.OverallBenefitToSociety); }
 	public void setImpact(Long impact) { impactMap.put(TrackedIssue.OverallBenefitToSociety, impact); }
