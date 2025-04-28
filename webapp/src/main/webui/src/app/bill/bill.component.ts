@@ -1,7 +1,7 @@
 import { Component, HostListener, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { AppService } from '../app.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Bill, colorForGrade, getBenefitToSocietyIssue, gradeForStats, issueKeyToLabel, issueKeyToLabelSmall } from '../model';
+import { Bill, BillInterpretation, colorForGrade, getBenefitToSocietyIssue, gradeForStats, issueKeyToLabel, issueKeyToLabelSmall } from '../model';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule, isPlatformBrowser, isPlatformServer } from '@angular/common';
 import { HttpClient, HttpHandler } from '@angular/common/http';
@@ -12,13 +12,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { ConfigService } from '../config.service';
 import { HeaderComponent } from '../header/header.component';
 import { DisclaimerComponent } from '../disclaimer/disclaimer.component';
+import { MatTableModule } from '@angular/material/table';
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
 @Component({
   selector: 'bill',
   standalone: true,
-  imports: [DisclaimerComponent, HeaderComponent, MatCardModule, CommonModule, CommonModule, RouterModule, MatButtonModule],
+  imports: [MatTableModule, DisclaimerComponent, HeaderComponent, MatCardModule, CommonModule, CommonModule, RouterModule, MatButtonModule],
   providers: [AppService, HttpClient],
   templateUrl: './bill.component.html',
   styleUrl: './bill.component.scss'
@@ -90,7 +91,9 @@ export class BillComponent implements OnInit {
 
     this.service.getBill(this.billId).then(bill => {
       this.bill = bill;
-      console.log(bill);
+
+      if (bill)
+        console.log(bill.pressInterps);
 
       if (bill == null)
         throw new Error("Backend did not return a bill for [" + this.billId + "]");
@@ -146,7 +149,8 @@ export class BillComponent implements OnInit {
     }
   }
 
-  gradeForBill(): string { return gradeForStats(this.bill?.interpretation?.issueStats!); }
+  gradeForBill(): string { return this.gradeForInterp(this.bill?.interpretation!); }
+  gradeForInterp(interp: BillInterpretation) { return gradeForStats(interp?.issueStats!); }
 
   colorForGrade(grade: string): string { return colorForGrade(this.gradeForBill()); }
 
@@ -163,6 +167,18 @@ export class BillComponent implements OnInit {
     var plural = (this.bill!.cosponsors.length > 1 ? "s" : "");
 
     return "Cosponsor" + plural + ":\n\n" + this.bill?.cosponsors.map(s => "- <a href='" + this.config.legislatorIdToAbsolutePath(s.legislatorId) + "'>" + s.name.official_full + "</a>").join("\n");
+  }
+
+  getDisplayedColumns(): string[] {
+    return ['author', 'title', 'grade', "shortReport"];
+  }
+
+  isNonSafari() {
+    return !(navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome'));
+  }
+
+  openOrigin(url: string) {
+    window.location.href = url;
   }
 
   async buildBarChartData() {

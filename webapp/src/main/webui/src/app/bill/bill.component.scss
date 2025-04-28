@@ -145,6 +145,24 @@ p.interp-text {
     color: #7a5600;
 }
 
+.mat-row {        
+    // position: relative;
+    cursor: pointer;
+}
+
+/* Safari was found calculating this CSS incorrectly, so this media query specifically excludes safari. */
+.non-safari .mat-row {
+    position: relative;
+}
+
+.non-safari .mat-row-link {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+}
+
 .chart-container {
     position: relative;
     width: calc(85vw - 100px);

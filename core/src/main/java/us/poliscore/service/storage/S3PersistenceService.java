@@ -132,7 +132,7 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 	{
 	    val keys = new java.util.ArrayList<String>();
 	    String continuationToken = null;
-	    val fullPrefix = storageBucket + key;
+	    val fullPrefix = storageBucket + "/" + key;
 
 	    // First: collect all matching keys
 	    do {

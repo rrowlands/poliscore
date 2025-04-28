@@ -98,10 +98,10 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 			{issuesList} 
 			
 			Short Report:
-			A single paragraph concise report which gives a detailed, but not repetitive summary of the analysis, the author's opinion or stance on the bill, any high level goals, and it's predictions of the bill's expected impact to society.
+			A one sentence explanation of why the author decided to either support or not support the bill.
 			
 			Long Report:
-			A detailed, but not repetitive summary of the analysis which references concrete, notable and specific text of the analysis where possible. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
+			A detailed, but not repetitive summary of the analysis which references concrete, notable and specific text of the analysis where possible. This report should explain the author's opinion or stance on the bill, any high level goals, and it's predictions of the bill's expected impact to society. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
 			""";
 	
 	
@@ -173,9 +173,10 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		
 		Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
 		
-//		processBill(b);
+		processBill(b);
 //		processOrigin(b, new InterpretationOrigin("url", "title"), Jsoup.parse(new File("/Users/rrowlands/dev/projects/poliscore/databuilder/src/main/resources/ace-ccr.html")));
 //		processOrigin(b, new InterpretationOrigin("https://www.reddit.com/r/NeutralPolitics/comments/1jawsml/what_are_the_pros_and_cons_of_voting_for_hr1968", "What are the PROS and CONS of voting for H.R.1968 - Full-Year Continuing Appropriations and Extensions Act, 2025?"));
+//		processOrigin(b, new InterpretationOrigin("https://www.asha.org/news/2025/congress-extends-medicare-telehealth-authority-through-september/", "Congress Extends Medicare Telehealth Authority Through September"));
 		
 		dirtyBills.add(b);
 		

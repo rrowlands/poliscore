@@ -24,6 +24,7 @@ import us.poliscore.entrypoint.batch.BatchBillRequestGenerator;
 import us.poliscore.entrypoint.batch.BatchLegislatorRequestGenerator;
 import us.poliscore.entrypoint.batch.BatchOpenAIResponseImporter;
 import us.poliscore.entrypoint.batch.PressBillInterpretationRequestGenerator;
+import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Persistable;
@@ -149,7 +150,8 @@ public class DatabaseBuilder implements QuarkusApplication
 		long amount = 0;
 		
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
-		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
+//		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
+		{ Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
 			if (!ddb.exists(b.getId(), Bill.class) || pressBillInterpGenerator.getDirtyBills().contains(b)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				billService.ddbPersist(b, interp);
