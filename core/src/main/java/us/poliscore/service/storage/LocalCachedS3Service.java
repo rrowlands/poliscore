@@ -63,12 +63,20 @@ public class LocalCachedS3Service implements ApplicationDataStoreIF
 
 	@Override
 	public <T extends Persistable> List<T> query(Class<T> clazz) {
-		throw new UnsupportedOperationException();
+		return s3.query(clazz);
 	}
 	
 	@Override
 	public <T extends Persistable> List<T> query(Class<T> clazz, String storageBucket) {
-		throw new UnsupportedOperationException();
+		return s3.query(clazz, storageBucket);
+	}
+	
+	public <T extends Persistable> List<T> query(Class<T> clazz, String storageBucket, String key) {
+		return s3.query(clazz, storageBucket, key, -1, true);
+	}
+	
+	public <T extends Persistable> List<T> query(Class<T> clazz, String storageBucket, String key, int pageSize, boolean ascending) {
+		return s3.query(clazz, storageBucket, key, pageSize, ascending);
 	}
 	
 	public <T extends Persistable> void optimizeExists(Class<T> clazz) {

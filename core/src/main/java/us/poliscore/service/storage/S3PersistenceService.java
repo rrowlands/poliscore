@@ -115,7 +115,7 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 	
 	@Override
 	public <T extends Persistable> List<T> query(Class<T> clazz) {
-		throw new UnsupportedOperationException();
+		return query(clazz, Persistable.getClassStorageBucket(clazz));
 	}
 	
 	@Override
@@ -123,6 +123,64 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 		throw new UnsupportedOperationException();
 	}
 	
+	public <T extends Persistable> List<T> query(Class<T> clazz, String storageBucket, String key) {
+		return query(clazz, storageBucket, key, -1, true);
+	}
+	
+	@SneakyThrows
+	public <T extends Persistable> List<T> query(Class<T> clazz, String storageBucket, String key, int pageSize, boolean ascending)
+	{
+	    val keys = new java.util.ArrayList<String>();
+	    String continuationToken = null;
+	    val fullPrefix = storageBucket + key;
+
+	    // First: collect all matching keys
+	    do {
+	        val builder = ListObjectsV2Request.builder()
+	                .bucket(BUCKET_NAME)
+	                .prefix(fullPrefix)
+	                .maxKeys(1000); // AWS maximum per request
+
+	        if (continuationToken != null) {
+	            builder.continuationToken(continuationToken);
+	        }
+
+	        val resp = getClient().listObjectsV2(builder.build());
+
+	        for (val s3Object : resp.contents()) {
+	            keys.add(s3Object.key());
+	        }
+
+	        continuationToken = resp.nextContinuationToken();
+	    }
+	    while (continuationToken != null);
+
+	    // Now: sort keys if needed
+	    if (!ascending) {
+	        keys.sort(java.util.Collections.reverseOrder());
+	    }
+
+	    val results = new java.util.ArrayList<T>();
+
+	    int limit = pageSize > 0 ? Math.min(pageSize, keys.size()) : keys.size(); // If pageSize <= 0, fetch all
+
+	    for (int i = 0; i < limit; i++) {
+	        val s3Key = keys.get(i);
+
+	        val getObjectRequest = GetObjectRequest.builder()
+	                .bucket(BUCKET_NAME)
+	                .key(s3Key)
+	                .build();
+
+	        @Cleanup val s3ObjectStream = getClient().getObject(getObjectRequest);
+
+	        val obj = PoliscoreUtil.getObjectMapper().readValue(s3ObjectStream, clazz);
+	        results.add(obj);
+	    }
+
+	    return results;
+	}
+
 	@SneakyThrows
 	public <T extends Persistable> void optimizeExists(Class<T> clazz) {
 		val storageBucket = Persistable.getClassStorageBucket(clazz);

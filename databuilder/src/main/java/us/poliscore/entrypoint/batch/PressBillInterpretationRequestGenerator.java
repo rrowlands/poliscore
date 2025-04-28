@@ -7,9 +7,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +35,7 @@ import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
 import us.poliscore.ai.BatchOpenAIRequest.CustomOriginData;
+import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.model.TrackedIssue;
@@ -40,7 +44,6 @@ import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.press.BillArticleRecognizer;
 import us.poliscore.press.GoogleSearchResponse;
-import us.poliscore.press.GoogleSearchResponse.Item;
 import us.poliscore.press.RedditFetcher;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
@@ -54,7 +57,7 @@ import us.poliscore.service.storage.LocalFilePersistenceService;
 import us.poliscore.service.storage.MemoryObjectService;
 
 @QuarkusMain(name="PressScraperEntrypoint")
-public class PressScraperEntrypoint implements QuarkusApplication {
+public class PressBillInterpretationRequestGenerator implements QuarkusApplication {
 	
 	// Google requires us to define this within their console, and it includes some configuration options such as how much of the web we want to search.
 	public static final String GOOGLE_CUSTOM_SEARCH_ENGINE_ID = "3564aa93769fe4c0f";
@@ -145,6 +148,13 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 	
 	private List<File> writtenFiles = new ArrayList<File>();
 	
+	private Set<Bill> dirtyBills = new HashSet<Bill>();
+	
+	public static AIInterpretationMetadata metadata()
+	{
+		return AIInterpretationMetadata.construct(OpenAIService.PROVIDER, AI_MODEL, 0);
+	}
+	
 	@SneakyThrows
 	public List<File> process()
 	{
@@ -164,14 +174,21 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 		Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
 		
 //		processBill(b);
-//		processOriginFetch(b, new InterpretationOrigin("url", "title"), Jsoup.parse(new File("/Users/rrowlands/dev/projects/poliscore/databuilder/src/main/resources/ace-ccr.html")));
-		processOrigin(b, new InterpretationOrigin("https://www.reddit.com/r/NeutralPolitics/comments/1jawsml/what_are_the_pros_and_cons_of_voting_for_hr1968", "What are the PROS and CONS of voting for H.R.1968 - Full-Year Continuing Appropriations and Extensions Act, 2025?"));
+//		processOrigin(b, new InterpretationOrigin("url", "title"), Jsoup.parse(new File("/Users/rrowlands/dev/projects/poliscore/databuilder/src/main/resources/ace-ccr.html")));
+//		processOrigin(b, new InterpretationOrigin("https://www.reddit.com/r/NeutralPolitics/comments/1jawsml/what_are_the_pros_and_cons_of_voting_for_hr1968", "What are the PROS and CONS of voting for H.R.1968 - Full-Year Continuing Appropriations and Extensions Act, 2025?"));
+		
+		dirtyBills.add(b);
 		
 		writeBlock(block++);
 		
 		Log.info("Press scraper complete. Generated " + totalRequests + " requests.");
 		
 		return writtenFiles;
+	}
+	
+	public Set<Bill> getDirtyBills()
+	{
+		return dirtyBills;
 	}
 	
 	@SneakyThrows
@@ -182,6 +199,8 @@ public class PressScraperEntrypoint implements QuarkusApplication {
 	    // Fetch two pages and get 20 results
 	    fetchAndProcessSearchResults(b, encodedQuery, 1);
 	    fetchAndProcessSearchResults(b, encodedQuery, 11);
+	    
+	    b.setLastPressQuery(LocalDate.now());
 	}
 
 	@SneakyThrows
@@ -348,7 +367,7 @@ public class PressScraperEntrypoint implements QuarkusApplication {
     }
 	
 	public static void main(String[] args) {
-		Quarkus.run(PressScraperEntrypoint.class, args);
+		Quarkus.run(PressBillInterpretationRequestGenerator.class, args);
 		Quarkus.asyncExit(0);
 	}
 }

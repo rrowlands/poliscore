@@ -3,12 +3,16 @@ package us.poliscore.ai;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import us.poliscore.ai.BatchOpenAIRequest.CustomData;
+import us.poliscore.ai.BatchOpenAIRequest.CustomOriginData;
 
 @Data
 @RegisterForReflection
@@ -19,13 +23,26 @@ public class BatchOpenAIResponse {
 	
 	protected String id;
 	
-	protected CustomData custom_id;
+	protected String custom_id;
 	
 	protected String error;
 	
 	protected Response response;
 	
 	protected Usage usage;
+	
+	@SneakyThrows
+    public CustomData getCustomData() {
+        ObjectMapper mapper = new ObjectMapper();
+
+        JsonNode root = mapper.readTree(custom_id);
+
+        if (root.has("origin")) {
+            return mapper.treeToValue(root, CustomOriginData.class);
+        } else {
+            return mapper.treeToValue(root, CustomData.class);
+        }
+    }
 	
 	@Data
 	@RegisterForReflection

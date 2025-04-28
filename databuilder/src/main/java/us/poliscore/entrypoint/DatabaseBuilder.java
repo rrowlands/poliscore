@@ -23,6 +23,7 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.entrypoint.batch.BatchBillRequestGenerator;
 import us.poliscore.entrypoint.batch.BatchLegislatorRequestGenerator;
 import us.poliscore.entrypoint.batch.BatchOpenAIResponseImporter;
+import us.poliscore.entrypoint.batch.PressBillInterpretationRequestGenerator;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Persistable;
@@ -107,6 +108,9 @@ public class DatabaseBuilder implements QuarkusApplication
 	protected OpenAIService openAi;
 	
 	@Inject
+	protected PressBillInterpretationRequestGenerator pressBillInterpGenerator;
+	
+	@Inject
 	private LegislatorInterpretationService legInterp;
 	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
@@ -122,15 +126,15 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		imageBuilder.process();
+//		imageBuilder.process();
+//		billTextFetcher.process();
 		
+		interpretBillPressArticles();
+		refreshDirtyBills();
 		
-		billTextFetcher.process();
-		
-		importBillsFromS3();
-		importBills();
-		importLegislators();
-		importPartyStats();
+//		interpretBills();
+//		interpretLegislators();
+//		interpretPartyStats();
 		
 		webappDataGenerator.process();
 		
@@ -138,7 +142,7 @@ public class DatabaseBuilder implements QuarkusApplication
 	}
 	
 	@SneakyThrows
-	private void importBillsFromS3()
+	private void refreshDirtyBills()
 	{
 		Log.info("Making sure that our ddb bill database is up-to-date with what exists on s3.");
 		
@@ -146,11 +150,11 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
-//			if (!ddb.exists(b.getId(), Bill.class)) {
+			if (!ddb.exists(b.getId(), Bill.class) || pressBillInterpGenerator.getDirtyBills().contains(b)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				billService.ddbPersist(b, interp);
 				amount++;
-//			}
+			}
 		}
 		
 		Log.info("Created " + amount + " missing bills in ddb from s3");
@@ -174,8 +178,21 @@ public class DatabaseBuilder implements QuarkusApplication
 		FileUtils.copyURLToFile(URI.create("https://unitedstates.github.io/congress-legislators/legislators-historical.json").toURL(), new File(dbRes, "legislators-historical.json"));
 	}
 	
-	private void importBills() { importBills(false); }
-	@SneakyThrows private void importBills(boolean isRecursive) {
+	@SneakyThrows
+	private void interpretBillPressArticles() {
+		List<File> requests = pressBillInterpGenerator.process();
+		
+		if (requests.size() > 0) {
+			List<File> responses = openAi.processBatch(requests);
+			
+			for (File f : responses) {
+				responseImporter.process(f);
+			}
+		}
+	}
+	
+	private void interpretBills() { interpretBills(false); }
+	@SneakyThrows private void interpretBills(boolean isRecursive) {
 		if (INTERPRET_NEW_BILLS) {
 			List<File> requests = billRequestGenerator.process();
 			
@@ -186,14 +203,14 @@ public class DatabaseBuilder implements QuarkusApplication
 					responseImporter.process(f);
 				}
 				
-//				if (!isRecursive)
-//					importBills(true);
+				if (!isRecursive)
+					interpretBills(true);
 			}
 		}
 	}
 	
 	@SneakyThrows
-	private void importLegislators() {
+	private void interpretLegislators() {
 		if (REINTERPRET_LEGISLATORS) {
 			List<File> requests = legislatorRequestGenerator.process();
 		
@@ -288,7 +305,7 @@ public class DatabaseBuilder implements QuarkusApplication
 	}
 	
 	@SneakyThrows
-	private void importPartyStats() {
+	private void interpretPartyStats() {
 		if (REINTERPRET_PARTIES) {
 			List<File> requests = partyInterpreter.process();
 			

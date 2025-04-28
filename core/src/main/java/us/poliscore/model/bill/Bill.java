@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -30,6 +31,7 @@ import us.poliscore.model.legislator.Legislator.LegislatorName;
 
 @Data
 @DynamoDbBean
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @RegisterForReflection
 public class Bill implements Persistable {
 	
@@ -80,6 +82,8 @@ public class Bill implements Persistable {
 	
 	protected BillInterpretation interpretation;
 	
+	protected List<BillInterpretation> pressInterps;
+	
 	protected LocalDate lastPressQuery = LocalDate.EPOCH;
 	
 	@JsonIgnore
@@ -120,6 +124,7 @@ public class Bill implements Persistable {
 	}
 	
 	@DynamoDbPartitionKey
+	@EqualsAndHashCode.Include
 	public String getId()
 	{
 		return getPoliscoreId();
@@ -215,6 +220,7 @@ public class Bill implements Persistable {
 		
 		return percent;
 	}
+
 	
 	public static BillType billTypeFromId(String poliscoreId) {
 		return BillType.fromName(poliscoreId.split("/")[4]);

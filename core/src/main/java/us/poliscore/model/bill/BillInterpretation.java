@@ -110,7 +110,8 @@ public class BillInterpretation implements Persistable
 	{
 		var id = billId.replace(Bill.ID_CLASS_PREFIX, ID_CLASS_PREFIX);
 		
-		id += "-" + origin.getIdHash();
+		if (origin != null)
+			id += "-" + origin.getIdHash();
 		
 		if (sliceIndex != null)
 		{

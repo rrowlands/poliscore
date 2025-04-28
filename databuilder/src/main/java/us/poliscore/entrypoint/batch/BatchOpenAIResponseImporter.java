@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
@@ -118,11 +120,11 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 					throw new RuntimeException(err);
 				}
 				
-				if (resp.getCustom_id().getOid().startsWith(BillInterpretation.ID_CLASS_PREFIX)) {
+				if (resp.getCustomData().getOid().startsWith(BillInterpretation.ID_CLASS_PREFIX)) {
 					importBill(resp);
-				} else if (resp.getCustom_id().getOid().startsWith(LegislatorInterpretation.ID_CLASS_PREFIX)) {
+				} else if (resp.getCustomData().getOid().startsWith(LegislatorInterpretation.ID_CLASS_PREFIX)) {
 					importLegislator(resp);
-				} else if (resp.getCustom_id().getOid().startsWith(SessionInterpretation.ID_CLASS_PREFIX)) {
+				} else if (resp.getCustomData().getOid().startsWith(SessionInterpretation.ID_CLASS_PREFIX)) {
 					importParty(resp);
 				} else {
 					throw new UnsupportedOperationException("Unexpected object type " + resp.getCustom_id());
@@ -151,9 +153,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	}
 	
 	private void importLegislator(final BatchOpenAIResponse resp) {
-//		if (!resp.getCustom_id().contains("D000197")) return;
+//		if (!resp.getCustomData().contains("D000197")) return;
 		
-		val leg = memService.get(resp.getCustom_id().getOid().replace(LegislatorInterpretation.ID_CLASS_PREFIX, Legislator.ID_CLASS_PREFIX), Legislator.class).orElseThrow();
+		val leg = memService.get(resp.getCustomData().getOid().replace(LegislatorInterpretation.ID_CLASS_PREFIX, Legislator.ID_CLASS_PREFIX), Legislator.class).orElseThrow();
 		
 //		if (ddb.exists(leg.getId(), Legislator.class)) return;
 		
@@ -195,11 +197,11 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		PartyInterpretation partyInterp;
 		
-		if (resp.getCustom_id().getOid().contains(Party.DEMOCRAT.name())) {
+		if (resp.getCustomData().getOid().contains(Party.DEMOCRAT.name())) {
 			partyInterp = sessionInterp.getDemocrat();
-		} else if (resp.getCustom_id().getOid().contains(Party.REPUBLICAN.name())) {
+		} else if (resp.getCustomData().getOid().contains(Party.REPUBLICAN.name())) {
 			partyInterp = sessionInterp.getRepublican();
-		} else if (resp.getCustom_id().getOid().contains(Party.INDEPENDENT.name())) {
+		} else if (resp.getCustomData().getOid().contains(Party.INDEPENDENT.name())) {
 			partyInterp = sessionInterp.getIndependent();
 		} else {
 			throw new UnsupportedOperationException();
@@ -211,13 +213,14 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		sessionInterp.setMetadata(OpenAIService.metadata());
 	}
 
+	@SneakyThrows
 	private void importBill(final BatchOpenAIResponse resp) {
-		String billId = resp.getCustom_id().getOid().replace(BillInterpretation.ID_CLASS_PREFIX, Bill.ID_CLASS_PREFIX);
+		boolean isPressInterp = resp.getCustomData() instanceof CustomOriginData;
+		String billId = resp.getCustomData().getOid().replace(BillInterpretation.ID_CLASS_PREFIX, Bill.ID_CLASS_PREFIX);
 		
 		Integer sliceIndex = null;
 		val dashSplit = billId.split("-");
 		if (dashSplit.length == 2) {
-			sliceIndex = Integer.parseInt(dashSplit[1]);
 			billId = dashSplit[0];
 		} else if (dashSplit.length == 3) {
 			sliceIndex = Integer.parseInt(dashSplit[2]);
@@ -229,15 +232,16 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		BillInterpretation bi = new BillInterpretation();
 		bi.setBill(bill);
 		
-		if (resp.getCustom_id() instanceof CustomOriginData)
+		if (isPressInterp)
 		{
-			bi.setOrigin(((CustomOriginData) resp.getCustom_id()).getOrigin());
+			bi.setOrigin(((CustomOriginData) resp.getCustomData()).getOrigin());
+			bi.setMetadata(PressBillInterpretationRequestGenerator.metadata());
+			bi.setId(BillInterpretation.generateId(bill.getId(), bi.getOrigin(), null));
 		}
-		
-		if (sliceIndex == null)
+		else if (sliceIndex == null)
 		{
 			bi.setMetadata(OpenAIService.metadata());
-			bi.setId(BillInterpretation.generateId(bill.getId(), null));
+			bi.setId(BillInterpretation.generateId(bill.getId(), bi.getOrigin(), null));
 		}
 		else
 		{
@@ -247,7 +251,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			List<BillSlice> slices = new XMLBillSlicer().slice(bill, billText, OpenAIService.MAX_REQUEST_LENGTH);
 			
 			bi.setMetadata(OpenAIService.metadata(slices.get(sliceIndex)));
-			bi.setId(BillInterpretation.generateId(billId, sliceIndex));
+			bi.setId(BillInterpretation.generateId(billId, bi.getOrigin(), sliceIndex));
 		}
 		
 		var interpText = resp.getResponse().getBody().getChoices().get(0).getMessage().getContent();
@@ -270,7 +274,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			List<BillInterpretation> sliceInterps = new ArrayList<BillInterpretation>();
 			
 			for (int i = 0; i < slices.size(); ++i) {
-				val sliceInterp = s3.get(resp.getCustom_id() + "-" + i, BillInterpretation.class).orElseThrow();
+				val sliceInterp = s3.get(BillInterpretation.generateId(billId, bi.getOrigin(), sliceIndex), BillInterpretation.class).orElseThrow();
 				
 				billStats = billStats.sum(sliceInterp.getIssueStats().toDoubleIssueStats());
 				sliceInterps.add(sliceInterp);
@@ -291,6 +295,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			
 			importedBills.add(billId);
 		} else {
+//			System.out.println(new ObjectMapper().writeValueAsString(bi));
 			ddb.put(bi);
 		}
 	}

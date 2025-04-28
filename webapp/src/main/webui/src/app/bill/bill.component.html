@@ -51,7 +51,7 @@
                                 </div>
                                 <div class="title-middle-stretch">
                                     <h1 class="card-title"><a [href]="'https://www.congress.gov/bill/' + bill.session + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
-                                    <h3 class="card-subtitle">Sponsor: <a [href]="config.legislatorIdToAbsolutePath(bill.sponsor.legislatorId)">{{bill.sponsor.name}}</a></h3>
+                                    <h3 class="card-subtitle">Sponsor: <a [href]="config.legislatorIdToAbsolutePath(bill.sponsor.legislatorId)">{{bill.sponsor.name.official_full}}</a></h3>
                                 </div>
                             </div>
                             
@@ -70,7 +70,7 @@
                                     </div>
                                     <div class="title-middle">
                                         <h1 class="card-title"><a [href]="'https://www.congress.gov/bill/' + bill.session + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
-                                        <h3 class="card-subtitle">Sponsor: <a [href]="config.legislatorIdToAbsolutePath(bill.sponsor.legislatorId)">{{bill.sponsor.name}}</a></h3>
+                                        <h3 class="card-subtitle">Sponsor: <a [href]="config.legislatorIdToAbsolutePath(bill.sponsor.legislatorId)">{{bill.sponsor.name.official_full}}</a></h3>
                                     </div>
                                     <div class="title-right">
                                         <h3>

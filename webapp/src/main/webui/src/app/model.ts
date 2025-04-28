@@ -12,6 +12,7 @@ export interface Bill {
   id?: string;
   billId?: string;
   interpretation: BillInterpretation;
+  pressInterps: BillInterpretation[];
   rating?: number;
   hot?: number;
   shortExplain?: string;
@@ -35,7 +36,7 @@ export interface BillMetadata {
 }
 
 export interface BillSponsor {
-  name: string;
+  name: LegislatorName;
   legislatorId: string;
 }
 
@@ -70,8 +71,14 @@ export interface SessionStats {
   independent: PartyStats;
 }
 
+export class LegislatorName {
+  first!: string;
+  last!: string;
+  official_full!: string;
+}
+
 export class Legislator {
-    name!: {first: string, last: string, official_full: string};
+    name!: LegislatorName;
     id?: string;
     legislatorId?: string;
     bioguideId?: string;

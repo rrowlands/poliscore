@@ -20,8 +20,10 @@ import software.amazon.awssdk.utils.StringUtils;
 import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.CongressionalSession;
+import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.model.LegislativeChamber;
 import us.poliscore.model.LegislativeNamespace;
+import us.poliscore.model.Persistable;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
@@ -282,9 +284,19 @@ public class BillService {
 
 	    return status;
 	}
+	
+	public void populatePressInterps(Bill b)
+	{
+		var pressInterps = s3.query(BillInterpretation.class, Persistable.getClassStorageBucket(BillInterpretation.class), b.getId().replace(Bill.ID_CLASS_PREFIX + "/", ""));
+		
+		pressInterps = pressInterps.stream().filter(i -> i.getOrigin() != InterpretationOrigin.POLISCORE).collect(Collectors.toList());
+		
+		b.setPressInterps(pressInterps);
+	}
 
 	public void ddbPersist(Bill b, BillInterpretation interp)
 	{
+		populatePressInterps(b);
 		b.setInterpretation(interp);
 		ddb.put(b);
 		

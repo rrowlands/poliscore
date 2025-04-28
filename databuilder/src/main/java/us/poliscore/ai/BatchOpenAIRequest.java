@@ -3,11 +3,14 @@ package us.poliscore.ai;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.service.OpenAIService;
 
@@ -18,7 +21,7 @@ import us.poliscore.service.OpenAIService;
 public class BatchOpenAIRequest {
 	// {"custom_id": "request-1", "method": "POST", "url": "/v1/chat/completions", "body": {"model": "gpt-3.5-turbo-0125", "messages": [{"role": "system", "content": "You are a helpful assistant."},{"role": "user", "content": "Hello world!"}],"max_tokens": 1000}}
 	
-	private CustomData custom_id;
+	private String custom_id;
 	
 	private String method = "POST";
 	
@@ -26,13 +29,14 @@ public class BatchOpenAIRequest {
 	
 	private BatchOpenAIBody body;
 	
-	public BatchOpenAIRequest(CustomData id, BatchOpenAIBody body) {
-		this.custom_id = id;
+	@SneakyThrows
+	public BatchOpenAIRequest(CustomData data, BatchOpenAIBody body) {
+		this.custom_id = new ObjectMapper().writeValueAsString(data);
 		this.body = body;
 	}
 	
 	public BatchOpenAIRequest(String id, BatchOpenAIBody body) {
-		this.custom_id = new CustomData(id);
+		this.custom_id = id;
 		this.body = body;
 	}
 	

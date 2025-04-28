@@ -90,6 +90,7 @@ export class BillComponent implements OnInit {
 
     this.service.getBill(this.billId).then(bill => {
       this.bill = bill;
+      console.log(bill);
 
       if (bill == null)
         throw new Error("Backend did not return a bill for [" + this.billId + "]");
@@ -161,7 +162,7 @@ export class BillComponent implements OnInit {
   public getCosponsorLarge() {
     var plural = (this.bill!.cosponsors.length > 1 ? "s" : "");
 
-    return "Cosponsor" + plural + ":\n\n" + this.bill?.cosponsors.map(s => "- <a href='" + this.config.legislatorIdToAbsolutePath(s.legislatorId) + "'>" + s.name + "</a>").join("\n");
+    return "Cosponsor" + plural + ":\n\n" + this.bill?.cosponsors.map(s => "- <a href='" + this.config.legislatorIdToAbsolutePath(s.legislatorId) + "'>" + s.name.official_full + "</a>").join("\n");
   }
 
   async buildBarChartData() {
