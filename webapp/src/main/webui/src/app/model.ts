@@ -14,6 +14,7 @@ export interface Bill {
   interpretation: BillInterpretation;
   pressInterps: BillInterpretation[];
   rating?: number;
+  confidence?: number;
   hot?: number;
   shortExplain?: string;
   status: { description: string, progress: number, sourceStatus: string };

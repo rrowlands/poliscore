@@ -170,7 +170,11 @@ export class BillComponent implements OnInit {
   }
 
   getDisplayedColumns(): string[] {
-    return ['author', 'title', 'grade', "shortReport"];
+    if (isPlatformBrowser(this._platformId) && window.innerWidth < 480) {
+      return ['author', 'title', 'grade'];
+    } else {
+      return ['author', 'title', 'grade', "shortReport", "confidence"];
+    }
   }
 
   isNonSafari() {

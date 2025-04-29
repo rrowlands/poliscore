@@ -139,6 +139,11 @@
                                     <th mat-header-cell *matHeaderCellDef>Summary</th>
                                     <td mat-cell *matCellDef="let element"> {{element.shortExplain}} </td>
                                 </ng-container>
+
+                                <ng-container matColumnDef="confidence">
+                                    <th mat-header-cell *matHeaderCellDef>Confidence</th>
+                                    <td mat-cell *matCellDef="let element"> {{element.confidence}} </td>
+                                </ng-container>
         
                                 <tr mat-header-row *matHeaderRowDef="getDisplayedColumns()"></tr>
                                 <tr mat-row *matRowDef="let row; columns: getDisplayedColumns();" (click)="openOrigin(row.origin.url)" class="mat-row"></tr>
