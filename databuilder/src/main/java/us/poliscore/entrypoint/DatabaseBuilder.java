@@ -185,7 +185,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		List<File> requests = pressBillInterpGenerator.process();
 		
 		if (requests.size() > 0) {
-			List<File> responses = openAi.processBatch(requests);
+			List<File> responses = openAi.processBatchImmediately(requests);
 			
 			for (File f : responses) {
 				responseImporter.process(f);

@@ -46,5 +46,5 @@ export function subtitleForBill(bill: Bill): string
 
     let chamber = bill.type.toLowerCase().startsWith("s") ? "Senate" : "House";
 
-    return "Sponsor: " + bill.sponsor.name + " (" + chamber + ")";
+    return "Sponsor: " + bill.sponsor.name.official_full + " (" + chamber + ")";
 }

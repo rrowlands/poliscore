@@ -87,4 +87,9 @@ public class LocalCachedS3Service implements ApplicationDataStoreIF
 		s3.clearExistsOptimize(clazz);
 	}
 	
+	public <T extends Persistable> void delete(String id, Class<T> clazz)
+	{
+		s3.delete(id, clazz);
+	}
+	
 }

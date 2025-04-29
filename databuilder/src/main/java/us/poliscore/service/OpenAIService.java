@@ -63,8 +63,10 @@ public class OpenAIService {
 		return AISliceInterpretationMetadata.construct(PROVIDER, MODEL, PROMPT_VERSION, slice);
 	}
 	
+	public String chat(String systemMsg, String userMsg) { return this.chat(systemMsg, userMsg, null); }
+	
 	@SneakyThrows
-	public String chat(String systemMsg, String userMsg)
+	public String chat(String systemMsg, String userMsg, String model)
     {
 		if (userMsg.length() > OpenAIService.MAX_REQUEST_LENGTH) {
 			throw new IndexOutOfBoundsException();
@@ -89,7 +91,7 @@ public class OpenAIService {
     			.n(1)
     			.temperature(0.0d) // We don't want randomness. Give us predictability and accuracy
     			.maxTokens(MAX_TOKENS)
-    	        .model(MODEL)
+    	        .model(StringUtils.defaultIfEmpty(model, MODEL))
     	        .build();
     	
     	System.out.println("Sending request to open ai with message size " + userMsg.length());
@@ -159,4 +161,120 @@ public class OpenAIService {
 		
 		return responseFiles;
 	}
+	
+	/**
+	 * Processes a batch of jsonl files immediately without submitting to OpenAI's batch API.
+	 * 
+	 * For each file:
+	 * - Reads each JSONL line containing a chat completion request format.
+	 * - Extracts the system and user messages, as well as the target model (if specified).
+	 * - Invokes the OpenAI chat completion API for each line individually.
+	 * - Saves all responses to a corresponding output file in OpenAI batch response format.
+	 * 
+	 * Returns a list of the output files containing the responses.
+	 *
+	 * @param files list of jsonl files containing batch chat completion requests
+	 * @return list of output files containing responses for each input file
+	 */
+	@SneakyThrows
+	public List<File> processBatchImmediately(List<File> files) {
+		List<File> responseFiles = new ArrayList<>();
+
+		for (File jsonlFile : files) {
+			Log.info("Processing immediate batch for file: " + jsonlFile.getAbsolutePath());
+
+			List<String> lines = FileUtils.readLines(jsonlFile, "UTF-8");
+			List<String> outputLines = new ArrayList<>();
+
+			for (String line : lines) {
+				if (StringUtils.isBlank(line)) {
+					continue;
+				}
+
+				val objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+				val node = objectMapper.readTree(line);
+				val body = node.get("body");
+
+				if (body == null || !body.has("messages")) {
+					throw new IllegalArgumentException("Missing 'body' or 'messages' in line: " + line);
+				}
+
+				String model = body.has("model") ? body.get("model").asText() : null;
+				String systemMsg = null;
+				String userMsg = null;
+
+				for (val msgNode : body.get("messages")) {
+					String role = msgNode.get("role").asText();
+					String content = msgNode.get("content").asText();
+
+					if ("system".equals(role)) {
+						systemMsg = content;
+					} else if ("user".equals(role)) {
+						userMsg = content;
+					}
+
+					if (systemMsg != null && userMsg != null) {
+						break;
+					}
+				}
+
+				if (systemMsg == null || userMsg == null) {
+					throw new IllegalArgumentException("Expected at least one system and one user message in: " + line);
+				}
+
+				val customId = node.path("custom_id").asText(null);
+
+				String assistantResponse = chat(systemMsg, userMsg, model);
+
+				// Build the "body" part (chat completion result)
+				val responseNode = objectMapper.createObjectNode();
+				responseNode.put("id", "chatcmpl-" + java.util.UUID.randomUUID());
+				responseNode.put("object", "chat.completion");
+				responseNode.put("created", System.currentTimeMillis() / 1000);
+				responseNode.put("model", StringUtils.defaultIfEmpty(model, MODEL));
+
+				val choicesArray = objectMapper.createArrayNode();
+				val choice = objectMapper.createObjectNode();
+				choice.put("index", 0);
+
+				val message = objectMapper.createObjectNode();
+				message.put("role", "assistant");
+				message.put("content", assistantResponse);
+				choice.set("message", message);
+				choice.put("finish_reason", "stop");
+				choicesArray.add(choice);
+				responseNode.set("choices", choicesArray);
+
+				val usageNode = objectMapper.createObjectNode();
+				usageNode.put("prompt_tokens", 0);
+				usageNode.put("completion_tokens", 0);
+				usageNode.put("total_tokens", 0);
+				responseNode.set("usage", usageNode);
+
+				// Wrap response inside OpenAI batch envelope format
+				val responseEnvelope = objectMapper.createObjectNode();
+				responseEnvelope.put("status_code", 200);
+				responseEnvelope.set("body", responseNode);
+
+				val out = objectMapper.createObjectNode();
+				if (customId != null) {
+					out.put("custom_id", customId);
+				}
+				out.set("response", responseEnvelope);
+
+				outputLines.add(out.toString());
+			}
+
+			File outputFile = new File(jsonlFile.getParentFile(), jsonlFile.getName() + ".out.jsonl");
+			FileUtils.writeLines(outputFile, outputLines);
+
+			Log.info("Wrote responses to file: " + outputFile.getAbsolutePath());
+			responseFiles.add(outputFile);
+		}
+
+		return responseFiles;
+	}
+
+
+
 }

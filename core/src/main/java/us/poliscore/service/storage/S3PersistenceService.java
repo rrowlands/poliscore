@@ -214,4 +214,31 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 		objectsInBucket.remove(idClassPrefix);
 	}
 	
+	@SneakyThrows
+	public <T extends Persistable> void delete(String id, Class<T> clazz)
+	{
+		val key = getKey(id);
+		
+		try
+		{
+			getClient().deleteObject(builder -> builder
+					.bucket(BUCKET_NAME)
+					.key(key));
+			
+			Log.info("Deleted from S3 " + key);
+			
+			// Update the local cache if optimizeExists has been called before
+			val idClassPrefix = Persistable.getClassStorageBucket(clazz);
+			if (objectsInBucket.containsKey(idClassPrefix))
+			{
+				objectsInBucket.get(idClassPrefix).remove(id);
+			}
+		}
+		catch (NoSuchKeyException ex)
+		{
+			// S3 delete is idempotent, but we can optionally log
+			Log.info("Attempted to delete non-existent object from S3 " + key);
+		}
+	}
+	
 }
