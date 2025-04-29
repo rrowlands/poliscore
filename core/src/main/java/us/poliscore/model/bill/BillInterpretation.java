@@ -51,6 +51,8 @@ public class BillInterpretation implements Persistable
 	
 	protected String longExplain;
 	
+	protected Integer confidence;
+	
 	@NonNull
 	protected String id;
 	

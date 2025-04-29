@@ -256,8 +256,10 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 		
 		var interpText = resp.getResponse().getBody().getChoices().get(0).getMessage().getContent();
 		
-		if (interpText.contains("NO_INTERPRETATION"))
+		if (interpText.contains("NO_INTERPRETATION")) {
+			Log.info("Bill interpretation " + bi.getId() + " <" + bi.getOrigin().getUrl() + "> was determined by AI as " + interpText);
 			return;
+		}
 		
 		new BillInterpretationParser(bi).parse(interpText);
 		

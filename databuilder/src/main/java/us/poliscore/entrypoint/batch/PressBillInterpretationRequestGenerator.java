@@ -71,16 +71,20 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 			
 			The first thing you must determine is if this text offers any interesting or useful analysis of the bill in question, and if this text would reasonably be considered as a "Bill Interpretation". A "Bill Interpretation" in this context, is one in which the author provides opinions, analysis, gives a voting recommendation and/or endorsement of a bill, or otherwise predicts an impact to society of a particular bill.
 			
+			Reddit conversations ARE generally considered valid for generating a bill interpretation. Do NOT respond 'NO_INTERPRETATION' unless the conversation is not actually about the bill.
+			
 			If the provided text is NOT an interpretation of this bill or if the interpretation is of a different bill, you are to immediately respond as 'NO_INTERPRETATION - <reason>' where <reason> is the reason why you don't think it's a valid interpretation for this bill and EXIT.
 			
 			IF you determine this is a valid interpretation of the bill, then your instructions are as follows:
 			
 			You are part of a non-partisan oversight committee, tasked to read and summarize the provided analysis, focusing especially on any predictions the analysis might make towards the bill's impact to society, as well as any explanations or high-level logic as to how or why. If possible, please include information about the author as well as any organization they may be a part of. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Summary:') in your response. Do not include the section instructions in your response.
 			
+			If you are given a Reddit conversation you should keep in mind that the comments you are receiving are ones which have received a lot of upvotes, and as a result may be considered to represent a lens through which to view a sizeable chunk of the population's relationship with a particular bill. In this scenario, you should consider comments which confidently state concrete opinions (and exclude exploratory comments) to generate an interpretation of the bill. Do not make any mention in your summary of comments being "highly upvoted". In your summary, provide a summary of the "public discussion" found in the thread.
+			
 			=== BEGIN response template ===
 			
 			Author:
-			Write the name of the organization and/or author responsible for drafting the analysis, or N/A if it is not clear from the text. If the text has both an author and an organization, write the organization followed by the first / last name of the author (e.g. 'New York Times - Joe Schmoe'). If the text comes from social media and there is a singular author, you may write the name of the user and the website it was written (e.g. 'Reddit - <username>'). If the text was taken from social media and there is more than one author, you shall only place the name of the social media website (e.g. 'Reddit').
+			Write the name of the organization and/or author responsible for drafting the analysis, or N/A if it is not clear from the text. If the text has both an author and an organization, write the organization followed by the first / last name of the author (e.g. 'New York Times - Joe Schmoe'). If the text comes from social media and there is a singular author, you may write the name of the user and the website it was written (e.g. 'Reddit - <username>'). If the text was taken from social media and there is more than one author, you shall only place the name of the social media website (e.g. 'Twitter'). In the case of Reddit, please include the subreddit (e.g. 'Reddit (r/politics). 
 			
 			Stats:
 			Upon reading the interpretation, please write how you think the author would score the bill on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant. Your scoring here should be a sentiment analysis of the provided text, categorized by issue. If the analysis recommends voting against the bill, these scores should be negative, otherwise if it recommends voting for the bill they should be positive.
@@ -93,9 +97,12 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 			Long Report:
 			A detailed, but not repetitive summary of the analysis which references concrete, notable and specific text of the analysis where possible. This report should explain the author's opinion or stance on the bill, any high level goals, and it's predictions of the bill's expected impact to society. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
 			
+			Confidence:
+			A self-rated number from 0 to 100 measuring how confident you are that your analysis was valid and interpreted correctly.
+			
 			=== END response template ===
 
-			Multishot examples are as follows.
+			Multishot prompt examples:
 
 			==USER==
 			title: Congress Extends Medicare Telehealth Authority Through September
@@ -144,8 +151,10 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 			
 			Long Report:
 			Meals on Wheels America, led by President and CEO Ellie Hollander, expresses strong disappointment with the passage of H.R. 1968, the Full-Year Continuing Appropriations and Extensions Act of 2025. The organization criticizes Congress for passing another continuing resolution (CR) instead of comprehensive spending bills that could have "made critical investments to address the growing crises of senior hunger and isolation." The main goal highlighted by the statement is securing greater, stable funding for senior nutrition programs, which Meals on Wheels argues are already under significant strain. Hollander warns that the flat funding levels in the CR, despite technically avoiding a government shutdown, effectively amount to a cut because of rising operational costs and an expanding senior population, predicting that this will lead to service reductions nationwide. The analysis emphasizes that over 2 million seniors are currently served by Meals on Wheels, yet an estimated additional 2.5 million seniors remain in need, with one in three providers maintaining waitlists. The organization asserts that "America’s seniors cannot wait any longer" and urges Congress to immediately prioritize increased funding. The broader societal impact predicted is worsening hunger, isolation, and health risks among older adults, unless substantial investments are made soon to stabilize and expand services.
-			
-			==USER==
+			""";
+	
+	/*
+	 		==USER==
 			title: What are the PROS and CONS of voting for H.R.1968 - Full-Year ...
 			url: https://www.reddit.com/r/NeutralPolitics/comments/1jawsml/what_are_the_pros_and_cons_of_voting_for_hr1968/
 			
@@ -214,7 +223,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 			There is also division over political accountability. Some users argue that since Republicans hold the majority, they bear responsibility for any resulting shutdowns and funding chaos. However, others counter that voting against the CR—especially when it retains much of the prior administration’s budget—might appear politically reckless or hypocritical.
 			
 			In summary, the public discourse portrays H.R.1968 as a bill that achieves short-term government functionality at the cost of long-term institutional integrity. While it staves off a shutdown, it undermines Congress’s spending authority, empowers selective enforcement of federal programs, and imposes substantial cuts on essential social services. The bill is broadly characterized not as a compromise, but as a strategic retreat from democratic accountability and constitutional principle.
-			""";
+	 */
 	
 	
 	public static final String PRESS_INTERPRETATION_PROMPT;
@@ -223,7 +232,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		PRESS_INTERPRETATION_PROMPT = PRESS_INTERPRETATION_PROMPT_TEMPLATE.replaceFirst("\\{issuesList\\}", issues);
 	}
 	
-	public static String AI_MODEL = "gpt-4o";
+	public static String AI_MODEL = "gpt-4o-mini";
 	
 	@Inject
 	private MemoryObjectService memService;
@@ -291,11 +300,11 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 //			).collect(Collectors.toList())) {
 //		 { 
 			Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
-			deleteExisting(b);
-//			processBill(b);
+//			deleteExisting(b);
+			processBill(b);
 //		}
 //		processOrigin(b, new InterpretationOrigin("url", "title"), Jsoup.parse(new File("/Users/rrowlands/dev/projects/poliscore/databuilder/src/main/resources/ace-ccr.html")));
-		processOrigin(b, new InterpretationOrigin("https://www.reddit.com/r/NeutralPolitics/comments/1jawsml/what_are_the_pros_and_cons_of_voting_for_hr1968", "What are the PROS and CONS of voting for H.R.1968 - Full-Year Continuing Appropriations and Extensions Act, 2025?"));
+//		processOrigin(b, new InterpretationOrigin("https://www.reddit.com/r/NeutralPolitics/comments/1jawsml/what_are_the_pros_and_cons_of_voting_for_hr1968", "What are the PROS and CONS of voting for H.R.1968 - Full-Year Continuing Appropriations and Extensions Act, 2025?"));
 //		processOrigin(b, new InterpretationOrigin("https://www.asha.org/news/2025/congress-extends-medicare-telehealth-authority-through-september/", "Congress Extends Medicare Telehealth Authority Through September"));
 		
 		writeBlock(block++);
@@ -329,9 +338,11 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	    final String query = b.getType().getName().toUpperCase() + " " + b.getNumber() + " " + b.getName();
 	    val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
 
-	    // Fetch two pages and get 20 results
 	    fetchAndProcessSearchResults(b, encodedQuery, 1);
-//	    fetchAndProcessSearchResults(b, encodedQuery, 11);
+	    
+	    // Fetch an extra page for laws
+	    if (b.getStatus().getProgress() == 1.0f)
+	    	fetchAndProcessSearchResults(b, encodedQuery, 11);
 	    
 	    b.setLastPressQuery(LocalDate.now());
 	    dirtyBills.add(b);
@@ -368,7 +379,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	private void processOrigin(Bill b, InterpretationOrigin origin)
 	{
-//		if (s3.exists(BillInterpretation.generateId(b.getId(), origin, null), BillInterpretation.class)) return;
+		if (s3.exists(BillInterpretation.generateId(b.getId(), origin, null), BillInterpretation.class)) return;
 		
 		String articleText = null;
 		

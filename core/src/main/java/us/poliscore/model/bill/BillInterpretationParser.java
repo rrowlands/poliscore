@@ -26,7 +26,8 @@ public class BillInterpretationParser {
 		TITLE("(?i)Title:", "(?i)Bill Title:"),
 		RIDERS("(?i)Riders:"),
 		SHORT_REPORT("(?i)Short Report:"),
-		LONG_REPORT("(?i)Long Report:");
+		LONG_REPORT("(?i)Long Report:"),
+		CONFIDENCE("(?i)Confidence:");
 		
 		private List<String> regex;
 		
@@ -49,6 +50,7 @@ public class BillInterpretationParser {
 		interp.setAuthor("");
 		interp.setRiders(new ArrayList<String>());
 		interp.setIssueStats(new IssueStats());
+		interp.setConfidence(-1);
 		
 		try (final Scanner scanner = new Scanner(text))
 		{
@@ -81,6 +83,8 @@ public class BillInterpretationParser {
 			processShortForm(line);
 		} else if (State.LONG_REPORT.equals(state)) {
 			processLongForm(line);
+		} else if (State.CONFIDENCE.equals(state)) {
+			processConfidence(line);
 		}
 	}
 	
@@ -120,6 +124,17 @@ public class BillInterpretationParser {
 		if (stat != null && stat.getRight() != IssueStats.NA)
 		{
 			interp.getIssueStats().setStat(stat.getLeft(), stat.getRight());
+		}
+	}
+	
+	private void processConfidence(String line) {
+		try
+		{
+			interp.setConfidence(Integer.parseInt(line));
+		}
+		catch (Throwable t)
+		{
+			Log.error(t);
 		}
 	}
 	

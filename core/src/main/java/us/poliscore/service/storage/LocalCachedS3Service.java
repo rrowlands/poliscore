@@ -90,6 +90,7 @@ public class LocalCachedS3Service implements ApplicationDataStoreIF
 	public <T extends Persistable> void delete(String id, Class<T> clazz)
 	{
 		s3.delete(id, clazz);
+		local.delete(id, clazz);
 	}
 	
 }

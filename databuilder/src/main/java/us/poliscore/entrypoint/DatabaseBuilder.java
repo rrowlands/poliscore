@@ -163,10 +163,10 @@ public class DatabaseBuilder implements QuarkusApplication
 		Log.info("Decaying hot values");
 		
 		// Decay first x hot values
-		for (Bill b : ddb.query(Bill.class, 1000, Persistable.OBJECT_BY_HOT_INDEX, false, null, null))
-		{
-			ddb.put(b);
-		}
+//		for (Bill b : ddb.query(Bill.class, 1000, Persistable.OBJECT_BY_HOT_INDEX, false, null, null))
+//		{
+//			ddb.put(b);
+//		}
 	}
 	
 	@SneakyThrows

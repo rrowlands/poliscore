@@ -61,6 +61,16 @@ public class LocalFilePersistenceService implements ObjectStorageServiceIF
 		
 //		Log.info("Wrote file to " + out.getAbsolutePath());
 	}
+	
+	@SneakyThrows
+	public <T extends Persistable> void delete(String id, Class<T> clazz) {
+		File f = fileFor(id);
+		
+		if (!f.exists())
+			return;
+		
+		f.delete();
+	}
 
 	@SneakyThrows
 	public <T extends Persistable> Optional<T> get(String id, Class<T> clazz)
