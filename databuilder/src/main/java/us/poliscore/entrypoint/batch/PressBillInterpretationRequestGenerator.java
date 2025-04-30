@@ -232,7 +232,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		PRESS_INTERPRETATION_PROMPT = PRESS_INTERPRETATION_PROMPT_TEMPLATE.replaceFirst("\\{issuesList\\}", issues);
 	}
 	
-	public static String AI_MODEL = "gpt-4o-mini";
+	public static String AI_MODEL = "gpt-4o";
 	
 	@Inject
 	private MemoryObjectService memService;
@@ -301,11 +301,12 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 //		 { 
 			Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
 //			deleteExisting(b);
-			processBill(b);
+//			processBill(b);
 //		}
 //		processOrigin(b, new InterpretationOrigin("url", "title"), Jsoup.parse(new File("/Users/rrowlands/dev/projects/poliscore/databuilder/src/main/resources/ace-ccr.html")));
 //		processOrigin(b, new InterpretationOrigin("https://www.reddit.com/r/NeutralPolitics/comments/1jawsml/what_are_the_pros_and_cons_of_voting_for_hr1968", "What are the PROS and CONS of voting for H.R.1968 - Full-Year Continuing Appropriations and Extensions Act, 2025?"));
 //		processOrigin(b, new InterpretationOrigin("https://www.asha.org/news/2025/congress-extends-medicare-telehealth-authority-through-september/", "Congress Extends Medicare Telehealth Authority Through September"));
+		processOrigin(b, new InterpretationOrigin("https://www.aamc.org/news/press-releases/aamc-statement-passage-full-year-continuing-resolution", "Medicare Telehealth Flexibilities Extended, but Without Promise of Permanent Solution"));
 		
 		writeBlock(block++);
 		
@@ -379,7 +380,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	private void processOrigin(Bill b, InterpretationOrigin origin)
 	{
-		if (s3.exists(BillInterpretation.generateId(b.getId(), origin, null), BillInterpretation.class)) return;
+//		if (s3.exists(BillInterpretation.generateId(b.getId(), origin, null), BillInterpretation.class)) return;
 		
 		String articleText = null;
 		

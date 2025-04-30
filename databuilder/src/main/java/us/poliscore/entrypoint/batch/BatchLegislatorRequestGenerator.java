@@ -25,6 +25,7 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
+import us.poliscore.ai.BatchOpenAIRequest.CustomData;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.TrackedIssue;
@@ -270,7 +271,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		messages.add(new BatchBillMessage("user", userMsg));
 		
 		requests.add(new BatchOpenAIRequest(
-				oid,
+				new CustomData(oid),
 				new BatchOpenAIBody(messages)
 		));
 		

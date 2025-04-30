@@ -25,6 +25,7 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
+import us.poliscore.ai.BatchOpenAIRequest.CustomData;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.IssueStats;
@@ -288,7 +289,7 @@ public class PartyInterpretationService {
 		messages.add(new BatchBillMessage("user", userMsg));
 		
 		requests.add(new BatchOpenAIRequest(
-				SessionInterpretation.ID_CLASS_PREFIX + "/" + party.name(),
+				new CustomData(SessionInterpretation.ID_CLASS_PREFIX + "/" + party.name()),
 				new BatchOpenAIBody(messages)
 		));
 	}

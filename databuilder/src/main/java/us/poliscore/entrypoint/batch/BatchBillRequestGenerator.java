@@ -24,6 +24,7 @@ import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
+import us.poliscore.ai.BatchOpenAIRequest.CustomData;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillSlice;
@@ -122,7 +123,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	    			messages.add(new BatchBillMessage("user", billInterpreter.getUserMsgForBill(b, b.getText().getXml())));
 	    			
 	    			requests.add(new BatchOpenAIRequest(
-	    					BillInterpretation.generateId(b.getId(), null),
+	    					new CustomData(BillInterpretation.generateId(b.getId(), null)),
 	    					new BatchOpenAIBody(messages)
 	    			));
 	    		} else {
@@ -211,7 +212,7 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		messages.add(new BatchBillMessage("user", userMsg));
 		
 		requests.add(new BatchOpenAIRequest(
-				oid,
+				new CustomData(oid),
 				new BatchOpenAIBody(messages)
 		));
 		

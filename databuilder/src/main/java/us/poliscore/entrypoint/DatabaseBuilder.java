@@ -127,15 +127,15 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-//		imageBuilder.process();
-//		billTextFetcher.process();
+		imageBuilder.process();
+		billTextFetcher.process();
 		
-		interpretBillPressArticles();
+//		interpretBillPressArticles();
 		refreshDirtyBills();
 		
-//		interpretBills();
-//		interpretLegislators();
-//		interpretPartyStats();
+		interpretBills();
+		interpretLegislators();
+		interpretPartyStats();
 		
 		webappDataGenerator.process();
 		
@@ -150,23 +150,23 @@ public class DatabaseBuilder implements QuarkusApplication
 		long amount = 0;
 		
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
-//		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
-		{ Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
-			if (!ddb.exists(b.getId(), Bill.class) || pressBillInterpGenerator.getDirtyBills().contains(b)) {
+		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
+//		{ Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
+//			if (!ddb.exists(b.getId(), Bill.class) || pressBillInterpGenerator.getDirtyBills().contains(b)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				billService.ddbPersist(b, interp);
 				amount++;
-			}
+//			}
 		}
 		
 		Log.info("Created " + amount + " missing bills in ddb from s3");
 		Log.info("Decaying hot values");
 		
 		// Decay first x hot values
-//		for (Bill b : ddb.query(Bill.class, 1000, Persistable.OBJECT_BY_HOT_INDEX, false, null, null))
-//		{
-//			ddb.put(b);
-//		}
+		for (Bill b : ddb.query(Bill.class, 1000, Persistable.OBJECT_BY_HOT_INDEX, false, null, null))
+		{
+			ddb.put(b);
+		}
 	}
 	
 	@SneakyThrows
