@@ -30,7 +30,7 @@ import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.legislator.Legislator.LegislatorLegislativeTermSortedSet;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
-import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
+import us.poliscore.model.session.SessionInterpretationOld.PartyInterpretationOld;
 
 public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
 
@@ -180,10 +180,10 @@ public static class CompressedLegislatorBillInteractionListConverter extends Com
     	}
     }
     
-    public static class CompressedPartyStatsConverter extends CompressedJacksonAttributeConverter<PartyInterpretation> {
+    public static class CompressedPartyStatsConverter extends CompressedJacksonAttributeConverter<PartyInterpretationOld> {
     	
     	public CompressedPartyStatsConverter() {
-    		super(PartyInterpretation.class);
+    		super(PartyInterpretationOld.class);
     	}
     }
     

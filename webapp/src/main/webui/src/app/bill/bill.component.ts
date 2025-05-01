@@ -92,9 +92,6 @@ export class BillComponent implements OnInit {
     this.service.getBill(this.billId).then(bill => {
       this.bill = bill;
 
-      if (bill)
-        console.log(bill.pressInterps);
-
       if (bill == null)
         throw new Error("Backend did not return a bill for [" + this.billId + "]");
 
@@ -173,7 +170,7 @@ export class BillComponent implements OnInit {
     if (isPlatformBrowser(this._platformId) && window.innerWidth < 480) {
       return ['author', 'title', 'grade'];
     } else {
-      return ['author', 'title', 'grade', "shortReport", "confidence"];
+      return ['author', 'title', 'grade', "shortReport"];
     }
   }
 

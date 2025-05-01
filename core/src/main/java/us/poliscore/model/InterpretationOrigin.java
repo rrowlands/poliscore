@@ -23,45 +23,64 @@ public class InterpretationOrigin {
 	@DynamoDbIgnore
 	@JsonIgnore
 	public String getIdHash() {
-        try {
-            // Parse the URL to extract the host
-            java.net.URI uri = new java.net.URI(url);
-            String host = uri.getHost();
+	    try {
+	        java.net.URI uri = new java.net.URI(url);
+	        String host = uri.getHost();
 
-            // If URI doesn't have a host, try extracting manually
-            if (host == null) {
-                // Fallback: remove protocol and split by '/'
-                String temp = url.replaceAll("^https?://", "");
-                int slashIndex = temp.indexOf('/');
-                host = (slashIndex == -1) ? temp : temp.substring(0, slashIndex);
-            }
+	        // Fallback if URI doesn't have a host
+	        if (host == null) {
+	            String temp = url.replaceAll("^https?://", "");
+	            int slashIndex = temp.indexOf('/');
+	            host = (slashIndex == -1) ? temp : temp.substring(0, slashIndex);
+	        }
 
-            // Remove 'www.' prefix if present
-            if (host.startsWith("www.")) {
-                host = host.substring(4);
-            }
+	        if (host.startsWith("www.")) {
+	            host = host.substring(4);
+	        }
 
-            // Split by '.' and take the first part of the domain
-            // Example: "example.com" -> "example"
-//            int dotIndex = host.indexOf('.');
-//            String domainPart = (dotIndex == -1) ? host : host.substring(0, dotIndex);
+	        String cleaned = host.replaceAll("[^A-Za-z0-9]", "");
+	        if (cleaned.length() > 6) {
+	            cleaned = cleaned.substring(0, 6);
+	        }
 
-            // Keep only alphanumeric characters
-            String cleaned = host.replaceAll("[^A-Za-z0-9]", "");
+	        String path = uri.getPath();
+	        if (path != null && !path.isEmpty() && !path.equals("/")) {
+	            // Special case: Reddit
+	            if (host.contains("reddit.com")) {
+	                // Match /r/something
+	                String[] parts = path.split("/");
+	                for (int i = 0; i < parts.length - 1; i++) {
+	                    if (parts[i].equalsIgnoreCase("r") && !parts[i + 1].isEmpty()) {
+	                        String subreddit = parts[i + 1].replaceAll("[^A-Za-z0-9]", "");
+	                        if (subreddit.length() > 10) {
+	                            subreddit = subreddit.substring(0, 10);
+	                        }
+	                        return "reddit/" + subreddit.toLowerCase();
+	                    }
+	                }
+	            }
 
-            // Limit to max 6 characters
-            if (cleaned.length() > 6) {
-                cleaned = cleaned.substring(0, 6);
-            }
+	            // Otherwise, take first non-empty path segment
+	            String[] segments = path.split("/");
+	            for (String seg : segments) {
+	                if (!seg.isEmpty()) {
+	                    String readable = seg.replaceAll("[^A-Za-z0-9]", "");
+	                    if (readable.length() > 10) {
+	                        readable = readable.substring(0, 10);
+	                    }
+	                    return (cleaned + "/" + readable).toLowerCase();
+	                }
+	            }
+	        }
 
-            // Return the cleaned "hash"
-            return cleaned.toLowerCase();
-        } catch (Exception e) {
-            // If something goes wrong, return a fallback
-        	e.printStackTrace();
-            return "unknown";
-        }
-    }
+	        return cleaned.toLowerCase();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return "unknown";
+	    }
+	}
+
 	
 	@Override
     public boolean equals(Object o) {

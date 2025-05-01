@@ -6,7 +6,9 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -36,6 +38,7 @@ import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.model.session.SessionInterpretation;
+import us.poliscore.model.session.SessionInterpretationOld;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
@@ -54,6 +57,8 @@ import us.poliscore.service.storage.MemoryObjectService;
 @QuarkusMain(name="DatabaseBuilder")
 public class DatabaseBuilder implements QuarkusApplication
 {
+	public static boolean INTERPRET_PRESS_BILLS = false;
+	
 	public static boolean INTERPRET_NEW_BILLS = true;
 	
 	public static boolean REINTERPRET_LEGISLATORS = false;
@@ -114,6 +119,8 @@ public class DatabaseBuilder implements QuarkusApplication
 	@Inject
 	private LegislatorInterpretationService legInterp;
 	
+	private Set<Bill> dirtyBills = new HashSet<Bill>();
+	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
 	protected void process() throws IOException
@@ -130,7 +137,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		imageBuilder.process();
 		billTextFetcher.process();
 		
-//		interpretBillPressArticles();
+		interpretBillPressArticles();
 		refreshDirtyBills();
 		
 		interpretBills();
@@ -152,11 +159,11 @@ public class DatabaseBuilder implements QuarkusApplication
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
 //		{ Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
-//			if (!ddb.exists(b.getId(), Bill.class) || pressBillInterpGenerator.getDirtyBills().contains(b)) {
+			if (!ddb.exists(b.getId(), Bill.class) || pressBillInterpGenerator.getDirtyBills().contains(b)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				billService.ddbPersist(b, interp);
 				amount++;
-//			}
+			}
 		}
 		
 		Log.info("Created " + amount + " missing bills in ddb from s3");
@@ -182,13 +189,22 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	@SneakyThrows
 	private void interpretBillPressArticles() {
-		List<File> requests = pressBillInterpGenerator.process();
-		
-		if (requests.size() > 0) {
-			List<File> responses = openAi.processBatchImmediately(requests);
+		if (INTERPRET_PRESS_BILLS) {
+			List<File> requests = pressBillInterpGenerator.process();
 			
-			for (File f : responses) {
-				responseImporter.process(f);
+			if (requests.size() > 0) {
+				List<File> responses = openAi.processBatchImmediately(requests);
+				
+				for (File f : responses) {
+					responseImporter.process(f);
+				}
+			}
+			
+			dirtyBills = pressBillInterpGenerator.getDirtyBills();
+		} else {
+			for (String billId : PressBillInterpretationRequestGenerator.processBills) {
+				Bill b = memService.get(billId, Bill.class).get();
+				dirtyBills.add(b);
 			}
 		}
 	}
@@ -319,13 +335,56 @@ public class DatabaseBuilder implements QuarkusApplication
 				}
 			}
 		} else {
-			val sit = s3.get(SessionInterpretation.generateId(PoliscoreUtil.CURRENT_SESSION.getNumber()), SessionInterpretation.class).orElse(null);
-			
+			val sit = s3.get(SessionInterpretationOld.generateId(PoliscoreUtil.CURRENT_SESSION.getNumber()), SessionInterpretationOld.class).orElse(null);
 			if (sit != null) {
 				ddb.put(sit);
 			}
+			
+			val sit2 = s3.get(SessionInterpretationOld.generateId(PoliscoreUtil.CURRENT_SESSION.getNumber()-1), SessionInterpretationOld.class).orElse(null);
+			if (sit2 != null) {
+//				var newSit = SessionInterpretationConverter.fromOld(sit2);
+//				
+//				s3.put(newSit);
+//				ddb.put(newSit);
+				
+				ddb.put(sit2);
+			}
 		}
 	}
+	
+//	public class SessionInterpretationConverter {
+//
+//	    public static SessionInterpretationNew fromOld(SessionInterpretationOld old) {
+//	        if (old == null) return null;
+//
+//	        SessionInterpretationNew converted = new SessionInterpretationNew();
+//	        converted.setSession(old.getSession());
+//	        converted.setMetadata(old.getMetadata());
+//
+//	        // Copy party interpretations
+//	        converted.setDemocrat(copyPartyInterp(old.getDemocrat()));
+//	        converted.setRepublican(copyPartyInterp(old.getRepublican()));
+//	        converted.setIndependent(copyPartyInterp(old.getIndependent()));
+//
+//	        return converted;
+//	    }
+//
+//	    private static SessionInterpretationNew.PartyInterpretation copyPartyInterp(SessionInterpretationOld.PartyInterpretation oldInterp) {
+//	        if (oldInterp == null) return null;
+//
+//	        return new SessionInterpretationNew.PartyInterpretation(
+//	                oldInterp.getParty(),
+//	                oldInterp.getStats(),
+//	                oldInterp.getLongExplain(),
+//	                new SessionInterpretationNew.PartyBillSet(oldInterp.getMostImportantBills()),
+//	                new SessionInterpretationNew.PartyBillSet(oldInterp.getLeastImportantBills()),
+//	                new SessionInterpretationNew.PartyBillSet(oldInterp.getBestBills()),
+//	                new SessionInterpretationNew.PartyBillSet(oldInterp.getWorstBills()),
+//	                new SessionInterpretationNew.PartyLegislatorSet(oldInterp.getBestLegislators()),
+//	                new SessionInterpretationNew.PartyLegislatorSet(oldInterp.getWorstLegislators())
+//	        );
+//	    }
+//	}
 	
 	@Override
     public int run(String... args) throws Exception {

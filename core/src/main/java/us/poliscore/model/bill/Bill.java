@@ -254,4 +254,29 @@ public class Bill implements Persistable {
 		}
 		
 	}
+	
+	@Data
+	@DynamoDbBean
+	@RequiredArgsConstructor
+	@NoArgsConstructor
+	public static class BillSponsorOld {
+		
+		@JsonIgnore
+		@Getter(onMethod = @__({ @DynamoDbIgnore }))
+		protected String bioguide_id;
+		
+		@NonNull
+		protected String legislatorId;
+		
+		protected Party party;
+		
+		@NonNull
+		protected String name;
+		
+		@JsonIgnore
+		public String getId() {
+			return legislatorId;
+		}
+		
+	}
 }

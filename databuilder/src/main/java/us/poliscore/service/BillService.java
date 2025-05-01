@@ -305,6 +305,15 @@ public class BillService {
 		}
 	}
 	
+	public List<BillInterpretation> getAllPressInterps(String billId)
+	{
+		var pressInterps = s3.query(BillInterpretation.class, Persistable.getClassStorageBucket(BillInterpretation.class), billId.replace(Bill.ID_CLASS_PREFIX + "/", ""));
+		
+		pressInterps = pressInterps.stream().filter(i -> !InterpretationOrigin.POLISCORE.equals(i.getOrigin())).collect(Collectors.toList());
+		
+		return pressInterps;
+	}
+	
 	@SneakyThrows
 	public void generateBillWebappIndex() {
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/resources/bills.index");

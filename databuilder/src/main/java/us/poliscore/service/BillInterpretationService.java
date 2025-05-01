@@ -136,7 +136,20 @@ public class BillInterpretationService {
 //		
 //		return userMsg;
 		
-		return billText;
+		var userMsg = "Press Coverage:\n\n";
+		
+		var pressInterps = billService.getAllPressInterps(bill.getId());
+		
+		for (var interp : pressInterps)
+		{
+			userMsg += interp.getAuthor() + "(" + interp.getOrigin().getUrl() + ") - " + interp.getOrigin().getTitle() + ":\n";
+			userMsg += interp.getLongExplain() + "\n\n";
+		}
+		
+		userMsg += "Bill Text:\n";
+		userMsg += billText;
+		
+		return userMsg;
 	}
 	
 //	protected BillInterpretation getOrCreateAggregateInterpretation(Bill bill, IssueStats aggregateStats, String aggregateExplain, List<BillInterpretation> sliceInterps)

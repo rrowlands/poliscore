@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.logging.Log;
 import lombok.val;
-import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.session.SessionInterpretation;

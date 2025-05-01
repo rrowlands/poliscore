@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
@@ -42,6 +40,7 @@ import us.poliscore.model.legislator.LegislatorInterpretation;
 import us.poliscore.model.legislator.LegislatorInterpretationParser;
 import us.poliscore.model.session.SessionInterpretation;
 import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
+import us.poliscore.model.session.SessionInterpretationOld;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
@@ -124,7 +123,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 					importBill(resp);
 				} else if (resp.getCustomData().getOid().startsWith(LegislatorInterpretation.ID_CLASS_PREFIX)) {
 					importLegislator(resp);
-				} else if (resp.getCustomData().getOid().startsWith(SessionInterpretation.ID_CLASS_PREFIX)) {
+				} else if (resp.getCustomData().getOid().startsWith(SessionInterpretationOld.ID_CLASS_PREFIX)) {
 					importParty(resp);
 				} else {
 					throw new UnsupportedOperationException("Unexpected object type " + resp.getCustom_id());

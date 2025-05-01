@@ -1,47 +1,22 @@
 package us.poliscore.entrypoint;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.stream.Collectors;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
-import lombok.val;
-import us.poliscore.Environment;
-import us.poliscore.PoliscoreUtil;
 import us.poliscore.ai.BatchOpenAIRequest;
-import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
-import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
-import us.poliscore.model.CongressionalSession;
-import us.poliscore.model.DoubleIssueStats;
-import us.poliscore.model.Party;
-import us.poliscore.model.bill.Bill;
-import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
-import us.poliscore.model.legislator.Legislator;
-import us.poliscore.model.legislator.LegislatorInterpretation;
-import us.poliscore.model.session.SessionInterpretation;
-import us.poliscore.model.session.SessionInterpretation.PartyBillInteraction;
-import us.poliscore.model.session.SessionInterpretation.PartyInterpretation;
-import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
 import us.poliscore.service.LegislatorInterpretationService;
 import us.poliscore.service.LegislatorService;
-import us.poliscore.service.OpenAIService;
 import us.poliscore.service.PartyInterpretationService;
 import us.poliscore.service.RollCallService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;

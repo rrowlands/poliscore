@@ -24,7 +24,7 @@ import us.poliscore.model.IssueStats;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Party;
 import us.poliscore.model.Persistable;
-import us.poliscore.model.bill.Bill.BillSponsor;
+import us.poliscore.model.bill.Bill.BillSponsorOld;
 import us.poliscore.model.bill.BillStatus;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.dynamodb.DdbDataPage;
@@ -37,7 +37,7 @@ import us.poliscore.model.dynamodb.JacksonAttributeConverter.*;
 @DynamoDbBean
 @RegisterForReflection
 @NoArgsConstructor
-public class SessionInterpretation implements Persistable {
+public class SessionInterpretationOld implements Persistable {
 	
 	public static final String ID_CLASS_PREFIX = "SIT";
 	
@@ -47,13 +47,13 @@ public class SessionInterpretation implements Persistable {
 //	protected Map<Party, PartyStats> partyStats = new HashMap<Party, PartyStats>();
 	
 	@Getter(onMethod = @__({ @DdbDataPage("1"), @DynamoDbConvertedBy(CompressedPartyStatsConverter.class) }))
-	protected PartyInterpretation democrat;
+	protected PartyInterpretationOld democrat;
 	
 	@Getter(onMethod = @__({ @DdbDataPage("2"), @DynamoDbConvertedBy(CompressedPartyStatsConverter.class) }))
-	protected PartyInterpretation republican;
+	protected PartyInterpretationOld republican;
 	
 	@Getter(onMethod = @__({ @DdbDataPage("3"), @DynamoDbConvertedBy(CompressedPartyStatsConverter.class) }))
-	protected PartyInterpretation independent;
+	protected PartyInterpretationOld independent;
 	
 	@NonNull
 	@Getter(onMethod = @__({ @DynamoDbConvertedBy(AIInterpretationMetadataConverter.class)}))
@@ -80,7 +80,7 @@ public class SessionInterpretation implements Persistable {
 	@NoArgsConstructor
 	@RegisterForReflection
 	@AllArgsConstructor
-	public static class PartyInterpretation {
+	public static class PartyInterpretationOld {
 		protected Party party;
 		
 		protected IssueStats stats;
@@ -89,22 +89,22 @@ public class SessionInterpretation implements Persistable {
 		protected String longExplain;
 		
 		@NonNull
-		protected PartyBillSet mostImportantBills = new PartyBillSet();
+		protected PartyBillSetOld mostImportantBills = new PartyBillSetOld();
 		
 		@NonNull
-		protected PartyBillSet leastImportantBills = new PartyBillSet();
+		protected PartyBillSetOld leastImportantBills = new PartyBillSetOld();
 		
 		@NonNull
-		protected PartyBillSet bestBills = new PartyBillSet();
+		protected PartyBillSetOld bestBills = new PartyBillSetOld();
 		
 		@NonNull
-		protected PartyBillSet worstBills = new PartyBillSet();
+		protected PartyBillSetOld worstBills = new PartyBillSetOld();
 		
 		@NonNull
-		protected PartyLegislatorSet bestLegislators = new PartyLegislatorSet();
+		protected PartyLegislatorSetOld bestLegislators = new PartyLegislatorSetOld();
 		
 		@NonNull
-		protected PartyLegislatorSet worstLegislators = new PartyLegislatorSet();
+		protected PartyLegislatorSetOld worstLegislators = new PartyLegislatorSetOld();
 	}
 	
 	@Data
@@ -113,7 +113,7 @@ public class SessionInterpretation implements Persistable {
 	@AllArgsConstructor
 	@RegisterForReflection
 	@EqualsAndHashCode
-	public static class PartyBillInteraction implements Comparable<PartyBillInteraction>
+	public static class PartyBillInteractionOld implements Comparable<PartyBillInteractionOld>
 	{
 		@NonNull
 		protected String id;
@@ -134,10 +134,10 @@ public class SessionInterpretation implements Persistable {
 		protected LocalDate introducedDate;
 		
 		@EqualsAndHashCode.Exclude
-		protected BillSponsor sponsor;
+		protected BillSponsorOld sponsor;
 		
 		@EqualsAndHashCode.Exclude
-		protected List<BillSponsor> cosponsors;
+		protected List<BillSponsorOld> cosponsors;
 		
 		@EqualsAndHashCode.Exclude
 		protected Integer rating;
@@ -161,7 +161,7 @@ public class SessionInterpretation implements Persistable {
 		}
 
 		@Override
-		public int compareTo(PartyBillInteraction o) {
+		public int compareTo(PartyBillInteractionOld o) {
 			return getImpact().compareTo(o.getImpact());
 		}
 	}
@@ -172,18 +172,18 @@ public class SessionInterpretation implements Persistable {
 	
 	@DynamoDbBean(converterProviders = LegislatorBillInteractionSetConverterProvider.class)
 	@NoArgsConstructor
-	public static class PartyBillSet extends ArrayList<PartyBillInteraction> {
+	public static class PartyBillSetOld extends ArrayList<PartyBillInteractionOld> {
 
-		public PartyBillSet(Collection c) {
+		public PartyBillSetOld(Collection c) {
 			super(c);
 		}
 	}
 	
 	@DynamoDbBean(converterProviders = LegislatorBillInteractionSetConverterProvider.class)
 	@NoArgsConstructor
-	public static class PartyLegislatorSet extends ArrayList<Legislator> {
+	public static class PartyLegislatorSetOld extends ArrayList<Legislator> {
 
-		public PartyLegislatorSet(Collection c) {
+		public PartyLegislatorSetOld(Collection c) {
 			super(c);
 		}
 	}

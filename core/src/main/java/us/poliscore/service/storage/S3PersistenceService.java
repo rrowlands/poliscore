@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -120,7 +121,7 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 	
 	@Override
 	public <T extends Persistable> List<T> query(Class<T> clazz, String storageBucket) {
-		throw new UnsupportedOperationException();
+		return query(clazz, storageBucket, null, -1, true);
 	}
 	
 	public <T extends Persistable> List<T> query(Class<T> clazz, String storageBucket, String key) {
@@ -132,7 +133,10 @@ public class S3PersistenceService implements ObjectStorageServiceIF
 	{
 	    val keys = new java.util.ArrayList<String>();
 	    String continuationToken = null;
-	    val fullPrefix = storageBucket + "/" + key;
+	    
+	    String fullPrefix = storageBucket;
+	    if (StringUtils.isNotBlank(key))
+	    	fullPrefix = storageBucket + "/" + key;
 
 	    // First: collect all matching keys
 	    do {

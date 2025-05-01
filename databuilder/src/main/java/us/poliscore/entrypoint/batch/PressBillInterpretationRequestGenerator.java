@@ -65,6 +65,9 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	// Google requires us to define this within their console, and it includes some configuration options such as how much of the web we want to search.
 	public static final String GOOGLE_CUSTOM_SEARCH_ENGINE_ID = "3564aa93769fe4c0f";
 	
+	// Google's max queries on free tier is 100
+	public static final int MAX_QUERIES = 100;
+	
 	private static final String PRESS_INTERPRETATION_PROMPT_TEMPLATE = """
 			You will be given what is suspected, but not guaranteed, to be an analysis of the following United States bill currently in congress.
 			{{billIdentifier}}
@@ -265,11 +268,18 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	private long totalRequests = 0;
 	
+	private int totalQueries = 0;
+	
 	private List<BatchOpenAIRequest> requests = new ArrayList<BatchOpenAIRequest>();
 	
 	private List<File> writtenFiles = new ArrayList<File>();
 	
 	private Set<Bill> dirtyBills = new HashSet<Bill>();
+	
+	public static final String[] processBills = new String[] {
+			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968),
+//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HJRES, 94)
+	};
 	
 	public static AIInterpretationMetadata metadata()
 	{
@@ -297,33 +307,33 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 //				b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) &&
 //				b.getLastPressQuery().isAfter(LocalDate.now().minus(10, ChronoUnit.DAYS)) &&
 //				b.getLastActionDate().isBefore(LocalDate.now().minus(32, ChronoUnit.DAYS))
-//			).collect(Collectors.toList())) {
+//			).limit(MAX_QUERIES).collect(Collectors.toList())) {
 //		 { 
-			Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
+		for (String billId : processBills) {
+			Bill b = memService.get(billId, Bill.class).get();
 //			deleteExisting(b);
-//			processBill(b);
-//		}
+			processBill(b);
+		}
 //		processOrigin(b, new InterpretationOrigin("url", "title"), Jsoup.parse(new File("/Users/rrowlands/dev/projects/poliscore/databuilder/src/main/resources/ace-ccr.html")));
 //		processOrigin(b, new InterpretationOrigin("https://www.reddit.com/r/NeutralPolitics/comments/1jawsml/what_are_the_pros_and_cons_of_voting_for_hr1968", "What are the PROS and CONS of voting for H.R.1968 - Full-Year Continuing Appropriations and Extensions Act, 2025?"));
 //		processOrigin(b, new InterpretationOrigin("https://www.asha.org/news/2025/congress-extends-medicare-telehealth-authority-through-september/", "Congress Extends Medicare Telehealth Authority Through September"));
-		processOrigin(b, new InterpretationOrigin("https://www.aamc.org/news/press-releases/aamc-statement-passage-full-year-continuing-resolution", "Medicare Telehealth Flexibilities Extended, but Without Promise of Permanent Solution"));
+//		processOrigin(b, new InterpretationOrigin("https://www.aamc.org/news/press-releases/aamc-statement-passage-full-year-continuing-resolution", "Medicare Telehealth Flexibilities Extended, but Without Promise of Permanent Solution"));
 		
 		writeBlock(block++);
 		
-		Log.info("Press scraper complete. Generated " + totalRequests + " requests.");
+		Log.info("Press scraper complete. Executed " + totalQueries + " Google search queries and generated " + totalRequests + " AI requests.");
 		
 		return writtenFiles;
 	}
 	
 	public void deleteExisting(Bill b)
 	{
-		var pressInterps = s3.query(BillInterpretation.class, Persistable.getClassStorageBucket(BillInterpretation.class), b.getId().replace(Bill.ID_CLASS_PREFIX + "/", ""));
-		
-		pressInterps = pressInterps.stream().filter(i -> !InterpretationOrigin.POLISCORE.equals(i.getOrigin())).collect(Collectors.toList());
+		var pressInterps = billService.getAllPressInterps(b.getId());
 		
 		for (val interp : pressInterps)
 		{
-			s3.delete(interp.getId(), BillInterpretation.class);
+//			if (interp.getId().contains("reddit"))
+				s3.delete(interp.getId(), BillInterpretation.class);
 		}
 		
 		Log.info("Deleted " + pressInterps.size() + " existing interpretations");
@@ -351,6 +361,8 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 
 	@SneakyThrows
 	private void fetchAndProcessSearchResults(Bill b, String encodedQuery, int startIndex) {
+		if (totalQueries >= MAX_QUERIES) return;
+		
 	    final String url = "https://customsearch.googleapis.com/customsearch/v1?key=" + 
 	                        secretService.getGoogleSearchSecret() + 
 	                        "&cx=" + GOOGLE_CUSTOM_SEARCH_ENGINE_ID + 
@@ -376,11 +388,13 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	            Log.warn("General error connecting to " + item.getLink() + ": " + e.getMessage());
 	        }
 		}
+	    
+	    totalQueries++;
 	}
 	
 	private void processOrigin(Bill b, InterpretationOrigin origin)
 	{
-//		if (s3.exists(BillInterpretation.generateId(b.getId(), origin, null), BillInterpretation.class)) return;
+		if (s3.exists(BillInterpretation.generateId(b.getId(), origin, null), BillInterpretation.class)) return;
 		
 		String articleText = null;
 		
