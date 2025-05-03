@@ -8,13 +8,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,11 +38,10 @@ import us.poliscore.ai.BatchOpenAIRequest.CustomOriginData;
 import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.InterpretationOrigin;
-import us.poliscore.model.Persistable;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
-import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
+import us.poliscore.model.press.PressInterpretation;
 import us.poliscore.press.BillArticleRecognizer;
 import us.poliscore.press.GoogleSearchResponse;
 import us.poliscore.press.RedditFetcher;
@@ -68,6 +65,114 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	// Google's max queries on free tier is 100
 	public static final int MAX_QUERIES = 100;
 	
+	private static final String PRESS_INTERPRETATION_PROMPT_TEMPLATE = """
+			You will be given what is suspected, but not guaranteed, to be a press article which contains information about the following United States bill currently in congress.
+			{{billIdentifier}}
+			
+			The first thing you must determine is if this text offers any interesting or useful analysis or information about the bill in question. We are looking for information beyond what can be easily scraped from congress, so information such as basic voting information, an introduction date, a bill title, or simply an announcement that a bill was introduced or has passed does NOT count.
+			
+			If the provided text is NOT an interpretation of this bill or if the interpretation is of a different bill, you are to immediately respond as 'NO_INTERPRETATION - <reason>' where <reason> is the reason why you don't think it's a valid interpretation for this bill and EXIT.
+			
+			*IMPORTANT* If the text states that a particular organization either supports or does not support the bill in question, DO NOT return 'NO_INTERPRETATION'.
+			
+			Generally speaking, the workflow is as follows:
+			1. Is the article actually about this bill? If not, respond 'NO_INTERPRETATION - <reason>'
+			2. Does the article say anything useful? An easy yes here would be: informative conversation threads containing analysis, a pundit analysis, a press release containing an endorsement or condemntation, or an article by a major news organization about a bill. If the article does not contain useful information, respond as 'NO_INTERPRETATION - <reason>'.
+			3. Otherwise, fill out the response template as specified below.
+			
+			IF you determine this is a valid interpretation of the bill, then your instructions are as follows:
+			
+			You are part of a non-partisan oversight committee, tasked to read and summarize the provided analysis, focusing especially on any predictions the analysis might make towards the bill's impact to society, as well as any explanations or high-level logic as to how or why. If possible, please include information about the author as well as any organization they may be a part of. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Summary:') in your response. Do not include the section instructions in your response. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
+			
+			If you are given a social media conversation (such as Reddit) you should keep in mind that the conversation may represent a lens through which to view a sizeable chunk of the population's relationship with a particular bill. In this scenario, you should consider comments which confidently state concrete opinions (and exclude exploratory comments) to generate an interpretation of the bill. Do not make any mention in your summary of comments being "highly upvoted". In your summary, provide a summary of the "public discussion" found in the thread.
+			
+			=== BEGIN response template ===
+			
+			Author:
+			Write the name of the organization and/or author responsible for drafting the analysis, or N/A if it is not clear from the text. If the text has both an author and an organization, write the organization followed by the first / last name of the author (e.g. 'New York Times - Joe Schmoe'). If the text comes from social media and there is a singular author, you may write the name of the user and the website it was written (e.g. 'Reddit - <username>'). If the text was taken from social media and there is more than one author, you shall only place the name of the social media website (e.g. 'Twitter'). In the case of Reddit, please include the subreddit (e.g. 'Reddit (r/politics). 
+			
+			Title:
+			Provide a "cleaned up" title from the title you were provided. This title should remove duplicative or unnecessary information, such as the author (as that will be listed separately), and it should aim to be concise without removing essential information.
+			
+			Sentiment:
+			Provide a number from -100 to 100 which summarizes the article's opinion of the bill. If the article recommends voting against the bill, these scores should be negative, otherwise if it recommends voting for the bill they should be positive.
+			
+			Short Report:
+			A one sentence summary of the text. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
+			
+			Long Report:
+			A detailed, but not repetitive summary of the analysis which references concrete, notable and specific text of the analysis where possible. This report should explain the author's opinion or stance on the bill, any high level goals, and it's predictions of the bill's expected impact to society (if any). Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
+			
+			Confidence:
+			A self-rated number from 0 to 100 measuring how confident you are that your analysis was valid and interpreted correctly.
+			
+			=== END response template ===
+			
+			Multishot prompt examples:
+			
+			==USER==
+			title: Congress Extends Medicare Telehealth Authority Through September
+			url: https://www.afw.com/telehealth/news/hr1968
+			
+			Congress recently passed H.R. 1968, extending Medicare telehealth authority for audiologists and speech-language pathologists (SLPs) through September 30, 2025. AFW is actively working to secure permanent telehealth status by supporting the reintroduction of the Expanded Telehealth Access Act, which would permanently authorize audiologists, SLPs, physical therapists, and occupational therapists as Medicare telehealth providers. Advocates are encouraged to contact their representatives to push for this change. This extension affects Medicare only and does not impact Medicaid telehealth coverage, which remains state-specific.
+			
+			==AGENT==
+			NO_INTERPRETATION - The article mentions that H.R. 1968 was passed, but it does not provide a concrete opinion either for or against the bill. Instead, it offers an opinion about a different bill. This is more of a news update than it is a bill interpretation.
+			
+			==USER==
+			title: MEALS ON WHEELS AMERICA ISSUES STATEMENT ON PASSAGE OF H.R. 1968, FULL-YEAR CONTINUING APPROPRIATIONS AND EXTENSIONS ACT, 2025
+			url: https://www.mow.com/learn-more/national/press-room/news/2025/hr1968
+			
+			ARLINGTON, Va., March 14, 2025 – Meals on Wheels America President and CEO Ellie Hollander today issued this statement in response to the passage of H.R. 1968, Full-Year Continuing Appropriations and Extensions Act, 2025 on March 14, 2025: 
+			Meals on Wheels America is deeply disappointed that Congress has failed yet again to prioritize the needs of our nation’s older adults by passing a long-term continuing resolution (CR) instead of comprehensive spending bills that could have made critical investments to address the growing crises of senior hunger and isolation.  
+			This CR extends government funding through September 30, 2025. A government shutdown is never the desired outcome, but the flat funding levels set in this CR represent, in effect, a funding cut that could lead to a reduction in services, given rising costs and increased need among a rapidly growing senior population. This represents a missed opportunity to prioritize seniors and will further strain the nationwide network of Meals on Wheels providers.  
+			Even though Meals on Wheels serves more than 2 million seniors, we know that an additional 2.5 million likely need meals but are not receiving essential services, and 1 in 3 providers already has a waitlist. America’s seniors cannot wait any longer for lifesaving nutritious meals and moments of connection.  
+			We remain committed to working with Congress and the administration to advocate for much-needed funding increases and stability for senior nutrition providers that have been operating under uncertain conditions for far too long. Meals on Wheels America urgently calls on Congress to increase funding for senior nutrition programs. 
+			
+			==AGENT==
+			Author:
+			Meals on Wheels
+			
+			Sentiment:
+			-30
+			
+			Title:
+			Meals on Wheels America Issues Statement on Passage of H.R. 1968
+			
+			Short Report:
+			Meals on Wheels issues a press release stating that they are "deeply disappointed  that Congress has failed yet again to prioritize the needs of our nation’s older adults".
+			
+			Long Report:
+			Meals on Wheels America, led by President and CEO Ellie Hollander, expresses strong disappointment with the passage of H.R. 1968, the Full-Year Continuing Appropriations and Extensions Act of 2025. The organization criticizes Congress for passing another continuing resolution (CR) instead of comprehensive spending bills that could have "made critical investments to address the growing crises of senior hunger and isolation." The main goal highlighted by the statement is securing greater, stable funding for senior nutrition programs, which Meals on Wheels argues are already under significant strain. Hollander warns that the flat funding levels in the CR, despite technically avoiding a government shutdown, effectively amount to a cut because of rising operational costs and an expanding senior population, predicting that this will lead to service reductions nationwide. The analysis emphasizes that over 2 million seniors are currently served by Meals on Wheels, yet an estimated additional 2.5 million seniors remain in need, with one in three providers maintaining waitlists. The organization asserts that "America’s seniors cannot wait any longer" and urges Congress to immediately prioritize increased funding. The broader societal impact predicted is worsening hunger, isolation, and health risks among older adults, unless substantial investments are made soon to stabilize and expand services.
+			
+			==USER==
+			title: Another Win this Week for Common Sense – President Trump Signs CRA Resolution Nullifying Methane Tax Regulations on Energy Producers
+			url: https://www.ipaa.org/another-win-this-week-for-common-sense
+
+			IPAA Appreciates Quick Action by President on Hoeven and Pfluger Legislation 
+			WASHINGTON – Independent Petroleum Association of America (IPAA) President & CEO Jeff Eshelman issued the following statement today on President Donald Trump signing H.J.Res.35 which through the Congressional Review Act process disapproves of the Biden Environmental Protection Agency’s (EPA) methane tax regulations:
+			“In another win this week for common sense, President Trump and his Administration have taken action to nullify the regulations the Biden Administration established to implement the misguided methane tax on oil and natural gas producers. On Wednesday, EPA announced that the agency is reconsidering its Subpart OOOOb and Subpart OOOOc regulations and its Subpart W greenhouse gas reporting program rules – reconsideration provides a pathway for making these regulations more cost-effective and well-structured. IPAA appreciates President Trump moving quickly to sign this Congressional Review Act resolution and the initiative of Senator John Hoeven (R-ND) and Congressman August Pfluger (R-TX) in guiding the resolution through Congress.
+			“IPAA and our members remain committed to working with the EPA to find a regulatory pathway designed for the sources it regulates, while encouraging continued progress toward reducing emissions. Big new oil and natural gas wells and low producing older wells have differing emissions profiles. Our members are making constant improvements to the technology being used to reduce, measure and report on emissions.”
+			
+			==AGENT==
+			Author:
+			IPAA (Independent Petroleum Association of America)
+			
+			Sentiment:
+			100
+			
+			Title:
+			Another Win this Week for Common Sense – President Trump Signs CRA Resolution Nullifying Methane Tax Regulations on Energy Producers
+			
+			Short Report:
+			... excluded for mutlishot brevity ...
+			
+			Long Report:
+			... excluded for mutlishot brevity ...
+		""";
+	
+	// Prompt from when we were using BillInterpretation to store the data. No longer relevant since we're using PressInterpretation now.
+	/*
 	private static final String PRESS_INTERPRETATION_PROMPT_TEMPLATE = """
 			You will be given what is suspected, but not guaranteed, to be an analysis of the following United States bill currently in congress.
 			{{billIdentifier}}
@@ -155,7 +260,9 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 			Long Report:
 			Meals on Wheels America, led by President and CEO Ellie Hollander, expresses strong disappointment with the passage of H.R. 1968, the Full-Year Continuing Appropriations and Extensions Act of 2025. The organization criticizes Congress for passing another continuing resolution (CR) instead of comprehensive spending bills that could have "made critical investments to address the growing crises of senior hunger and isolation." The main goal highlighted by the statement is securing greater, stable funding for senior nutrition programs, which Meals on Wheels argues are already under significant strain. Hollander warns that the flat funding levels in the CR, despite technically avoiding a government shutdown, effectively amount to a cut because of rising operational costs and an expanding senior population, predicting that this will lead to service reductions nationwide. The analysis emphasizes that over 2 million seniors are currently served by Meals on Wheels, yet an estimated additional 2.5 million seniors remain in need, with one in three providers maintaining waitlists. The organization asserts that "America’s seniors cannot wait any longer" and urges Congress to immediately prioritize increased funding. The broader societal impact predicted is worsening hunger, isolation, and health risks among older adults, unless substantial investments are made soon to stabilize and expand services.
 			""";
+	*/
 	
+	// Multi-shot Reddit convo. Was originally added to tell AI to parse reddit, but was replaced instead with an explanation at the beginning of the prompt (which was found to work better)
 	/*
 	 		==USER==
 			title: What are the PROS and CONS of voting for H.R.1968 - Full-Year ...
@@ -278,7 +385,10 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	public static final String[] processBills = new String[] {
 			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968),
-//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HJRES, 94)
+			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HJRES, 35),
+			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.SJRES, 11),
+			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HJRES, 25),
+			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 2480),
 	};
 	
 	public static AIInterpretationMetadata metadata()
@@ -295,7 +405,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		s3.optimizeExists(BillInterpretation.class);
+		s3.optimizeExists(PressInterpretation.class);
 		
 		int block = 1;
 		tokenLen = 0;
@@ -333,7 +443,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		for (val interp : pressInterps)
 		{
 //			if (interp.getId().contains("reddit"))
-				s3.delete(interp.getId(), BillInterpretation.class);
+				s3.delete(interp.getId(), PressInterpretation.class);
 		}
 		
 		Log.info("Deleted " + pressInterps.size() + " existing interpretations");
@@ -394,7 +504,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	private void processOrigin(Bill b, InterpretationOrigin origin)
 	{
-		if (s3.exists(BillInterpretation.generateId(b.getId(), origin, null), BillInterpretation.class)) return;
+		if (s3.exists(PressInterpretation.generateId(b.getId(), origin), PressInterpretation.class)) return;
 		
 		String articleText = null;
 		
@@ -454,7 +564,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	private void interpretArticle(Bill b, InterpretationOrigin origin, String body)
 	{
-		String oid = BillInterpretation.generateId(b.getId(), origin, null);
+		String oid = PressInterpretation.generateId(b.getId(), origin);
 		var data = new CustomOriginData(origin, oid);
 		
 		String text = "title: " + origin.getTitle() + "\nurl: " + origin.getUrl() + "\n\n";

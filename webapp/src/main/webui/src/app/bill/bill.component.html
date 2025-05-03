@@ -44,7 +44,7 @@
                                 </div>
                                 <div class="title-right">
                                     <h3>
-                                        <p style="margin-bottom: 0px;">{{ bill.introducedDate }}</p>
+                                        <p style="margin-bottom: 0px;">{{ bill.lastActionDate }}</p>
                                         <p class="bill-status" [ngClass]="{'highlight-law': bill.status.description.trim().toLowerCase() === 'law'}">{{ bill.status.description }}</p>
                                     </h3>
                                 </div>
@@ -74,7 +74,7 @@
                                     </div>
                                     <div class="title-right">
                                         <h3>
-                                            <p style="margin-bottom: 0px;">{{ bill.introducedDate }}</p>
+                                            <p style="margin-bottom: 0px;">{{ bill.lastActionDate }}</p>
                                             <p class="bill-status" [ngClass]="{'highlight-law': bill.status.description.trim().toLowerCase() === 'law'}">{{ bill.status.description }}</p>
                                         </h3>
                                     </div>
@@ -127,12 +127,12 @@
 
                                 <ng-container matColumnDef="title">
                                     <th mat-header-cell *matHeaderCellDef>Title</th>
-                                    <td mat-cell *matCellDef="let element"> {{element.origin.title}} </td>
+                                    <td mat-cell *matCellDef="let element"> {{element.genArticleTitle}} </td>
                                 </ng-container>
         
                                 <ng-container matColumnDef="grade">
-                                    <th mat-header-cell *matHeaderCellDef>Grade</th>
-                                    <td mat-cell *matCellDef="let element"> {{gradeForInterp(element)}} </td>
+                                    <th mat-header-cell *matHeaderCellDef>Sentiment</th>
+                                    <td mat-cell *matCellDef="let element"> {{gradeForPressInterp(element)}} </td>
                                 </ng-container>
         
                                 <ng-container matColumnDef="shortReport">

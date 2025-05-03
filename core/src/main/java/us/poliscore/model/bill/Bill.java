@@ -28,6 +28,7 @@ import us.poliscore.model.Party;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.legislator.Legislator.LegislatorName;
+import us.poliscore.model.press.PressInterpretation;
 
 @Data
 @DynamoDbBean
@@ -82,7 +83,7 @@ public class Bill implements Persistable {
 	
 	protected BillInterpretation interpretation;
 	
-	protected List<BillInterpretation> pressInterps;
+	protected List<PressInterpretation> pressInterps;
 	
 	protected LocalDate lastPressQuery = LocalDate.EPOCH;
 	
@@ -144,7 +145,11 @@ public class Bill implements Persistable {
 	}
 	@Override @JsonIgnore public void setStorageBucket(String prefix) { }
 	
-	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return introducedDate; }
+	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() {
+		if (lastActionDate != null) return lastActionDate;
+		
+		return introducedDate;
+	}
 	@JsonIgnore public void setDate(LocalDate date) { introducedDate = date; }
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_RATING_INDEX }) public int getRating() { return interpretation.getRating(); }
@@ -161,7 +166,7 @@ public class Bill implements Persistable {
 	@JsonIgnore public int getImpactAbs(TrackedIssue issue, double lawWeight) { return Math.abs(getImpact(issue, lawWeight)); }
 	public void setImpactAbs(int impact) { }
 	
-	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_HOT_INDEX }) public int getHot() { return (int)(getImpactAbs(TrackedIssue.OverallBenefitToSociety, 2.0d) * Math.exp(-0.02 * ChronoUnit.DAYS.between(getHotDate(), LocalDate.now()))); }
+	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_HOT_INDEX }) public int getHot() { return (int)(getImpactAbs(TrackedIssue.OverallBenefitToSociety, 1.5d) * Math.exp(-0.02 * ChronoUnit.DAYS.between(getDate(), LocalDate.now()))); }
 	public void setHot(int hot) { }
 	
 	public static String generateId(int congress, BillType type, int number)
@@ -174,13 +179,6 @@ public class Bill implements Persistable {
 	@JsonIgnore public int getImpact(TrackedIssue issue, double lawWeight)
 	{
 		return calculateImpact(interpretation.getIssueStats().getStat(issue), status.getProgress(), getCosponsorPercent(), lawWeight);
-	}
-	
-	private LocalDate getHotDate()
-	{
-		if (lastActionDate != null) return lastActionDate;
-		
-		return introducedDate;
 	}
 
 	public static int calculateImpact(int rating, float statusProgress, float cosponsorPercent)

@@ -9,10 +9,11 @@ export interface Bill {
   sponsor: BillSponsor;
   cosponsors: BillSponsor[];
   introducedDate: string;
+  lastActionDate: string;
   id?: string;
   billId?: string;
   interpretation: BillInterpretation;
-  pressInterps: BillInterpretation[];
+  pressInterps: PressInterpretation[];
   rating?: number;
   confidence?: number;
   hot?: number;
@@ -27,6 +28,16 @@ export interface BillInterpretation {
   shortExplain: string;
   longExplain: string;
   riders: string[];
+  billId: string;
+  metadata: BillMetadata;
+}
+
+export interface PressInterpretation {
+  sentiment: number;
+  id: string;
+  genArticleTitle: string;
+  shortExplain: string;
+  longExplain: string;
   billId: string;
   metadata: BillMetadata;
 }

@@ -57,6 +57,7 @@ import us.poliscore.service.storage.MemoryObjectService;
 @QuarkusMain(name="DatabaseBuilder")
 public class DatabaseBuilder implements QuarkusApplication
 {
+	// TODO : Before setting this to true, we need to find a solution for preventing re-interpreting websites for which AI which returned a "NO_INTEPRETATION", otherwise we will continually re-interpret them.
 	public static boolean INTERPRET_PRESS_BILLS = false;
 	
 	public static boolean INTERPRET_NEW_BILLS = true;
@@ -157,8 +158,8 @@ public class DatabaseBuilder implements QuarkusApplication
 		long amount = 0;
 		
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
-		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
-//		{ Bill b = memService.get(Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968), Bill.class).get();
+//		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
+		for (String billId : PressBillInterpretationRequestGenerator.processBills) { Bill b = memService.get(billId, Bill.class).get();
 			if (!ddb.exists(b.getId(), Bill.class) || pressBillInterpGenerator.getDirtyBills().contains(b)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				billService.ddbPersist(b, interp);

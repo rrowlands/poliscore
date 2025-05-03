@@ -34,6 +34,7 @@ import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCosponsor;
 import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor;
+import us.poliscore.model.press.PressInterpretation;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryObjectService;
@@ -287,9 +288,9 @@ public class BillService {
 	
 	public void populatePressInterps(Bill b)
 	{
-		var pressInterps = s3.query(BillInterpretation.class, Persistable.getClassStorageBucket(BillInterpretation.class), b.getId().replace(Bill.ID_CLASS_PREFIX + "/", ""));
+		var pressInterps = s3.query(PressInterpretation.class, Persistable.getClassStorageBucket(PressInterpretation.class), b.getId().replace(Bill.ID_CLASS_PREFIX + "/", ""));
 		
-		pressInterps = pressInterps.stream().filter(i -> !InterpretationOrigin.POLISCORE.equals(i.getOrigin())).collect(Collectors.toList());
+		pressInterps = pressInterps.stream().filter(i -> !InterpretationOrigin.POLISCORE.equals(i.getOrigin()) && !i.isNoInterp()).collect(Collectors.toList());
 		
 		b.setPressInterps(pressInterps);
 	}
@@ -305,9 +306,9 @@ public class BillService {
 		}
 	}
 	
-	public List<BillInterpretation> getAllPressInterps(String billId)
+	public List<PressInterpretation> getAllPressInterps(String billId)
 	{
-		var pressInterps = s3.query(BillInterpretation.class, Persistable.getClassStorageBucket(BillInterpretation.class), billId.replace(Bill.ID_CLASS_PREFIX + "/", ""));
+		var pressInterps = s3.query(PressInterpretation.class, Persistable.getClassStorageBucket(PressInterpretation.class), billId.replace(Bill.ID_CLASS_PREFIX + "/", ""));
 		
 		pressInterps = pressInterps.stream().filter(i -> !InterpretationOrigin.POLISCORE.equals(i.getOrigin())).collect(Collectors.toList());
 		
