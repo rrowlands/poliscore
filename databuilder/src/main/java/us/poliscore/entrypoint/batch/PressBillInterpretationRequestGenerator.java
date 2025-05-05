@@ -67,7 +67,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	public static final String GOOGLE_CUSTOM_SEARCH_ENGINE_ID = "3564aa93769fe4c0f";
 	
 	// Google's max queries on free tier is 100
-	public static final int MAX_QUERIES = 3; // TODO : Increase this to 90
+	public static final int MAX_QUERIES = 50; // TODO : Increase this to 90
 	
 	private static final String PRESS_INTERPRETATION_PROMPT_TEMPLATE = """
 			You will be given what is suspected, but not guaranteed, to be a press article which contains information about the following United States bill currently in congress.
@@ -426,9 +426,16 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 				b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION)
 				&& s3.exists(BillText.generateId(b.getId()), BillText.class)
 				&& b.getIntroducedDate().isBefore(LocalDate.now().minus(10, ChronoUnit.DAYS)) // Must be at least x days old (otherwise there won't be press coverage)
-//				&& (!s3.exists(b.getId(), BillInterpretation.class) || b.getLastActionDate().isAfter(LocalDate.now().minus(4, ChronoUnit.MONTHS))) // Don't interpret really old bills
 			).sorted(Comparator.comparing(Bill::getIntroducedDate)).collect(Collectors.toList())) {
 			if (totalQueries >= MAX_QUERIES) break;
+			
+			// Don't interpret really old bills
+			// TODO : Once we get all the old bills interpreted we can replace this with a filter where we just ignore bills older than 101 days. (we won't always need to check the interp's lastPressQuery so long as we keep on top of generation)
+			if (b.getLastActionDate().isAfter(LocalDate.now().minus(101, ChronoUnit.DAYS))) {
+				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class);
+				
+				if (interp.isPresent() && interp.get().getLastPressQuery() != LocalDate.EPOCH) continue;
+			}
 			
 //		for (String billId : processBills) { Bill b = memService.get(billId, Bill.class).get();
 //			deleteExisting(b);

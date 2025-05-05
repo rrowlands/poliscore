@@ -25,11 +25,14 @@ import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
 import us.poliscore.ai.BatchOpenAIRequest.CustomData;
+import us.poliscore.model.InterpretationOrigin;
+import us.poliscore.model.Persistable;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillSlice;
 import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
+import us.poliscore.model.press.PressInterpretation;
 import us.poliscore.parsing.XMLBillSlicer;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
@@ -115,9 +118,10 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 			// The press interpreter may have said this bill was dirty, but after the press interps came back, they came back as NO_INTERP. At this point, it's not actually dirty and doesn't need to be interpreted.
 			if (CHECK_S3_EXISTS && billInterpreter.isInterpreted(b.getId()) && includePressDirtyBills && pressBillInterpGenerator.getDirtyBills().contains(b)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).orElseThrow();
-				billService.populatePressInterps(interp);
 				
-				if (interp.getPressInterps().size() == 0) continue;
+				var s3PressInterps = s3.query(PressInterpretation.class, Persistable.getClassStorageBucket(PressInterpretation.class), interp.getBillId().replace(Bill.ID_CLASS_PREFIX + "/", "")).stream().filter(i -> !InterpretationOrigin.POLISCORE.equals(i.getOrigin()) && !i.isNoInterp()).collect(Collectors.toList());
+				
+				if (!s3PressInterps.stream().anyMatch(s3pi -> !interp.getPressInterps().contains(s3pi))) continue;
 			}
 			
 			val billText = billService.getBillText(b).orElse(null);

@@ -62,7 +62,7 @@ public class BillInterpretation implements Persistable
 	
 	protected InterpretationOrigin origin = InterpretationOrigin.POLISCORE;
 	
-	protected List<PressInterpretation> pressInterps;
+	protected List<PressInterpretation> pressInterps = new ArrayList<PressInterpretation>();
 	
 	protected LocalDate lastPressQuery = LocalDate.EPOCH;
 	
@@ -71,6 +71,12 @@ public class BillInterpretation implements Persistable
 	
 	@Getter(onMethod = @__({ @DynamoDbConvertedBy(AIInterpretationMetadataConverter.class)}))
 	protected AIInterpretationMetadata metadata;
+	
+	public List<PressInterpretation> getPressInterps() {
+		if (pressInterps == null) return new ArrayList<PressInterpretation>();
+		
+		return pressInterps;
+	}
 	
 	@DynamoDbPartitionKey
 	public String getId()

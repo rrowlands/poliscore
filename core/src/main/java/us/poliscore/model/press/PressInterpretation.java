@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -27,6 +28,7 @@ import us.poliscore.model.dynamodb.JacksonAttributeConverter.AIInterpretationMet
 @RegisterForReflection
 @NoArgsConstructor
 @RequiredArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class PressInterpretation implements Persistable {
 	public static final String ID_CLASS_PREFIX = "PIT";
 	
@@ -55,6 +57,7 @@ public class PressInterpretation implements Persistable {
 	protected InterpretationOrigin origin;
 	
 	@DynamoDbPartitionKey
+	@EqualsAndHashCode.Include
 	public String getId()
 	{
 		return generateId(billId, origin);

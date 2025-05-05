@@ -131,19 +131,19 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-//		imageBuilder.process();
-//		billTextFetcher.process();
+		imageBuilder.process();
+		billTextFetcher.process();
 		
 		interpretBillPressArticles();
-//		syncDdbBillsWithS3();
+		syncDdbBillsWithS3();
 		
 		interpretBills();
 		pressBillInterpGenerator.recordLastPressQueries(); // We want to record that our press query is complete, but only after the bill has been updated and re-interpreted (otherwise we would need to query again if it fails halfway through)
 		
-//		interpretLegislators();
-//		interpretPartyStats();
-//		
-//		webappDataGenerator.process();
+		interpretLegislators();
+		interpretPartyStats();
+		
+		webappDataGenerator.process();
 		
 		Log.info("Poliscore database build complete.");
 	}

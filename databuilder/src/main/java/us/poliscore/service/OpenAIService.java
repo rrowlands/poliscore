@@ -1,6 +1,7 @@
 package us.poliscore.service;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -30,7 +31,6 @@ import us.poliscore.Environment;
 import us.poliscore.model.AIInterpretationMetadata;
 import us.poliscore.model.AISliceInterpretationMetadata;
 import us.poliscore.model.bill.BillSlice;
-import us.poliscore.parsing.BillSlicer;
 
 @ApplicationScoped
 public class OpenAIService {
@@ -117,6 +117,8 @@ public class OpenAIService {
 	 */
 	@SneakyThrows
 	public List<File> processBatch(List<File> files) {
+		if (files.size() == 1 && Files.lines(files.get(0).toPath()).count() <= 3) return processBatchImmediately(files);
+		
 		OpenAiService service = new OpenAiService(secret.getOpenAISecret(), Duration.ofSeconds(600));
 		
 		final List<Batch> batches = new ArrayList<Batch>();
