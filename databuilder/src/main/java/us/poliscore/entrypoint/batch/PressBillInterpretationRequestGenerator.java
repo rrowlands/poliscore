@@ -8,11 +8,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +42,7 @@ import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
+import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.press.PressInterpretation;
 import us.poliscore.press.BillArticleRecognizer;
@@ -389,6 +392,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.SJRES, 11),
 			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HJRES, 25),
 			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 2480),
+			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.S, 5),
 	};
 	
 	public static AIInterpretationMetadata metadata()
@@ -406,6 +410,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		rollCallService.importUscVotes();
 		
 		s3.optimizeExists(PressInterpretation.class);
+		s3.optimizeExists(BillInterpretation.class);
 		
 		int block = 1;
 		tokenLen = 0;
@@ -415,12 +420,10 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		
 //		for (Bill b : memService.query(Bill.class).stream().filter(b ->
 //				b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) &&
-//				b.getLastPressQuery().isAfter(LocalDate.now().minus(10, ChronoUnit.DAYS)) &&
-//				b.getLastActionDate().isBefore(LocalDate.now().minus(32, ChronoUnit.DAYS))
+//				b.getIntroducedDate().isBefore(LocalDate.now().minus(10, ChronoUnit.DAYS)) &&
+//				(!s3.exists(b.getId(), BillInterpretation.class) || b.getLastActionDate().isAfter(LocalDate.now().minus(4, ChronoUnit.MONTHS)))
 //			).limit(MAX_QUERIES).collect(Collectors.toList())) {
-//		 { 
-		for (String billId : processBills) {
-			Bill b = memService.get(billId, Bill.class).get();
+		for (String billId : processBills) { Bill b = memService.get(billId, Bill.class).get();
 //			deleteExisting(b);
 			processBill(b);
 		}
@@ -456,6 +459,11 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	@SneakyThrows
 	private void processBill(Bill b) {
+		var interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).orElse(null);
+		
+//		if (interp != null && interp.getLastPressQuery().isBefore(LocalDate.now().minus(30, ChronoUnit.DAYS))) return;
+		if (interp == null) interp = new BillInterpretation();
+		
 	    final String query = b.getType().getName().toUpperCase() + " " + b.getNumber() + " " + b.getName();
 	    val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
 
@@ -465,8 +473,10 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	    if (b.getStatus().getProgress() == 1.0f)
 	    	fetchAndProcessSearchResults(b, encodedQuery, 11);
 	    
-	    b.setLastPressQuery(LocalDate.now());
+	    interp.setLastPressQuery(LocalDate.now());
 	    dirtyBills.add(b);
+	    
+	    s3.put(interp);
 	}
 
 	@SneakyThrows

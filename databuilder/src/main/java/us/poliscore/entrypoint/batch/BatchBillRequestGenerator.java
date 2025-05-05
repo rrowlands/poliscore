@@ -59,6 +59,9 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 	private BillInterpretationService billInterpreter;
 	
 	@Inject
+	protected PressBillInterpretationRequestGenerator pressBillInterpGenerator;
+	
+	@Inject
 	private LegislatorService legService;
 	
 	@Inject
@@ -95,11 +98,11 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		s3.optimizeExists(BillInterpretation.class);
 		s3.optimizeExists(BillText.class);
 		
-//		List<String> specificFetch = Arrays.asList("BIL/us/congress/119/hr/809");
+//		List<String> specificFetch = Arrays.asList(Bill.generateId(119, BillType.S, 5));
 		
 		for (Bill b : memService.query(Bill.class).stream()
 //				.filter(b -> specificFetch.contains(b.getId()))
-				.filter(b -> (!CHECK_S3_EXISTS || !billInterpreter.isInterpreted(b.getId())))
+				.filter(b -> (!CHECK_S3_EXISTS || (!billInterpreter.isInterpreted(b.getId()) || pressBillInterpGenerator.getDirtyBills().contains(b))))
 				.filter(b -> s3.exists(BillText.generateId(b.getId()), BillText.class))
 				.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
 //				.limit(100)

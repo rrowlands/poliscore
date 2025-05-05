@@ -83,9 +83,9 @@ public class Bill implements Persistable {
 	
 	protected BillInterpretation interpretation;
 	
-	protected List<PressInterpretation> pressInterps;
+//	protected List<PressInterpretation> pressInterps;
 	
-	protected LocalDate lastPressQuery = LocalDate.EPOCH;
+//	protected LocalDate lastPressQuery = LocalDate.EPOCH;
 	
 	@JsonIgnore
 	protected CBOBillAnalysis cboAnalysis;

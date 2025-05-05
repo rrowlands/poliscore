@@ -286,18 +286,18 @@ public class BillService {
 	    return status;
 	}
 	
-	public void populatePressInterps(Bill b)
+	public void populatePressInterps(BillInterpretation interp)
 	{
-		var pressInterps = s3.query(PressInterpretation.class, Persistable.getClassStorageBucket(PressInterpretation.class), b.getId().replace(Bill.ID_CLASS_PREFIX + "/", ""));
+		var pressInterps = s3.query(PressInterpretation.class, Persistable.getClassStorageBucket(PressInterpretation.class), interp.getBillId().replace(Bill.ID_CLASS_PREFIX + "/", ""));
 		
 		pressInterps = pressInterps.stream().filter(i -> !InterpretationOrigin.POLISCORE.equals(i.getOrigin()) && !i.isNoInterp()).collect(Collectors.toList());
 		
-		b.setPressInterps(pressInterps);
+		interp.setPressInterps(pressInterps);
 	}
 
 	public void ddbPersist(Bill b, BillInterpretation interp)
 	{
-		populatePressInterps(b);
+		populatePressInterps(interp);
 		b.setInterpretation(interp);
 		ddb.put(b);
 		

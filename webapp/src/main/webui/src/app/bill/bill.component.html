@@ -104,14 +104,14 @@
                     </mat-card-content>
                 </mat-card>
 
-                <mat-card class="tran-div interactions-table" *ngIf="bill != null && bill.pressInterps != null && bill.pressInterps.length > 0">
+                <mat-card class="tran-div interactions-table" *ngIf="bill != null && bill.interpretation != null && bill.interpretation.pressInterps != null && bill.interpretation.pressInterps.length > 0">
                     <mat-card-content>
                         <div>
                             <div class="table-header" style="margin-bottom: 16px;">
                                 <h2 style="margin:0;">Press Coverage</h2>
                             </div>
         
-                            <table mat-table [dataSource]="bill.pressInterps" class="bill-history-table mat-elevation-z8" [ngClass]="{ 'non-safari': isNonSafari() }" >
+                            <table mat-table [dataSource]="bill.interpretation.pressInterps" class="bill-history-table mat-elevation-z8" [ngClass]="{ 'non-safari': isNonSafari() }" >
         
                                 <!--- Note that these columns can be defined in any order.
                                     The actual rendered columns are set as a property on the row definition" -->

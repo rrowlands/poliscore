@@ -25,6 +25,7 @@ import us.poliscore.model.IssueStats;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.dynamodb.JacksonAttributeConverter.AIInterpretationMetadataConverter;
+import us.poliscore.model.press.PressInterpretation;
 
 @Data
 @DynamoDbBean
@@ -61,10 +62,13 @@ public class BillInterpretation implements Persistable
 	
 	protected InterpretationOrigin origin = InterpretationOrigin.POLISCORE;
 	
+	protected List<PressInterpretation> pressInterps;
+	
+	protected LocalDate lastPressQuery = LocalDate.EPOCH;
+	
 	@NonNull
 	protected List<BillInterpretation> sliceInterpretations = new ArrayList<BillInterpretation>();
 	
-	@NonNull
 	@Getter(onMethod = @__({ @DynamoDbConvertedBy(AIInterpretationMetadataConverter.class)}))
 	protected AIInterpretationMetadata metadata;
 	

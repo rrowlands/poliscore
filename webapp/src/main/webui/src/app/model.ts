@@ -13,7 +13,6 @@ export interface Bill {
   id?: string;
   billId?: string;
   interpretation: BillInterpretation;
-  pressInterps: PressInterpretation[];
   rating?: number;
   confidence?: number;
   hot?: number;
@@ -29,6 +28,7 @@ export interface BillInterpretation {
   longExplain: string;
   riders: string[];
   billId: string;
+  pressInterps: PressInterpretation[];
   metadata: BillMetadata;
 }
 
