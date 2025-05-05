@@ -11,9 +11,9 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -39,13 +39,12 @@ import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
 import us.poliscore.ai.BatchOpenAIRequest.CustomOriginData;
 import us.poliscore.model.AIInterpretationMetadata;
-import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.InterpretationOrigin;
+import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillText;
-import us.poliscore.model.bill.BillType;
 import us.poliscore.model.press.PressInterpretation;
 import us.poliscore.press.BillArticleRecognizer;
 import us.poliscore.press.GoogleSearchResponse;
@@ -68,7 +67,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	public static final String GOOGLE_CUSTOM_SEARCH_ENGINE_ID = "3564aa93769fe4c0f";
 	
 	// Google's max queries on free tier is 100
-	public static final int MAX_QUERIES = 90;
+	public static final int MAX_QUERIES = 3; // TODO : Increase this to 90
 	
 	private static final String PRESS_INTERPRETATION_PROMPT_TEMPLATE = """
 			You will be given what is suspected, but not guaranteed, to be a press article which contains information about the following United States bill currently in congress.
@@ -386,7 +385,9 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	private List<File> writtenFiles = new ArrayList<File>();
 	
-	private Map<Bill, BillInterpretation> dirtyBills = new HashMap<Bill, BillInterpretation>();
+	private Set<Bill> dirtyBills = new HashSet<Bill>();
+	
+	private Set<Bill> queriedBills = new HashSet<Bill>();
 	
 	public static final String[] processBills = new String[] {
 //			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968),
@@ -426,7 +427,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 				&& s3.exists(BillText.generateId(b.getId()), BillText.class)
 				&& b.getIntroducedDate().isBefore(LocalDate.now().minus(10, ChronoUnit.DAYS)) // Must be at least x days old (otherwise there won't be press coverage)
 //				&& (!s3.exists(b.getId(), BillInterpretation.class) || b.getLastActionDate().isAfter(LocalDate.now().minus(4, ChronoUnit.MONTHS))) // Don't interpret really old bills
-			).collect(Collectors.toList())) {
+			).sorted(Comparator.comparing(Bill::getIntroducedDate)).collect(Collectors.toList())) {
 			if (totalQueries >= MAX_QUERIES) break;
 			
 //		for (String billId : processBills) { Bill b = memService.get(billId, Bill.class).get();
@@ -458,9 +459,21 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		Log.info("Deleted " + pressInterps.size() + " existing interpretations");
 	}
 	
+	
+	/**
+	 * @return Only bills for which an actual request has been generated
+	 */
 	public Set<Bill> getDirtyBills()
 	{
-		return dirtyBills.keySet();
+		return dirtyBills;
+	}
+	
+	/**
+	 * 
+	 * @return All bills which were queried during this run
+	 */
+	public Set<Bill> getQueriedBills() {
+		return queriedBills;
 	}
 	
 	@SneakyThrows
@@ -470,22 +483,43 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		if (interp != null && interp.getLastPressQuery().isAfter(LocalDate.now().minus(30, ChronoUnit.DAYS))) return; // Skip if it was interpreted in the last x days
 		if (interp == null) interp = new BillInterpretation();
 		
-	    final String query = b.getType().getName().toUpperCase() + " " + b.getNumber() + " " + b.getName();
+		final String typeAndNumber = b.getType().getName().toUpperCase() + " " + b.getNumber();
+		
+		String query;
+		if (b.getName() == null || StringUtils.isEmpty(b.getName()) || b.getName().toLowerCase().replaceAll("[\\s\\.]+", "").equals(typeAndNumber.toLowerCase().replaceAll("[\\s\\.]+", "")))
+		{
+			query = typeAndNumber;
+			
+			if (b.getNamespace().equals(LegislativeNamespace.US_CONGRESS))
+				query = "Congress " + query;
+		}
+		else
+		{
+			query = b.getType().getName().toUpperCase() + " " + b.getNumber() + " " + b.getName();
+		}
+		
 	    val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+	    
+	    boolean generatedRequest = false;
 
-	    fetchAndProcessSearchResults(b, encodedQuery, 1);
+	    generatedRequest = fetchAndProcessSearchResults(b, encodedQuery, 1) || generatedRequest;
 	    
 	    // Fetch an extra page for laws
 	    if (b.getStatus().getProgress() == 1.0f)
-	    	fetchAndProcessSearchResults(b, encodedQuery, 11);
+	    	generatedRequest = fetchAndProcessSearchResults(b, encodedQuery, 11) || generatedRequest;
 	    
-	    dirtyBills.put(b, interp);
+	    if (generatedRequest)
+	    	dirtyBills.add(b);
+	    
+	    queriedBills.add(b);
 	}
 	
-	public void recordDirtyBills()
+	public void recordLastPressQueries()
 	{
-		for (var kv : dirtyBills.entrySet()) {
-			val interp = s3.get(kv.getValue().getId(), BillInterpretation.class).orElse(null);
+		Log.info("Updating LastPressQuery for interpreted bills");
+		
+		for (var b : queriedBills) {
+			val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).orElse(null);
 			
 			if (interp != null) {
 				interp.setLastPressQuery(LocalDate.now());
@@ -495,8 +529,8 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	}
 
 	@SneakyThrows
-	private void fetchAndProcessSearchResults(Bill b, String encodedQuery, int startIndex) {
-		if (totalQueries >= MAX_QUERIES) return;
+	private boolean fetchAndProcessSearchResults(Bill b, String encodedQuery, int startIndex) {
+		if (totalQueries >= MAX_QUERIES) return false;
 		
 		Log.info("Performing google search for press articles [" + encodedQuery + "]");
 		
@@ -509,7 +543,9 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	    String sResp = fetchUrl(url);
 	    val resp = new ObjectMapper().readValue(sResp, GoogleSearchResponse.class);
 
-	    if (resp.getItems() == null) return;
+	    if (resp.getItems() == null) return false;
+	    
+	    boolean generatedRequest = false;
 
 	    for (val item : resp.getItems())
 		{
@@ -519,7 +555,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 				{
 					val origin = new InterpretationOrigin(item.getLink(), item.getTitle());
 					
-					processOrigin(b, origin);
+					generatedRequest = processOrigin(b, origin) || generatedRequest;
 				}
 	        } catch (Exception e) {
 	            Log.warn("General error connecting to " + item.getLink() + ": " + e.getMessage());
@@ -527,11 +563,13 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		}
 	    
 	    totalQueries++;
+	    
+	    return generatedRequest;
 	}
 	
-	private void processOrigin(Bill b, InterpretationOrigin origin)
+	private boolean processOrigin(Bill b, InterpretationOrigin origin)
 	{
-		if (s3.exists(PressInterpretation.generateId(b.getId(), origin), PressInterpretation.class)) return;
+		if (s3.exists(PressInterpretation.generateId(b.getId(), origin), PressInterpretation.class)) return false;
 		
 		String articleText = null;
 		
@@ -546,8 +584,10 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		
 		if (articleText != null)
 		{
-			processArticle(b, origin, articleText);
+			return processArticle(b, origin, articleText);
 		}
+		
+		return false;
 	}
 	
 	@SneakyThrows
@@ -577,7 +617,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		return null;
 	}
 	
-	protected void processArticle(Bill b, InterpretationOrigin origin, String articleText)
+	protected boolean processArticle(Bill b, InterpretationOrigin origin, String articleText)
 	{
 		float confidence = BillArticleRecognizer.recognize(b, articleText, origin.getUrl());
 		
@@ -585,11 +625,13 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		
 		if (confidence > 0.4f)
 		{
-			interpretArticle(b, origin, articleText);
+			return interpretArticle(b, origin, articleText);
 		}
+		
+		return false;
 	}
 	
-	private void interpretArticle(Bill b, InterpretationOrigin origin, String body)
+	private boolean interpretArticle(Bill b, InterpretationOrigin origin, String body)
 	{
 		String oid = PressInterpretation.generateId(b.getId(), origin);
 		var data = new CustomOriginData(origin, oid);
@@ -602,6 +644,8 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		
 		var prompt = PRESS_INTERPRETATION_PROMPT.replace("{{billIdentifier}}", b.getNamespace().getNamespace().replace("/", " ") + ", " + b.getOriginatingChamber().getName() + ", " + b.getType().getName() + " " + b.getNumber());
 		createRequest(data, prompt, text);
+		
+		return true;
 	}
 	
 	private void createRequest(CustomOriginData data, String sysMsg, String userMsg) {
