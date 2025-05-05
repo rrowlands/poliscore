@@ -136,7 +136,9 @@ public class BillInterpretationService {
 //		
 //		return userMsg;
 		
-		var userMsg = "Press Coverage:\n\n";
+		var userMsg = "Press Coverage:\n";
+		userMsg += "The following articles were pulled from a basic Google search for this bill and were included to provide additional context for the interpretation. Their inclusion does not represent an endorsement from PoliScore. Often a Google search for a bill will reveal key legislative stakeholders, so view these articles with a skeptical eye. We want to prioritize what's best for all of America, not necessarily a few key stakeholders.\n\n";
+		
 		
 		var pressInterps = billService.getAllPressInterps(bill.getId());
 		

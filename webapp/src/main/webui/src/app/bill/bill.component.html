@@ -44,7 +44,7 @@
                                 </div>
                                 <div class="title-right">
                                     <h3>
-                                        <p style="margin-bottom: 0px;">{{ bill.lastActionDate }}</p>
+                                        <p style="margin-bottom: 0px;">{{ getBillDate() }}</p>
                                         <p class="bill-status" [ngClass]="{'highlight-law': bill.status.description.trim().toLowerCase() === 'law'}">{{ bill.status.description }}</p>
                                     </h3>
                                 </div>
@@ -74,7 +74,7 @@
                                     </div>
                                     <div class="title-right">
                                         <h3>
-                                            <p style="margin-bottom: 0px;">{{ bill.lastActionDate }}</p>
+                                            <p style="margin-bottom: 0px;">{{ getBillDate() }}</p>
                                             <p class="bill-status" [ngClass]="{'highlight-law': bill.status.description.trim().toLowerCase() === 'law'}">{{ bill.status.description }}</p>
                                         </h3>
                                     </div>

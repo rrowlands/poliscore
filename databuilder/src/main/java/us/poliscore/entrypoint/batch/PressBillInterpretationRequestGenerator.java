@@ -11,8 +11,9 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,6 +44,7 @@ import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
+import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.press.PressInterpretation;
 import us.poliscore.press.BillArticleRecognizer;
@@ -66,7 +68,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	public static final String GOOGLE_CUSTOM_SEARCH_ENGINE_ID = "3564aa93769fe4c0f";
 	
 	// Google's max queries on free tier is 100
-	public static final int MAX_QUERIES = 100;
+	public static final int MAX_QUERIES = 90;
 	
 	private static final String PRESS_INTERPRETATION_PROMPT_TEMPLATE = """
 			You will be given what is suspected, but not guaranteed, to be a press article which contains information about the following United States bill currently in congress.
@@ -384,15 +386,15 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	private List<File> writtenFiles = new ArrayList<File>();
 	
-	private Set<Bill> dirtyBills = new HashSet<Bill>();
+	private Map<Bill, BillInterpretation> dirtyBills = new HashMap<Bill, BillInterpretation>();
 	
 	public static final String[] processBills = new String[] {
-			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968),
-			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HJRES, 35),
-			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.SJRES, 11),
-			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HJRES, 25),
-			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 2480),
-			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.S, 5),
+//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968),
+//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HJRES, 35),
+//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.SJRES, 11),
+//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HJRES, 25),
+//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 2480),
+//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.S, 5)
 	};
 	
 	public static AIInterpretationMetadata metadata()
@@ -409,6 +411,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
+		s3.optimizeExists(BillText.class);
 		s3.optimizeExists(PressInterpretation.class);
 		s3.optimizeExists(BillInterpretation.class);
 		
@@ -418,12 +421,15 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		requests = new ArrayList<BatchOpenAIRequest>();
 		writtenFiles = new ArrayList<File>();
 		
-//		for (Bill b : memService.query(Bill.class).stream().filter(b ->
-//				b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) &&
-//				b.getIntroducedDate().isBefore(LocalDate.now().minus(10, ChronoUnit.DAYS)) &&
-//				(!s3.exists(b.getId(), BillInterpretation.class) || b.getLastActionDate().isAfter(LocalDate.now().minus(4, ChronoUnit.MONTHS)))
-//			).limit(MAX_QUERIES).collect(Collectors.toList())) {
-		for (String billId : processBills) { Bill b = memService.get(billId, Bill.class).get();
+		for (Bill b : memService.query(Bill.class).stream().filter(b ->
+				b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION)
+				&& s3.exists(BillText.generateId(b.getId()), BillText.class)
+				&& b.getIntroducedDate().isBefore(LocalDate.now().minus(10, ChronoUnit.DAYS)) // Must be at least x days old (otherwise there won't be press coverage)
+//				&& (!s3.exists(b.getId(), BillInterpretation.class) || b.getLastActionDate().isAfter(LocalDate.now().minus(4, ChronoUnit.MONTHS))) // Don't interpret really old bills
+			).collect(Collectors.toList())) {
+			if (totalQueries >= MAX_QUERIES) break;
+			
+//		for (String billId : processBills) { Bill b = memService.get(billId, Bill.class).get();
 //			deleteExisting(b);
 			processBill(b);
 		}
@@ -454,14 +460,14 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	public Set<Bill> getDirtyBills()
 	{
-		return dirtyBills;
+		return dirtyBills.keySet();
 	}
 	
 	@SneakyThrows
 	private void processBill(Bill b) {
 		var interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).orElse(null);
 		
-//		if (interp != null && interp.getLastPressQuery().isBefore(LocalDate.now().minus(30, ChronoUnit.DAYS))) return;
+		if (interp != null && interp.getLastPressQuery().isAfter(LocalDate.now().minus(30, ChronoUnit.DAYS))) return; // Skip if it was interpreted in the last x days
 		if (interp == null) interp = new BillInterpretation();
 		
 	    final String query = b.getType().getName().toUpperCase() + " " + b.getNumber() + " " + b.getName();
@@ -473,15 +479,26 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	    if (b.getStatus().getProgress() == 1.0f)
 	    	fetchAndProcessSearchResults(b, encodedQuery, 11);
 	    
-	    interp.setLastPressQuery(LocalDate.now());
-	    dirtyBills.add(b);
-	    
-	    s3.put(interp);
+	    dirtyBills.put(b, interp);
+	}
+	
+	public void recordDirtyBills()
+	{
+		for (var kv : dirtyBills.entrySet()) {
+			val interp = s3.get(kv.getValue().getId(), BillInterpretation.class).orElse(null);
+			
+			if (interp != null) {
+				interp.setLastPressQuery(LocalDate.now());
+			    s3.put(interp);
+			}
+		}
 	}
 
 	@SneakyThrows
 	private void fetchAndProcessSearchResults(Bill b, String encodedQuery, int startIndex) {
 		if (totalQueries >= MAX_QUERIES) return;
+		
+		Log.info("Performing google search for press articles [" + encodedQuery + "]");
 		
 	    final String url = "https://customsearch.googleapis.com/customsearch/v1?key=" + 
 	                        secretService.getGoogleSearchSecret() + 
@@ -564,7 +581,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	{
 		float confidence = BillArticleRecognizer.recognize(b, articleText, origin.getUrl());
 		
-		System.out.println("Confidence that " + origin.getUrl() + " is written about bill " + b.getId() + " resolved to " + confidence);
+//		Log.info("Confidence that " + origin.getUrl() + " is written about bill " + b.getId() + " resolved to " + confidence);
 		
 		if (confidence > 0.4f)
 		{

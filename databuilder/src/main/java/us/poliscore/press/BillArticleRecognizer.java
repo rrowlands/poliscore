@@ -34,7 +34,8 @@ public class BillArticleRecognizer {
 	 * because otherwise they will result in a very high confidence score.
 	 * */
     private static final List<String> URL_BLACKLIST = Arrays.asList(
-        "fastdemocracy.com",
+    	"poliscore.us",
+    	"fastdemocracy.com",
         "congress.gov",
         "govtrack.us",
         "quiverquant.com",

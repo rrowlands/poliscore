@@ -106,6 +106,14 @@ export class BillComponent implements OnInit {
       this.buildBarChartData();
     });
   }
+  
+  getBillDate() {
+    if (this.bill?.lastActionDate != null) {
+      return this.bill.lastActionDate;
+    } else {
+      return this.bill?.introducedDate;
+    }
+  }
 
   updateMetaTags(): void {
     let billId = this.bill?.id ?? this.bill?.billId!;

@@ -26,7 +26,6 @@ import us.poliscore.entrypoint.batch.BatchBillRequestGenerator;
 import us.poliscore.entrypoint.batch.BatchLegislatorRequestGenerator;
 import us.poliscore.entrypoint.batch.BatchOpenAIResponseImporter;
 import us.poliscore.entrypoint.batch.PressBillInterpretationRequestGenerator;
-import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.Persistable;
@@ -37,7 +36,7 @@ import us.poliscore.model.legislator.Legislator;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
 import us.poliscore.model.legislator.LegislatorBillInteraction;
 import us.poliscore.model.legislator.LegislatorInterpretation;
-import us.poliscore.model.session.SessionInterpretation;
+import us.poliscore.model.press.PressInterpretation;
 import us.poliscore.model.session.SessionInterpretationOld;
 import us.poliscore.service.BillInterpretationService;
 import us.poliscore.service.BillService;
@@ -57,7 +56,7 @@ import us.poliscore.service.storage.MemoryObjectService;
 @QuarkusMain(name="DatabaseBuilder")
 public class DatabaseBuilder implements QuarkusApplication
 {
-	public static boolean INTERPRET_PRESS_BILLS = false;
+	public static boolean INTERPRET_PRESS_BILLS = true;
 	
 	public static boolean INTERPRET_NEW_BILLS = true;
 	
@@ -119,8 +118,6 @@ public class DatabaseBuilder implements QuarkusApplication
 	@Inject
 	private LegislatorInterpretationService legInterp;
 	
-	private Set<Bill> dirtyBills = new HashSet<Bill>();
-	
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
 	protected void process() throws IOException
@@ -137,10 +134,12 @@ public class DatabaseBuilder implements QuarkusApplication
 		imageBuilder.process();
 		billTextFetcher.process();
 		
-//		interpretBillPressArticles();
+		interpretBillPressArticles();
 		refreshDirtyBills();
 		
 		interpretBills();
+		pressBillInterpGenerator.recordDirtyBills(); // We want to record that our press query is complete, but only after the bill has been updated and re-interpreted (otherwise we would need to query again if it fails halfway through)
+		
 		interpretLegislators();
 		interpretPartyStats();
 		
@@ -158,8 +157,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
-//		for (String billId : PressBillInterpretationRequestGenerator.processBills) { Bill b = memService.get(billId, Bill.class).get();
-			if (!ddb.exists(b.getId(), Bill.class) || (pressBillInterpGenerator.getDirtyBills().contains(b) && !INTERPRET_NEW_BILLS)) {
+			if (!ddb.exists(b.getId(), Bill.class) || b.getNumber() == 1968 || b.getNumber() == 5) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				billService.ddbPersist(b, interp);
 				amount++;
@@ -199,20 +197,40 @@ public class DatabaseBuilder implements QuarkusApplication
 					responseImporter.process(f);
 				}
 			}
-			
-			dirtyBills = pressBillInterpGenerator.getDirtyBills();
 		} else {
-			for (String billId : PressBillInterpretationRequestGenerator.processBills) {
-				Bill b = memService.get(billId, Bill.class).get();
-				dirtyBills.add(b);
+//			for (String billId : PressBillInterpretationRequestGenerator.processBills) {
+//				Bill b = memService.get(billId, Bill.class).get();
+//				dirtyBills.add(b);
+//			}
+			
+			// TODO : Sort by date and only grab the top x amount
+			Set<Bill> updated = new HashSet<Bill>();
+			for (val pi : s3.query(PressInterpretation.class, Persistable.getClassStorageBucket(PressInterpretation.class))) {
+				if (pi.isNoInterp()) continue;
+				
+				var bill = ddb.get(pi.getBillId(), Bill.class).orElse(null);
+				
+				if (bill != null && bill.getInterpretation() != null && !updated.contains(bill)) {
+					var interp = bill.getInterpretation();
+					
+					if (interp.getPressInterps() == null) interp.setPressInterps(new ArrayList<PressInterpretation>());
+					
+					if (!interp.getPressInterps().stream().filter(ddbpi -> !ddbpi.isNoInterp()).anyMatch(ddbpi -> ddbpi.getId().equals(pi.getId()))) {
+						interp = s3.get(BillInterpretation.generateId(pi.getBillId(), null), BillInterpretation.class).get();
+						billService.ddbPersist(bill, interp);
+						updated.add(bill);
+					}
+				}
 			}
+			
+			Log.info("Updated " + updated.size() + " bills whose press interpretations were out of date.");
 		}
 	}
 	
 	private void interpretBills() { interpretBills(false); }
 	@SneakyThrows private void interpretBills(boolean isRecursive) {
 		if (INTERPRET_NEW_BILLS) {
-			List<File> requests = billRequestGenerator.process();
+			List<File> requests = billRequestGenerator.process(!isRecursive);
 			
 			if (requests.size() > 0) {
 				List<File> responses = openAi.processBatch(requests);

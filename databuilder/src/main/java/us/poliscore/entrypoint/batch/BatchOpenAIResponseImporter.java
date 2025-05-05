@@ -94,6 +94,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	@Inject
 	private PartyInterpretationService partyService;
 	
+	@Inject
+	protected PressBillInterpretationRequestGenerator pressBillInterpGenerator;
+	
 	private Set<String> importedBills = new HashSet<String>();
 	
 	private SessionInterpretation sessionInterp = null;
@@ -286,8 +289,6 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 			throw new RuntimeException("Interpretation missing proper stats or explain." + billId);
 		}
 		
-		s3.put(bi);
-		
 		if (bi.getOrigin().equals(InterpretationOrigin.POLISCORE) && sliceIndex == null) {
 			billService.ddbPersist(bill, bi);
 			
@@ -296,6 +297,9 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 //			System.out.println(new ObjectMapper().writeValueAsString(bi));
 			ddb.put(bi);
 		}
+		
+		// PopulatePressInterps must be called before we do this (which happens in billService.ddbPersist)
+		s3.put(bi);
 	}
 	
 	@SneakyThrows

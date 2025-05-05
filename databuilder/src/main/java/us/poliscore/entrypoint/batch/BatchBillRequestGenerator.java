@@ -81,7 +81,11 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		Quarkus.run(BatchBillRequestGenerator.class, args);
 	}
 	
-	public List<File> process() throws IOException
+	public List<File> process() throws IOException {
+		return process(true);
+	}
+	
+	public List<File> process(boolean includePressDirtyBills) throws IOException
 	{
 		tokenLen = 0;
 		totalRequests = 0;
@@ -98,15 +102,23 @@ public class BatchBillRequestGenerator implements QuarkusApplication
 		s3.optimizeExists(BillInterpretation.class);
 		s3.optimizeExists(BillText.class);
 		
-//		List<String> specificFetch = Arrays.asList(Bill.generateId(119, BillType.S, 5));
+//		List<String> specificFetch = Arrays.asList(Bill.generateId(119, BillType.HR, 1583));
 		
 		for (Bill b : memService.query(Bill.class).stream()
 //				.filter(b -> specificFetch.contains(b.getId()))
-				.filter(b -> (!CHECK_S3_EXISTS || (!billInterpreter.isInterpreted(b.getId()) || pressBillInterpGenerator.getDirtyBills().contains(b))))
+				.filter(b -> (!CHECK_S3_EXISTS || !billInterpreter.isInterpreted(b.getId()) || (includePressDirtyBills && pressBillInterpGenerator.getDirtyBills().contains(b))))
 				.filter(b -> s3.exists(BillText.generateId(b.getId()), BillText.class))
 				.sorted(Comparator.comparing(Bill::getIntroducedDate).reversed())
 //				.limit(100)
 				.toList()) {
+			
+			// The press interpreter may have said this bill was dirty, but after the press interps came back, they came back as NO_INTERP. At this point, it's not actually dirty and doesn't need to be interpreted.
+			if (CHECK_S3_EXISTS && billInterpreter.isInterpreted(b.getId()) && includePressDirtyBills && pressBillInterpGenerator.getDirtyBills().contains(b)) {
+				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).orElseThrow();
+				billService.populatePressInterps(interp);
+				
+				if (interp.getPressInterps().size() == 0) continue;
+			}
 			
 			val billText = billService.getBillText(b).orElse(null);
 			b.setText(billText);
