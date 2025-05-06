@@ -133,10 +133,9 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 //		imageBuilder.process();
 //		billTextFetcher.process();
+//		syncDdbWithS3();
 		
 		interpretBillPressArticles();
-		syncDdbBillsWithS3();
-		
 		interpretBills();
 		pressBillInterpGenerator.recordLastPressQueries(); // We want to record that our press query is complete, but only after the bill has been updated and re-interpreted (otherwise we would need to query again if it fails halfway through)
 		
@@ -149,9 +148,9 @@ public class DatabaseBuilder implements QuarkusApplication
 	}
 	
 	@SneakyThrows
-	private void syncDdbBillsWithS3()
+	private void syncDdbWithS3()
 	{
-		Log.info("Making sure that our ddb bill database is up-to-date with what exists on s3.");
+		Log.info("Making sure that our ddb database is up-to-date with what exists on s3.");
 		
 		long amount = 0;
 		
@@ -167,11 +166,34 @@ public class DatabaseBuilder implements QuarkusApplication
 		Log.info("Created " + amount + " missing bills in ddb from s3");
 		Log.info("Decaying hot values");
 		
-		// Decay first x hot values
+		// Decay first x hot values //
 		for (Bill b : ddb.query(Bill.class, 1000, Persistable.OBJECT_BY_HOT_INDEX, false, null, null))
 		{
 			ddb.put(b);
 		}
+		
+		// Update bills whose press interpretations are out of date //
+		// TODO : Sort by date and only grab the top x amount
+		Log.info("Syncing press interpretations");
+		Set<Bill> updated = new HashSet<Bill>();
+		for (val pi : s3.query(PressInterpretation.class, Persistable.getClassStorageBucket(PressInterpretation.class))) {
+			if (pi.isNoInterp()) continue;
+			
+			var bill = ddb.get(pi.getBillId(), Bill.class).orElse(null);
+			
+			if (bill != null && bill.getInterpretation() != null && !updated.contains(bill)) {
+				var interp = bill.getInterpretation();
+				
+				if (interp.getPressInterps() == null) interp.setPressInterps(new ArrayList<PressInterpretation>());
+				
+				if (!interp.getPressInterps().stream().filter(ddbpi -> !ddbpi.isNoInterp()).anyMatch(ddbpi -> ddbpi.getId().equals(pi.getId()))) {
+					interp = s3.get(BillInterpretation.generateId(pi.getBillId(), null), BillInterpretation.class).get();
+					billService.ddbPersist(bill, interp);
+					updated.add(bill);
+				}
+			}
+		}
+		Log.info("Updated " + updated.size() + " bills whose press interpretations were out of date.");
 	}
 	
 	@SneakyThrows
@@ -197,33 +219,6 @@ public class DatabaseBuilder implements QuarkusApplication
 					responseImporter.process(f);
 				}
 			}
-		} else {
-//			for (String billId : PressBillInterpretationRequestGenerator.processBills) {
-//				Bill b = memService.get(billId, Bill.class).get();
-//				dirtyBills.add(b);
-//			}
-			
-			// TODO : Sort by date and only grab the top x amount
-			Set<Bill> updated = new HashSet<Bill>();
-			for (val pi : s3.query(PressInterpretation.class, Persistable.getClassStorageBucket(PressInterpretation.class))) {
-				if (pi.isNoInterp()) continue;
-				
-				var bill = ddb.get(pi.getBillId(), Bill.class).orElse(null);
-				
-				if (bill != null && bill.getInterpretation() != null && !updated.contains(bill)) {
-					var interp = bill.getInterpretation();
-					
-					if (interp.getPressInterps() == null) interp.setPressInterps(new ArrayList<PressInterpretation>());
-					
-					if (!interp.getPressInterps().stream().filter(ddbpi -> !ddbpi.isNoInterp()).anyMatch(ddbpi -> ddbpi.getId().equals(pi.getId()))) {
-						interp = s3.get(BillInterpretation.generateId(pi.getBillId(), null), BillInterpretation.class).get();
-						billService.ddbPersist(bill, interp);
-						updated.add(bill);
-					}
-				}
-			}
-			
-			Log.info("Updated " + updated.size() + " bills whose press interpretations were out of date.");
 		}
 	}
 	

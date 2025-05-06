@@ -2,6 +2,7 @@ package us.poliscore.entrypoint.batch;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -425,6 +426,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		for (Bill b : memService.query(Bill.class).stream().filter(b ->
 				b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION)
 				&& s3.exists(BillText.generateId(b.getId()), BillText.class)
+				&& b.getStatus().getProgress() >= 0.2f // TODO : Get rid of me once done
 //				&& b.getIntroducedDate().isBefore(LocalDate.now().minus(10, ChronoUnit.DAYS)) // Must be at least x days old (otherwise there won't be press coverage) - Commented out. If we're going to pass the bill text through AI we might as well scan for press. Ideally this filter criteria would exactly match the bill request generator
 			).sorted(Comparator.comparing(Bill::getIntroducedDate)).collect(Collectors.toList())) {
 			if (totalQueries >= MAX_QUERIES) break;
@@ -703,9 +705,16 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	}
 	
 	@SneakyThrows
-	private String fetchUrl(String url)
-	{
-		return HttpClient.newHttpClient().send(HttpRequest.newBuilder().uri(java.net.URI.create(url)).build(), HttpResponse.BodyHandlers.ofString()).body();
+	private String fetchUrl(String url) {
+	    HttpResponse<String> response = HttpClient.newHttpClient()
+	        .send(HttpRequest.newBuilder().uri(URI.create(url)).build(), HttpResponse.BodyHandlers.ofString());
+
+	    if (response.statusCode() != 200) {
+	        Log.error("Google API request failed: " + response.body());
+	        throw new RuntimeException("Google API error " + response.statusCode());
+	    }
+
+	    return response.body();
 	}
 	
 	@Override
