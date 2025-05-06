@@ -441,7 +441,12 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 			
 //		for (String billId : processBills) { Bill b = memService.get(billId, Bill.class).get();
 //			deleteExisting(b);
-			processBill(b);
+			try {
+				processBill(b);
+			} catch (GoogleQuotaExceededException ex) {
+				Log.info("Hit google's search quota limit. Haulting further queries and returning.");
+				break;
+			}
 		}
 //		processOrigin(b, new InterpretationOrigin("url", "title"), Jsoup.parse(new File("/Users/rrowlands/dev/projects/poliscore/databuilder/src/main/resources/ace-ccr.html")));
 //		processOrigin(b, new InterpretationOrigin("https://www.reddit.com/r/NeutralPolitics/comments/1jawsml/what_are_the_pros_and_cons_of_voting_for_hr1968", "What are the PROS and CONS of voting for H.R.1968 - Full-Year Continuing Appropriations and Extensions Act, 2025?"));
@@ -709,12 +714,27 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	    HttpResponse<String> response = HttpClient.newHttpClient()
 	        .send(HttpRequest.newBuilder().uri(URI.create(url)).build(), HttpResponse.BodyHandlers.ofString());
 
-	    if (response.statusCode() != 200) {
-	        Log.error("Google API request failed: " + response.body());
-	        throw new RuntimeException("Google API error " + response.statusCode());
+	    int status = response.statusCode();
+	    String body = response.body();
+
+	    if (status == 429 || body.contains("\"reason\":\"rateLimitExceeded\"")) {
+	        throw new GoogleQuotaExceededException("Google Search API quota exceeded: " + body);
 	    }
 
-	    return response.body();
+	    if (status != 200) {
+	        Log.error("Google API request failed: " + body);
+	        throw new RuntimeException("Google API error " + status + ": " + body);
+	    }
+
+	    return body;
+	}
+
+	
+	public class GoogleQuotaExceededException extends RuntimeException {
+	    private static final long serialVersionUID = -1070397745717473884L;
+		public GoogleQuotaExceededException(String message) {
+	        super(message);
+	    }
 	}
 	
 	@Override
