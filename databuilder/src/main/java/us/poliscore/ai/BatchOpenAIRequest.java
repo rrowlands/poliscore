@@ -31,7 +31,7 @@ public class BatchOpenAIRequest {
 	
 	@SneakyThrows
 	public BatchOpenAIRequest(CustomData data, BatchOpenAIBody body) {
-		this.custom_id = new ObjectMapper().writeValueAsString(data);
+		this.custom_id = customDataToCustomId(data);
 		this.body = body;
 	}
 	
@@ -39,6 +39,51 @@ public class BatchOpenAIRequest {
 		this.custom_id = id;
 		this.body = body;
 	}
+	
+	/**
+	 * OpenAI's custom_id field has a max length of 512 so we'll occasionally need to truncate things here.  
+	 * 
+	 * @param data
+	 * @return
+	 */
+	@SneakyThrows
+	public static String customDataToCustomId(CustomData data) {
+	    ObjectMapper mapper = new ObjectMapper();
+	    String json = mapper.writeValueAsString(data);
+
+	    if (json.length() <= 512) return json;
+
+	    if (data instanceof CustomOriginData) {
+	        var origin = ((CustomOriginData) data).getOrigin();
+
+	        String title = origin.getTitle();
+	        String url = origin.getUrl();
+
+	        // Prefer truncating title unless title is very short
+	        boolean preferTitle = title != null && (title.length() >= 20 || url == null);
+
+	        while (true) {
+	            json = mapper.writeValueAsString(data);
+	            if (json.length() <= 512) break;
+
+	            if (preferTitle && title != null && title.length() > 2) {
+	                title = title.substring(0, title.length() - 3) + "..";
+	                origin.setTitle(title);
+	            } else if (url != null && url.length() > 2) {
+	                url = url.substring(0, url.length() - 3) + "..";
+	                origin.setUrl(url);
+	            } else if (!preferTitle && title != null && title.length() > 2) {
+	                title = title.substring(0, title.length() - 3) + "..";
+	                origin.setTitle(title);
+	            } else {
+	                break; // cannot truncate further
+	            }
+	        }
+	    }
+
+	    return mapper.writeValueAsString(data);
+	}
+
 	
 	@Data
 	@NoArgsConstructor

@@ -425,13 +425,13 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		for (Bill b : memService.query(Bill.class).stream().filter(b ->
 				b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION)
 				&& s3.exists(BillText.generateId(b.getId()), BillText.class)
-				&& b.getIntroducedDate().isBefore(LocalDate.now().minus(10, ChronoUnit.DAYS)) // Must be at least x days old (otherwise there won't be press coverage)
+//				&& b.getIntroducedDate().isBefore(LocalDate.now().minus(10, ChronoUnit.DAYS)) // Must be at least x days old (otherwise there won't be press coverage) - Commented out. If we're going to pass the bill text through AI we might as well scan for press. Ideally this filter criteria would exactly match the bill request generator
 			).sorted(Comparator.comparing(Bill::getIntroducedDate)).collect(Collectors.toList())) {
 			if (totalQueries >= MAX_QUERIES) break;
 			
 			// Don't interpret really old bills
 			// TODO : Once we get all the old bills interpreted we can replace this with a filter where we just ignore bills older than 101 days. (we won't always need to check the interp's lastPressQuery so long as we keep on top of generation)
-			if (b.getLastActionDate().isAfter(LocalDate.now().minus(101, ChronoUnit.DAYS))) {
+			if (b.getDate().isAfter(LocalDate.now().minus(101, ChronoUnit.DAYS))) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class);
 				
 				if (interp.isPresent() && interp.get().getLastPressQuery() != LocalDate.EPOCH) continue;
