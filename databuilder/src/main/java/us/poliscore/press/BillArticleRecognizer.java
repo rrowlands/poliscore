@@ -47,7 +47,9 @@ public class BillArticleRecognizer {
         "clerk.senate.gov",
         "cbo.gov",
         "whitegouse.gov",
-        "senate.gov"
+        "senate.gov",
+        "issuevoter.org",
+        "trackbill.com"
     );
 	
     // Primary date formats to check

@@ -106,7 +106,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 			A one sentence summary of the text. Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
 			
 			Long Report:
-			A detailed, but not repetitive summary of the analysis which references concrete, notable and specific text of the analysis where possible. This report should explain the author's opinion or stance on the bill, any high level goals, and it's predictions of the bill's expected impact to society (if any). Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
+			A detailed, but not repetitive summary of the analysis which references concrete, notable and specific text of the analysis where possible. This report be no longer than three paragraphs and should explain the author's opinion or stance on the bill, any high level goals, and it's predictions of the bill's expected impact to society (if any). Do not include any formatting text, such as stars or dashes. Do not include non-human readable text such as XML ids.
 			
 			Confidence:
 			A self-rated number from 0 to 100 measuring how confident you are that your analysis was valid and interpreted correctly.
@@ -426,7 +426,6 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		for (Bill b : memService.query(Bill.class).stream().filter(b ->
 				b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION)
 				&& s3.exists(BillText.generateId(b.getId()), BillText.class)
-//				&& b.getStatus().getProgress() >= 0.8f // TODO : Get rid of me once done
 //				&& b.getIntroducedDate().isBefore(LocalDate.now().minus(10, ChronoUnit.DAYS)) // Must be at least x days old (otherwise there won't be press coverage) - Commented out. If we're going to pass the bill text through AI we might as well scan for press. Ideally this filter criteria would exactly match the bill request generator
 			).sorted(Comparator.comparing(Bill::getIntroducedDate)).collect(Collectors.toList())) {
 			if (totalQueries >= MAX_QUERIES) break;

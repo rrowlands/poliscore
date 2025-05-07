@@ -131,9 +131,9 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-//		imageBuilder.process();
-//		billTextFetcher.process();
-//		syncDdbWithS3();
+		imageBuilder.process();
+		billTextFetcher.process();
+		syncDdbWithS3();
 		
 		interpretBillPressArticles();
 		interpretBills();
