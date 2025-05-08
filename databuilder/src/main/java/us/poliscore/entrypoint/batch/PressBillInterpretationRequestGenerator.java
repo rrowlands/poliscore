@@ -74,11 +74,11 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 			You will be given what is suspected, but not guaranteed, to be a press article which contains information about the following United States bill currently in congress.
 			{{billIdentifier}}
 			
-			The first thing you must determine is if this text offers any interesting or useful analysis or information about the bill in question. We are looking for information beyond what can be easily scraped from congress, so information such as basic voting information, an introduction date, a bill title, or simply an announcement that a bill was introduced or has passed does NOT count.
+			The first thing you must determine is if this text offers any interesting or useful analysis, information or an organization's stance about the bill in question. We are looking for information beyond what can be easily scraped from congress, so information such as basic voting information, an introduction date, a bill title, or simply an announcement that a bill was introduced or has passed does NOT count.
 			
 			If the provided text is NOT an interpretation of this bill or if the interpretation is of a different bill, you are to immediately respond as 'NO_INTERPRETATION - <reason>' where <reason> is the reason why you don't think it's a valid interpretation for this bill and EXIT.
 			
-			*IMPORTANT* If the text states that a particular organization either supports or does not support the bill in question, DO NOT return 'NO_INTERPRETATION'.
+			*IMPORTANT* If the text states that a particular organization either supports or does not support the bill in question, DO NOT return 'NO_INTERPRETATION'. The analysis does NOT have to be a detailed one, a simply stated opinion from a reputable organization is enough.
 			
 			Generally speaking, the workflow is as follows:
 			1. Is the article actually about this bill? If not, respond 'NO_INTERPRETATION - <reason>'
