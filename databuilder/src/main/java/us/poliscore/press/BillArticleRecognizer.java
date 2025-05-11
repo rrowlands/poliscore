@@ -24,6 +24,9 @@ import us.poliscore.model.legislator.Legislator.LegislatorName;
  * Utility class for recognizing how likely an article is about a given bill,
  * considering both article text and source URL. Returns a normalized confidence score [0..1].
  */
+
+// TODO : Check for article date. If it was published before the bill existed, then it's not about this bill.
+
 @UtilityClass
 public class BillArticleRecognizer {
 

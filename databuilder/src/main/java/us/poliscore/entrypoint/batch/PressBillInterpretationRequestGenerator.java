@@ -655,7 +655,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		if (text.length() > OpenAIService.MAX_REQUEST_LENGTH)
 			text = text.substring(0, OpenAIService.MAX_REQUEST_LENGTH);
 		
-		var prompt = PRESS_INTERPRETATION_PROMPT.replace("{{billIdentifier}}", b.getNamespace().getNamespace().replace("/", " ") + ", " + b.getOriginatingChamber().getName() + ", " + b.getType().getName() + " " + b.getNumber());
+		var prompt = PRESS_INTERPRETATION_PROMPT.replace("{{billIdentifier}}", "United States, " + b.getSession() + "th Congress" + ", " + b.getOriginatingChamber().getName() + "\n" + b.getType().getName() + " " + b.getNumber()) + " - " + b.getName() + "\nIntroduced in " + b.getIntroducedDate();
 		createRequest(data, prompt, text);
 		
 		return true;
