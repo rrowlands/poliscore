@@ -427,7 +427,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 				b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION)
 				&& s3.exists(BillText.generateId(b.getId()), BillText.class)
 //				&& b.getIntroducedDate().isBefore(LocalDate.now().minus(10, ChronoUnit.DAYS)) // Must be at least x days old (otherwise there won't be press coverage) - Commented out. If we're going to pass the bill text through AI we might as well scan for press. Ideally this filter criteria would exactly match the bill request generator
-			).sorted(Comparator.comparing(Bill::getIntroducedDate)).collect(Collectors.toList())) {
+			).sorted(Comparator.comparing(Bill::getDate).reversed()).collect(Collectors.toList())) {
 			if (totalQueries >= MAX_QUERIES) break;
 			
 			// Don't interpret really old bills
@@ -710,24 +710,45 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	@SneakyThrows
 	private String fetchUrl(String url) {
-	    HttpResponse<String> response = HttpClient.newHttpClient()
-	        .send(HttpRequest.newBuilder().uri(URI.create(url)).build(), HttpResponse.BodyHandlers.ofString());
+	    final int maxRetries = 5;
+	    final long baseDelayMillis = 1000; // 1 second base
+	    int attempt = 0;
 
-	    int status = response.statusCode();
-	    String body = response.body();
+	    while (true) {
+	        try {
+	            HttpResponse<String> response = HttpClient.newHttpClient()
+	                .send(HttpRequest.newBuilder().uri(URI.create(url)).build(), HttpResponse.BodyHandlers.ofString());
 
-	    if (status == 429 || body.contains("\"reason\":\"rateLimitExceeded\"")) {
-	        throw new GoogleQuotaExceededException("Google Search API quota exceeded: " + body);
+	            int status = response.statusCode();
+	            String body = response.body();
+
+	            if (status == 429 || body.contains("\"reason\":\"rateLimitExceeded\"")) {
+	                throw new GoogleQuotaExceededException("Google Search API quota exceeded: " + body);
+	            }
+
+	            if (status >= 500 && status < 600) {
+	                throw new IOException("Transient Google API error " + status + ": " + body);
+	            }
+
+	            if (status != 200) {
+	                Log.error("Google API request failed: " + body);
+	                throw new RuntimeException("Google API error " + status + ": " + body);
+	            }
+
+	            return body;
+	        } catch (GoogleQuotaExceededException e) {
+	            throw e; // don't retry, break immediately
+	        } catch (IOException e) {
+	            if (++attempt > maxRetries) {
+	                Log.error("Max retries reached for Google API call. Giving up.");
+	                throw e;
+	            }
+	            long delay = baseDelayMillis * (1L << (attempt - 1)); // exponential backoff
+	            Log.warn("Google API call failed (attempt " + attempt + "): " + e.getMessage() + ". Retrying in " + delay + "ms...");
+	            Thread.sleep(delay);
+	        }
 	    }
-
-	    if (status != 200) {
-	        Log.error("Google API request failed: " + body);
-	        throw new RuntimeException("Google API error " + status + ": " + body);
-	    }
-
-	    return body;
 	}
-
 	
 	public class GoogleQuotaExceededException extends RuntimeException {
 	    private static final long serialVersionUID = -1070397745717473884L;
