@@ -41,10 +41,10 @@ public class OpenAIService {
 	
 	public static final int PROMPT_VERSION = 0;
 	
-	// GPT-4o context window in tokens is 128,000
-	public static final int MAX_TOKENS = 3000;
-	
 	public static int MAX_REQUEST_LENGTH = 3500000;
+	public static int MAX_GPT4o_REQUEST_LENGTH = 490000; // GPT-4o context window in tokens is 128,000, which is 500k string length.
+	
+	public static final int MAX_OUTPUT_TOKENS = 3000;
 	
 	public static final int WAIT_BETWEEN_CALLS = 60; // in seconds
 	
@@ -90,7 +90,7 @@ public class OpenAIService {
     			.messages(msgs)
     			.n(1)
     			.temperature(0.0d) // We don't want randomness. Give us predictability and accuracy
-    			.maxTokens(MAX_TOKENS)
+    			.maxTokens(MAX_OUTPUT_TOKENS)
     	        .model(StringUtils.defaultIfEmpty(model, MODEL))
     	        .build();
     	

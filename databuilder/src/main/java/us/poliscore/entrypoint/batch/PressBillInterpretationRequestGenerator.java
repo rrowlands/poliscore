@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,12 +41,14 @@ import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
 import us.poliscore.ai.BatchOpenAIRequest.CustomOriginData;
 import us.poliscore.model.AIInterpretationMetadata;
+import us.poliscore.model.CongressionalSession;
 import us.poliscore.model.InterpretationOrigin;
 import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.TrackedIssue;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
 import us.poliscore.model.bill.BillText;
+import us.poliscore.model.bill.BillType;
 import us.poliscore.model.press.PressInterpretation;
 import us.poliscore.press.BillArticleRecognizer;
 import us.poliscore.press.GoogleSearchResponse;
@@ -390,14 +393,13 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	private Set<Bill> queriedBills = new HashSet<Bill>();
 	
-	public static final String[] processBills = new String[] {
-//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1968),
-//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HJRES, 35),
-//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.SJRES, 11),
-//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HJRES, 25),
-//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 2480),
-//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.S, 5)
+	// If you need to reprocess a particular bill for whatever reason, add it here. When we run, we will always process any bills in this list, so be careful
+	// not to commit this list with anything in it.
+	public static final String[] specificFetch = new String[] {
+//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 2923)
 	};
+	
+	public static final boolean FORCE_REINTERPRET = specificFetch.length > 0;
 	
 	public static AIInterpretationMetadata metadata()
 	{
@@ -423,23 +425,32 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		requests = new ArrayList<BatchOpenAIRequest>();
 		writtenFiles = new ArrayList<File>();
 		
-		for (Bill b : memService.query(Bill.class).stream().filter(b ->
+		// Determine what bills to process //
+		Stream<Bill> bills;
+		if (specificFetch.length > 0) {
+			bills = memService.query(Bill.class).stream().filter(b -> Arrays.asList(specificFetch).contains(b.getId()));
+		} else {
+			bills = memService.query(Bill.class).stream().filter(b ->
 				b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION)
-				&& s3.exists(BillText.generateId(b.getId()), BillText.class)
+				&& s3.exists(BillText.generateId(b.getId()), BillText.class));
 //				&& b.getIntroducedDate().isBefore(LocalDate.now().minus(10, ChronoUnit.DAYS)) // Must be at least x days old (otherwise there won't be press coverage) - Commented out. If we're going to pass the bill text through AI we might as well scan for press. Ideally this filter criteria would exactly match the bill request generator
-			).sorted(Comparator.comparing(Bill::getDate).reversed()).collect(Collectors.toList())) {
+		}
+		
+		// Process the bills //
+		for (Bill b : bills.sorted(Comparator.comparing(Bill::getDate).reversed()).collect(Collectors.toList())) {
 			if (totalQueries >= MAX_QUERIES) break;
 			
 			// Don't interpret really old bills
 			// TODO : Once we get all the old bills interpreted we can replace this with a filter where we just ignore bills older than 101 days. (we won't always need to check the interp's lastPressQuery so long as we keep on top of generation)
-			if (b.getDate().isAfter(LocalDate.now().minus(101, ChronoUnit.DAYS))) {
+			if (!Arrays.asList(specificFetch).contains(b.getId()) && b.getDate().isAfter(LocalDate.now().minus(101, ChronoUnit.DAYS))) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class);
 				
 				if (interp.isPresent() && interp.get().getLastPressQuery() != LocalDate.EPOCH) continue;
 			}
 			
-//		for (String billId : processBills) { Bill b = memService.get(billId, Bill.class).get();
-//			deleteExisting(b);
+			if (FORCE_REINTERPRET)
+				deleteExisting(b);
+			
 			try {
 				processBill(b);
 			} catch (GoogleQuotaExceededException ex) {
@@ -493,7 +504,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	private void processBill(Bill b) {
 		var interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).orElse(null);
 		
-		if (interp != null && interp.getLastPressQuery().isAfter(LocalDate.now().minus(30, ChronoUnit.DAYS))) return; // Skip if it was interpreted in the last x days
+		if (interp != null && interp.getLastPressQuery().isAfter(LocalDate.now().minus(30, ChronoUnit.DAYS)) && !Arrays.asList(specificFetch).contains(b.getId())) return; // Skip if it was interpreted in the last x days
 		if (interp == null) interp = new BillInterpretation();
 		
 		final String typeAndNumber = b.getType().getName().toUpperCase() + " " + b.getNumber();
@@ -582,7 +593,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	
 	private boolean processOrigin(Bill b, InterpretationOrigin origin)
 	{
-		if (s3.exists(PressInterpretation.generateId(b.getId(), origin), PressInterpretation.class)) return false;
+		if (!FORCE_REINTERPRET && s3.exists(PressInterpretation.generateId(b.getId(), origin), PressInterpretation.class)) return false;
 		
 		String articleText = null;
 		
@@ -649,21 +660,24 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		String oid = PressInterpretation.generateId(b.getId(), origin);
 		var data = new CustomOriginData(origin, oid);
 		
+		var prompt = PRESS_INTERPRETATION_PROMPT.replace("{{billIdentifier}}", "United States, " + b.getSession() + "th Congress" + ", " + b.getOriginatingChamber().getName() + "\n" + b.getType().getName() + " " + b.getNumber() + " - " + b.getName() + "\nIntroduced in " + b.getIntroducedDate());
+		
 		String text = "title: " + origin.getTitle() + "\nurl: " + origin.getUrl() + "\n\n";
 		
+		int maxLen = OpenAIService.MAX_GPT4o_REQUEST_LENGTH - prompt.length();
+				
 		text += body;
-		if (text.length() > OpenAIService.MAX_REQUEST_LENGTH)
-			text = text.substring(0, OpenAIService.MAX_REQUEST_LENGTH);
+		if (text.length() > maxLen)
+			text = text.substring(0, maxLen);
 		
-		var prompt = PRESS_INTERPRETATION_PROMPT.replace("{{billIdentifier}}", "United States, " + b.getSession() + "th Congress" + ", " + b.getOriginatingChamber().getName() + "\n" + b.getType().getName() + " " + b.getNumber()) + " - " + b.getName() + "\nIntroduced in " + b.getIntroducedDate();
 		createRequest(data, prompt, text);
 		
 		return true;
 	}
 	
 	private void createRequest(CustomOriginData data, String sysMsg, String userMsg) {
-		if (userMsg.length() > OpenAIService.MAX_REQUEST_LENGTH) {
-			throw new RuntimeException("Max user message length exceeded on " + data.getOid() + " (" + userMsg.length() + " > " + OpenAIService.MAX_REQUEST_LENGTH);
+		if ((userMsg.length() + sysMsg.length()) > OpenAIService.MAX_GPT4o_REQUEST_LENGTH) {
+			throw new RuntimeException("Max user message length exceeded on " + data.getOid() + " (" + userMsg.length() + " > " + OpenAIService.MAX_GPT4o_REQUEST_LENGTH);
 		}
 		
 		List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();

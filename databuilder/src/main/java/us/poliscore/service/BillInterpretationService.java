@@ -47,7 +47,7 @@ public class BillInterpretationService {
 			{issuesList}
 			
 			Bill Title:
-			Write the bill title. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content.
+			Write the bill title. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very concise title for the bill based on its content. If the bill has a title, but it is confusing, vague, too long, or would otherwise be poorly understood by the general public, please make up a very concise title for the bill based on its content.  
 			
 			Riders:
 			- A bill rider is a extraneous, harmful piece of unrelated legislation added to a bill which undermines or detracts from the original intent of the bill. List the bill riders identified and the section they occured at, or 'None' if there are none

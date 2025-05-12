@@ -113,7 +113,7 @@ public class BatchOpenAIRequest {
 		
 		private List<BatchBillMessage> messages = new ArrayList<BatchBillMessage>();
 		
-		private int max_tokens = OpenAIService.MAX_TOKENS;
+		private int max_tokens = OpenAIService.MAX_OUTPUT_TOKENS;
 		
 		private float temperature = 0.0f;
 		
