@@ -127,7 +127,7 @@ public class USCBillView {
 		
 		if (StringUtils.isNotBlank(getShort_title())) return getShort_title();
 		
-		if (StringUtils.isNotBlank(getOfficial_title()) && getOfficial_title().length() <= 200) return getOfficial_title();
+		if (StringUtils.isNotBlank(getOfficial_title())) return getOfficial_title();
 		
 		return getBill_type().toUpperCase() + "-" + getNumber();
 	}
