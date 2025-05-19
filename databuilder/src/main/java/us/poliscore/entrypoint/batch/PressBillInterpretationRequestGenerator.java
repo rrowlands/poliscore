@@ -442,7 +442,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 			
 			// Don't interpret really old bills
 			// TODO : Once we get all the old bills interpreted we can replace this with a filter where we just ignore bills older than 101 days. (we won't always need to check the interp's lastPressQuery so long as we keep on top of generation)
-			if (!Arrays.asList(specificFetch).contains(b.getId()) && b.getDate().isAfter(LocalDate.now().minus(101, ChronoUnit.DAYS))) {
+			if (!Arrays.asList(specificFetch).contains(b.getId()) && b.getDate().isBefore(LocalDate.now().minus(101, ChronoUnit.DAYS))) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class);
 				
 				if (interp.isPresent() && interp.get().getLastPressQuery() != LocalDate.EPOCH) continue;
