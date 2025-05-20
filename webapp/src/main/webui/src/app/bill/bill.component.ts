@@ -13,13 +13,15 @@ import { ConfigService } from '../config.service';
 import { HeaderComponent } from '../header/header.component';
 import { DisclaimerComponent } from '../disclaimer/disclaimer.component';
 import { MatTableModule } from '@angular/material/table';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
 @Component({
   selector: 'bill',
   standalone: true,
-  imports: [MatTableModule, DisclaimerComponent, HeaderComponent, MatCardModule, CommonModule, CommonModule, RouterModule, MatButtonModule],
+  imports: [MatTooltipModule, MatTableModule, DisclaimerComponent, HeaderComponent, MatCardModule, CommonModule, CommonModule, RouterModule, MatButtonModule],
   providers: [AppService, HttpClient],
   templateUrl: './bill.component.html',
   styleUrl: './bill.component.scss'
@@ -72,7 +74,7 @@ export class BillComponent implements OnInit {
     }
   };
 
-  constructor(public config: ConfigService, private meta: Meta, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
+  constructor(private sanitizer: DomSanitizer, public config: ConfigService, private meta: Meta, private service: AppService, private route: ActivatedRoute, private router: Router, @Inject(PLATFORM_ID) private _platformId: Object, private titleService: Title) { }
 
   @HostListener('window:resize', ['$event'])
   onResize() {
@@ -105,6 +107,20 @@ export class BillComponent implements OnInit {
       this.updateMetaTags();
       this.buildBarChartData();
     });
+  }
+
+  getBillName() {
+    if (this.bill?.interpretation && this.bill.interpretation.genBillTitle && this.bill.name.length > 125) {
+      return this.bill.interpretation.genBillTitle
+    } else {
+      return this.bill?.name;
+    }
+  }
+
+  getBillTooltip(): string {
+    if (!this.bill || !this.bill.name || this.bill!.name.length <= 125 || this.getBillName()!.trim().toLowerCase() === this.bill!.name.trim().toLowerCase()) return '';
+
+    return 'This bill\'s name was shortened by AI, for your convenience. The official bill title is: \n\n' + this.bill?.name;
   }
   
   getBillDate() {

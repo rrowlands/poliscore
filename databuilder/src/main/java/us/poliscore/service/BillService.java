@@ -290,7 +290,21 @@ public class BillService {
 	{
 		var pressInterps = s3.query(PressInterpretation.class, Persistable.getClassStorageBucket(PressInterpretation.class), interp.getBillId().replace(Bill.ID_CLASS_PREFIX + "/", ""));
 		
-		pressInterps = pressInterps.stream().filter(i -> i.getBillId().equals(interp.getBillId()) && !InterpretationOrigin.POLISCORE.equals(i.getOrigin()) && !i.isNoInterp()).collect(Collectors.toList());
+//		pressInterps = pressInterps.stream().filter(i -> i.getBillId().equals(interp.getBillId()) && !InterpretationOrigin.POLISCORE.equals(i.getOrigin()) && !i.isNoInterp()).collect(Collectors.toList());
+		
+		pressInterps = pressInterps.stream()
+			    .filter(i -> {
+			        try {
+			            return i.getBillId().equals(interp.getBillId())
+			                && !InterpretationOrigin.POLISCORE.equals(i.getOrigin())
+			                && !i.isNoInterp();
+			        } catch (Exception e) {
+			            Log.warn("Skipping press interpretation due to error: " + i, e);
+			            return false; // skip this item if it errors
+			        }
+			    })
+			    .collect(Collectors.toList());
+
 		
 		interp.setPressInterps(pressInterps);
 	}

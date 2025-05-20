@@ -124,6 +124,17 @@ public class Bill implements Persistable {
 		return type.getName().toLowerCase() + number + "-" + session;
 	}
 	
+	public String getShortName()
+	{
+		if (StringUtils.isNotBlank(name) && name.length() < 125) {
+			return name;
+		} else if (interpretation != null && StringUtils.isNotBlank(interpretation.getGenBillTitle())) {
+			return interpretation.getGenBillTitle();
+		}
+		
+		return name;
+	}
+	
 	@DynamoDbPartitionKey
 	@EqualsAndHashCode.Include
 	public String getId()

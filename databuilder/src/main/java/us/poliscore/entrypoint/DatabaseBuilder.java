@@ -156,11 +156,12 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
-			if (!ddb.exists(b.getId(), Bill.class) || b.getNumber() == 1968 || b.getNumber() == 5) {
+			// TODO : Hot bills are getting out of sync
+//			if (!ddb.exists(b.getId(), Bill.class)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				billService.ddbPersist(b, interp);
 				amount++;
-			}
+//			}
 		}
 		
 		Log.info("Created " + amount + " missing bills in ddb from s3");

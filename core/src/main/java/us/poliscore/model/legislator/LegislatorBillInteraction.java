@@ -125,7 +125,7 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	{
 		this.setIssueStats(interp.getIssueStats());
 		this.setShortExplain(interp.getShortExplain());
-		this.setBillName(bill.getName());
+		this.setBillName(bill.getShortName());
 		this.setStatusProgress(bill.getStatus().getProgress());
 		this.setCosponsorPercent(bill.getCosponsorPercent());
 	}

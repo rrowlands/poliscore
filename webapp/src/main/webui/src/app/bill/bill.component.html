@@ -50,7 +50,9 @@
                                 </div>
                                 </div>
                                 <div class="title-middle-stretch">
-                                    <h1 class="card-title"><a [href]="'https://www.congress.gov/bill/' + bill.session + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
+                                    <h1 class="card-title" [matTooltip]="bill.name"><a [href]="'https://www.congress.gov/bill/' + bill.session + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{getBillName()}}</a></h1>
+                                    <h2 *ngIf="bill.interpretation && bill.interpretation.genBillTitle && bill.interpretation.genBillTitle !== bill.name" class="official-bill-title">{{ bill.name }}</h2>
+                                      
                                     <h3 class="card-subtitle">Sponsor: <a [href]="config.legislatorIdToAbsolutePath(bill.sponsor.legislatorId)">{{bill.sponsor.name.official_full}}</a></h3>
                                 </div>
                             </div>
@@ -69,7 +71,8 @@
                                         <disclaimer [small]="getCosponsorSmall()" [large]="getCosponsorLarge()" [positionBelow]="true"></disclaimer>
                                     </div>
                                     <div class="title-middle">
-                                        <h1 class="card-title"><a [href]="'https://www.congress.gov/bill/' + bill.session + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{bill.name}}</a></h1>
+                                        <h1 class="card-title" [matTooltip]="getBillTooltip()" matTooltipClass="bill-tooltip"><a [href]="'https://www.congress.gov/bill/' + bill.session + '-congress/' + getCongressGovBillType() + '/' + bill.number">{{getBillName()}}</a></h1>
+                                        <h2 *ngIf="bill.interpretation && bill.interpretation.genBillTitle && bill.interpretation.genBillTitle !== bill.name" class="official-bill-title">{{ bill.name }}</h2>
                                         <h3 class="card-subtitle">Sponsor: <a [href]="config.legislatorIdToAbsolutePath(bill.sponsor.legislatorId)">{{bill.sponsor.name.official_full}}</a></h3>
                                     </div>
                                     <div class="title-right">

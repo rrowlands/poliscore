@@ -286,6 +286,14 @@ export class BillsComponent implements OnInit {
     });
   }
 
+  getBillName(bill: Bill) {
+    if (bill.interpretation && bill.interpretation.genBillTitle && bill.name.length > 125) {
+      return bill.interpretation.genBillTitle
+    } else {
+      return bill.name;
+    }
+  }
+
   gradeForBill(bill: Bill): string { return gradeForBill(bill); }
   subtitleForBill(bill: Bill) { return subtitleForBill(bill); }
   descriptionForBill(bill: Bill) { return descriptionForBill(bill); }

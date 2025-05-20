@@ -58,6 +58,26 @@ h2 {
     /* This row holds left and right side by side */
   }
 
+  ::ng-deep .bill-tooltip {
+    white-space: pre-line;
+  } 
+  ::ng-deep div.cdk-overlay-pane {
+    width: 16em !important;
+  }
+
+  .official-bill-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+
 @media screen and (min-width: 600px) {
   .title-row-big .title-left, .title-right {
     margin-top: -35px;
