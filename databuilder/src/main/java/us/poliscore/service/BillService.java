@@ -3,6 +3,7 @@ package us.poliscore.service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URI;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -333,13 +334,19 @@ public class BillService {
 	public void generateBillWebappIndex() {
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/resources/bills.index");
 		
+		DateTimeFormatter usFormat = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+		
 		val data = memService.queryAll(Bill.class).stream()
 			.filter(b -> PoliscoreUtil.SUPPORTED_CONGRESSES.stream().anyMatch(s -> b.isIntroducedInSession(s)) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.map(b -> {
 				// The bill name can come from the interpretation so we have to fetch it.
 				b.setInterpretation(s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).orElseThrow());
 				
-				return Arrays.asList(b.getId(), b.getName());
+				if (b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION)) {
+					return Arrays.asList(b.getId(), b.getName());
+				} else {
+					return Arrays.asList(b.getId(), b.getName() + " (" + b.getIntroducedDate().format(usFormat) + ")");
+				}
 			})
 			.sorted((a,b) -> a.get(1).compareTo(b.get(1)))
 			.toList();

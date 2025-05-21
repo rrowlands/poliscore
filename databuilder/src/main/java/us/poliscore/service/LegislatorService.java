@@ -65,6 +65,7 @@ public class LegislatorService {
 			leg.setName(view.getName().convert());
 			leg.setBioguideId(view.getId().getBioguide());
 			leg.setThomasId(view.getId().getThomas());
+			leg.setLisId(view.getId().getLis());
 			leg.setWikidataId(view.getId().getWikidata());
 			leg.setBirthday(view.getBio().getBirthday());
 			leg.setTerms(view.getTerms().stream().map(t -> t.convert()).collect(Collectors.toCollection(LegislatorLegislativeTermSortedSet::new)));

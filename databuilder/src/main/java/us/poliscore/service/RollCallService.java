@@ -58,6 +58,10 @@ public class RollCallService {
 					else
 						skipped++;
 				}
+				catch (Exception e)
+				{
+					Log.error("Exception encountered while processing roll call file [" + data.getAbsolutePath() + "]", e);
+				}
 			}
 		}
 		
@@ -78,8 +82,8 @@ public class RollCallService {
 		// There are some bill types we don't care about. Don't bother printing noisy warnings or anything
 		if (BillType.getIgnoredBillTypes().contains(BillType.valueOf(rollCall.getBill().getType().toUpperCase()))) return false;
 		
-		rollCall.getVotes().getAye().forEach(v -> process(rollCall, v, VoteStatus.AYE));
-		rollCall.getVotes().getNo().forEach(v -> process(rollCall, v, VoteStatus.NAY));
+		rollCall.getVotes().getAffirmative().forEach(v -> process(rollCall, v, VoteStatus.AYE));
+		rollCall.getVotes().getNegative().forEach(v -> process(rollCall, v, VoteStatus.NAY));
 		
 		// At the moment these are just pointless noise so we're ignoring them.
 //		rollCall.getVotes().getNotVoting().forEach(v -> process(rollCall, v, VoteStatus.NOT_VOTING));
@@ -93,7 +97,10 @@ public class RollCallService {
 		Legislator leg;
 		try
 		{
-			leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber(), vote.getId())).orElseThrow();
+			if (vote.getId().length() == 4 && vote.getId().startsWith("S"))
+				leg = memService.query(Legislator.class).stream().filter(l -> vote.getId().equals(l.getLisId())).findFirst().orElseThrow();
+			else
+				leg = memService.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber(), vote.getId()), Legislator.class).orElseThrow();
 		}
 		catch (NoSuchElementException ex)
 		{

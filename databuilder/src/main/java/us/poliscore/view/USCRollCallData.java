@@ -4,17 +4,23 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import io.quarkus.logging.Log;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -52,22 +58,74 @@ public class USCRollCallData {
 	}
 	
 	@Data
-	@JsonIgnoreProperties(ignoreUnknown = true)
+	@JsonDeserialize(using = USCRollCallVotesDeserializer.class)
+	@NoArgsConstructor
 	public static class USCRollCallVotes {
-		
-		@JsonProperty("Aye")
-		protected List<USCRollCallVote> Aye = new ArrayList<USCRollCallVote>();
-		
-		@JsonProperty("No")
-		protected List<USCRollCallVote> No = new ArrayList<USCRollCallVote>();
-		
-		@JsonProperty("Not Voting")
-		protected List<USCRollCallVote> NotVoting = new ArrayList<USCRollCallVote>();
-		
-		@JsonProperty("Present")
-		protected List<USCRollCallVote> Present = new ArrayList<USCRollCallVote>();
-		
+	    protected List<USCRollCallVote> affirmative = new ArrayList<>();
+	    protected List<USCRollCallVote> negative = new ArrayList<>();
+	    protected List<USCRollCallVote> notVoting = new ArrayList<>();
+	    protected List<USCRollCallVote> present = new ArrayList<>();
+
+	    public List<USCRollCallVote> getAffirmative() {
+	        return affirmative;
+	    }
+
+	    public List<USCRollCallVote> getNegative() {
+	        return negative;
+	    }
 	}
+	
+	@NoArgsConstructor
+	public static class USCRollCallVotesDeserializer extends JsonDeserializer<USCRollCallVotes> {
+	    @Override
+	    public USCRollCallVotes deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+	        ObjectMapper mapper = (ObjectMapper) jp.getCodec();
+	        JsonNode root = mapper.readTree(jp);
+
+	        USCRollCallVotes result = new USCRollCallVotes();
+
+	        Iterator<Map.Entry<String, JsonNode>> fields = root.fields();
+	        while (fields.hasNext()) {
+	            Map.Entry<String, JsonNode> entry = fields.next();
+	            String key = entry.getKey().toLowerCase(Locale.ROOT);
+	            
+	            List<USCRollCallVote> votes = new ArrayList<>();
+	            for (JsonNode node : entry.getValue()) {
+	                if (node.isObject()) {
+	                    votes.add(mapper.convertValue(node, USCRollCallVote.class));
+	                } else {
+	                    // Optionally log or count the bad entry
+	                    Log.error("Skipping malformed vote entry: " + node);
+	                }
+	            }
+
+	            switch (key) {
+	                case "aye":
+	                case "yea":
+	                case "yes":
+	                case "for":
+	                    result.affirmative.addAll(votes);
+	                    break;
+	                case "no":
+	                case "nay":
+	                case "against":
+	                    result.negative.addAll(votes);
+	                    break;
+	                case "not voting":
+	                    result.notVoting.addAll(votes);
+	                    break;
+	                case "present":
+	                    result.present.addAll(votes);
+	                    break;
+	                default:
+	                    // ignore unknown
+	            }
+	        }
+
+	        return result;
+	    }
+	}
+
 	
 	@Data
 	@JsonIgnoreProperties(ignoreUnknown = true)
@@ -83,12 +141,12 @@ public class USCRollCallData {
 		
 		public void setId(String id)
 		{
-			if (id.length() < 7)
-			{
-				String newId = String.valueOf(id.charAt(0));
-				for (int i = 0; i < 7 - id.length(); ++i) { newId += "0"; }
-				id = newId + id.substring(1);
-			}
+//			if (id.length() < 7)
+//			{
+//				String newId = String.valueOf(id.charAt(0));
+//				for (int i = 0; i < 7 - id.length(); ++i) { newId += "0"; }
+//				id = newId + id.substring(1);
+//			}
 			
 			this.id = id;
 		}

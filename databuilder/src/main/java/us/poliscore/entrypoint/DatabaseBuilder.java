@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
@@ -131,13 +132,13 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		imageBuilder.process();
-		billTextFetcher.process();
-		syncDdbWithS3();
+//		imageBuilder.process();
+//		billTextFetcher.process();
+//		syncDdbWithS3();
 		
-		interpretBillPressArticles();
-		interpretBills();
-		pressBillInterpGenerator.recordLastPressQueries(); // We want to record that our press query is complete, but only after the bill has been updated and re-interpreted (otherwise we would need to query again if it fails halfway through)
+//		interpretBillPressArticles();
+//		interpretBills();
+//		pressBillInterpGenerator.recordLastPressQueries(); // We want to record that our press query is complete, but only after the bill has been updated and re-interpreted (otherwise we would need to query again if it fails halfway through)
 		
 		interpretLegislators();
 		interpretPartyStats();
@@ -157,11 +158,11 @@ public class DatabaseBuilder implements QuarkusApplication
 		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
 			// TODO : Hot bills are getting out of sync
-//			if (!ddb.exists(b.getId(), Bill.class)) {
+			if (!ddb.exists(b.getId(), Bill.class)) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				billService.ddbPersist(b, interp);
 				amount++;
-//			}
+			}
 		}
 		
 		Log.info("Created " + amount + " missing bills in ddb from s3");
@@ -290,8 +291,10 @@ public class DatabaseBuilder implements QuarkusApplication
 				val prevInterpOp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber() - 1), LegislatorInterpretation.class);
 				
 				if (prevInterpOp.isPresent()) {
-					if (interp == null)
-						interp = prevInterpOp.get();
+					if (StringUtils.isBlank(interp.getShortExplain()))
+						interp.setShortExplain(prevInterpOp.get().getShortExplain());
+					if (StringUtils.isBlank(interp.getLongExplain()))
+						interp.setLongExplain(prevInterpOp.get().getLongExplain());
 					
 					val prevLeg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber() - 1, leg.getBioguideId()), Legislator.class).orElseThrow();
 					

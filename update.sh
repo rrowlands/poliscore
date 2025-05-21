@@ -15,6 +15,7 @@ CONGRESS=119
 
 usc-run govinfo --bulkdata=BILLSTATUS --congress=$CONGRESS
 usc-run bills --govtrack --congress=$CONGRESS
+usc-run votes --congress=$CONGRESS
 
 cd ../poliscore
 

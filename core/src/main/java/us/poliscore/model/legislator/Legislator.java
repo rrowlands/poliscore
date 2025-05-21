@@ -67,6 +67,9 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	
 	protected String thomasId;
 	
+	// Senate Id : https://github.com/usgpo/bill-status/issues/241
+	protected String lisId;
+	
 	protected String wikidataId;
 	
 	protected LegislatorInterpretation interpretation;
