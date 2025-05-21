@@ -92,12 +92,16 @@
                             <canvas id="barChart"></canvas>
                         </div>
 
+                        <!--
+                        Old, experimental code for identifying bill riders. Wasn't found to work all that well with AI.
+
                         <div class="bill-section" *ngIf="bill.interpretation.riders != null && bill.interpretation.riders.length > 0">
                             <h2>Riders</h2>
                             <ul>
                                 <li *ngFor="let rider of bill.interpretation.riders">{{rider}}</li>
                             </ul>
                         </div>
+                        -->
 
                         <!-- <div class="bill-section"><h2>Short Summary</h2><p *ngFor="let paragraph of bill.interpretation.shortExplain?.split('\n')" [innerHTML]="paragraph"></p></div> -->
 
