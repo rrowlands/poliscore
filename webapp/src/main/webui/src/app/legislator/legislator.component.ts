@@ -171,6 +171,8 @@ export class LegislatorComponent implements OnInit, AfterViewInit {
       this.page.index = "ObjectsByRatingAbs";
     } else if (routeIndex === "byimpact") {
       this.page.index = "ObjectsByImpact";
+    } else if (routeIndex === "byimpactabs") {
+      this.page.index = "ObjectsByImpactAbs";
     } else if (routeIndex && routeIndex.length > 0) {
       this.page.index = "TrackedIssue";
       this.page.sortKey = routeIndex!;

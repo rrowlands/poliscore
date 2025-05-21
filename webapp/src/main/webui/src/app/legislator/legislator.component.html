@@ -111,7 +111,7 @@
                         <ng-container matColumnDef="billName">
                             <th mat-header-cell *matHeaderCellDef>Bill Name</th>
                             <td mat-cell *matCellDef="let element">
-                                {{element.billName}}
+                                <span [ngClass]="{'negative-rating': element.billGrade === 'F' && element.association !== 'Voted Against'}">{{element.billName}}</span>
 
                                 <a fxFlexFill [href]="config.billIdToAbsolutePath(element.billId)" class="mat-row-link"></a>
 
@@ -121,17 +121,17 @@
 
                         <ng-container matColumnDef="billGrade">
                             <th mat-header-cell *matHeaderCellDef>Bill Grade</th>
-                            <td mat-cell *matCellDef="let element"> {{element.billGrade}} </td>
+                            <td mat-cell *matCellDef="let element"> <span [ngClass]="{'negative-rating': element.billGrade === 'F' && element.association !== 'Voted Against'}">{{element.billGrade}}</span> </td>
                         </ng-container>
 
                         <ng-container matColumnDef="association">
                             <th mat-header-cell *matHeaderCellDef>Association</th>
-                            <td mat-cell *matCellDef="let element"> {{element.association}} </td>
+                            <td mat-cell *matCellDef="let element"> <span [ngClass]="{'negative-rating': element.billGrade === 'F' && element.association !== 'Voted Against'}">{{element.association}}</span> </td>
                         </ng-container>
 
                         <ng-container matColumnDef="date">
                             <th mat-header-cell *matHeaderCellDef>Date</th>
-                            <td mat-cell *matCellDef="let element"> {{element.date | date}} </td>
+                            <td mat-cell *matCellDef="let element"> <span [ngClass]="{'negative-rating': element.billGrade === 'F' && element.association !== 'Voted Against'}">{{element.date | date}}</span> </td>
                         </ng-container>
 
                         <tr mat-header-row *matHeaderRowDef="getDisplayedColumns()"></tr>
