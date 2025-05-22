@@ -206,6 +206,12 @@ p.interp-text {
     text-indent: 40px;
 }
 
+@media screen and (max-width: 410px) {
+  table.press-interp-table {
+      margin-left: -16px;
+  }
+}
+
 @media screen and (max-width: 424px) {
     .chart-container {
         width: calc(80vw - 30px);

@@ -13,7 +13,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Observable, debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs';
 import { BillComponent } from '../bill/bill.component';
 import { Meta, Title } from '@angular/platform-browser';
-import { descriptionForBill, gradeForBill, subtitleForBill } from '../bills';
+import { descriptionForBill, gradeForBill, shortNameForBill, subtitleForBill } from '../bills';
 import { ConfigService } from '../config.service';
 import { HeaderComponent } from '../header/header.component';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
@@ -286,14 +286,7 @@ export class BillsComponent implements OnInit {
     });
   }
 
-  getBillName(bill: Bill) {
-    if (bill.interpretation && bill.interpretation.genBillTitle && bill.name.length > 125) {
-      return bill.interpretation.genBillTitle
-    } else {
-      return bill.name;
-    }
-  }
-
+  getBillName(bill: Bill) { return shortNameForBill(bill); }
   gradeForBill(bill: Bill): string { return gradeForBill(bill); }
   subtitleForBill(bill: Bill) { return subtitleForBill(bill); }
   descriptionForBill(bill: Bill) { return descriptionForBill(bill); }

@@ -1,5 +1,13 @@
 import { Bill, gradeForRating, gradeForStats } from "./model";
 
+export function shortNameForBill(bill: Bill) {
+    if (bill.interpretation && bill.interpretation.genBillTitle && bill.name.length > 100) {
+      return bill.interpretation.genBillTitle
+    } else {
+      return bill.name;
+    }
+  }
+
 export function descriptionForBill(bill: Bill): string
 {
     if (bill.shortExplain) {

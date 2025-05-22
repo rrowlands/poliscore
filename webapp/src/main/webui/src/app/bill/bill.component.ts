@@ -15,6 +15,7 @@ import { DisclaimerComponent } from '../disclaimer/disclaimer.component';
 import { MatTableModule } from '@angular/material/table';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { shortNameForBill } from '../bills';
 
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, ChartDataLabels, Tooltip);
 
@@ -109,14 +110,6 @@ export class BillComponent implements OnInit {
     });
   }
 
-  getBillName() {
-    if (this.bill?.interpretation && this.bill.interpretation.genBillTitle && this.bill.name.length > 125) {
-      return this.bill.interpretation.genBillTitle
-    } else {
-      return this.bill?.name;
-    }
-  }
-
   getBillTooltip(): string {
     if (!this.bill || !this.bill.name || this.bill!.name.length <= 125 || this.getBillName()!.trim().toLowerCase() === this.bill!.name.trim().toLowerCase()) return '';
 
@@ -170,6 +163,7 @@ export class BillComponent implements OnInit {
     }
   }
 
+  getBillName() { return this.bill == null ? "" : shortNameForBill(this.bill!); }
   gradeForBill(): string { return this.gradeForInterp(this.bill?.interpretation!); }
   gradeForInterp(interp: BillInterpretation) { return gradeForStats(interp?.issueStats!); }
   // gradeForPressInterp(interp: PressInterpretation) { return interp!.sentiment; }

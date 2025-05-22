@@ -109,7 +109,7 @@
                             The actual rendered columns are set as a property on the row definition" -->
 
                         <ng-container matColumnDef="billName">
-                            <th mat-header-cell *matHeaderCellDef>Bill Name</th>
+                            <th mat-header-cell *matHeaderCellDef>Name</th>
                             <td mat-cell *matCellDef="let element">
                                 <span [ngClass]="{'negative-rating': element.billGrade === 'F' && element.association !== 'Voted Against'}">{{element.billName}}</span>
 
@@ -120,7 +120,7 @@
                         </ng-container>
 
                         <ng-container matColumnDef="billGrade">
-                            <th mat-header-cell *matHeaderCellDef>Bill Grade</th>
+                            <th mat-header-cell *matHeaderCellDef>Grade</th>
                             <td mat-cell *matCellDef="let element"> <span [ngClass]="{'negative-rating': element.billGrade === 'F' && element.association !== 'Voted Against'}">{{element.billGrade}}</span> </td>
                         </ng-container>
 
