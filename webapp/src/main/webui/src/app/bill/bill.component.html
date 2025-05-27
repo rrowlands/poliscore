@@ -77,8 +77,9 @@
                                     </div>
                                     <div class="title-right">
                                         <h3>
-                                            <p style="margin-bottom: 0px;">{{ getBillDate() }}</p>
-                                            <p class="bill-status" [ngClass]="{'highlight-law': bill.status.description.trim().toLowerCase() === 'law'}">{{ bill.status.description }}</p>
+                                            <div>{{ getBillDate() }}</div>
+                                            <div class="">{{bill.type + " " + bill.number}}</div>
+                                            <div class="bill-status" [ngClass]="{'highlight-law': bill.status.description.trim().toLowerCase() === 'law'}">{{ bill.status.description }}</div>
                                         </h3>
                                     </div>
                                 </div>

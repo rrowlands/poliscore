@@ -42,6 +42,11 @@ h2 {
   .title-right {
     text-align: right;
   }
+
+  .title-right div {
+    font-size:0.9em;
+    line-height:1.3em;
+  }
   
   .title-middle {
     flex: 1 1 auto;
@@ -154,11 +159,6 @@ h2 {
 
 p.interp-text {
     margin-top: 30px;
-}
-
-.bill-status {
-    font-size: 0.9em;
-    line-height: 1.0em;
 }
 
 .highlight-law {
