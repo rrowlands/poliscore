@@ -396,7 +396,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 	// If you need to reprocess a particular bill for whatever reason, add it here. When we run, we will always process any bills in this list, so be careful
 	// not to commit this list with anything in it.
 	public static final String[] specificFetch = new String[] {
-//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 2923)
+//			Bill.generateId(CongressionalSession.S119.getNumber(), BillType.HR, 1940)
 	};
 	
 	public static final boolean FORCE_REINTERPRET = specificFetch.length > 0;

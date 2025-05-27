@@ -330,6 +330,21 @@ public class BillService {
 		return pressInterps;
 	}
 	
+//	@SneakyThrows
+//	public void saveDatabaseBillIndex() {
+//		DateTimeFormatter usFormat = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+//		
+//		val data = memService.queryAll(Bill.class).stream()
+//			.filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION))
+//			.map(b -> {
+//				return Arrays.asList(b.getId(), b.getLastUpdateDate().format(usFormat));
+//			})
+//			.sorted((a,b) -> a.get(0).compareTo(b.get(0)))
+//			.toList();
+//		
+//		
+//	}
+	
 	@SneakyThrows
 	public void generateBillWebappIndex() {
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/resources/bills.index");

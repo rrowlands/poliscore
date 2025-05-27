@@ -50,7 +50,7 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 {
 	public static final long TOKEN_BLOCK_SIZE = 30000000;
 	
-	public static final boolean CHECK_S3_EXISTS = false;
+	public static final boolean CHECK_S3_EXISTS = true;
 	
 	@Inject
 	private MemoryObjectService memService;

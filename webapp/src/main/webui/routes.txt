@@ -4476,6 +4476,7 @@
 /bill/hr/2293
 /bill/hr/2292
 /bill/hr/2289
+/bill/hr/2310
 /bill/hr/2307
 /bill/hr/2306
 /bill/hr/2305
@@ -5958,8 +5959,12 @@
 /bill/s/1650
 /bill/s/1651
 /bill/s/1654
+/bill/s/1655
 /bill/s/1652
 /bill/s/1653
+/bill/s/1658
+/bill/s/1659
+/bill/s/1656
 /bill/s/1657
 /bill/s/1665
 /bill/s/1666
@@ -6004,6 +6009,7 @@
 /bill/hr/3228
 /bill/hr/3229
 /bill/s/1680
+/bill/s/1670
 /bill/s/1676
 /bill/s/1677
 /bill/s/1674
@@ -6016,6 +6022,7 @@
 /bill/s/1688
 /bill/s/1686
 /bill/s/1689
+/bill/s/1693
 /bill/s/1697
 /bill/hr/3300
 /bill/hr/3310
@@ -6078,7 +6085,10 @@
 /bill/s/1714
 /bill/s/1711
 /bill/s/1712
+/bill/s/1717
 /bill/s/1718
+/bill/s/1715
+/bill/s/1721
 /bill/hr/3360
 /bill/hr/3361
 /bill/hr/3362
@@ -6140,6 +6150,7 @@
 /bill/hr/3387
 /bill/hr/3388
 /bill/hr/3380
+/bill/hr/3378
 /bill/hr/3379
 /bill/hr/3392
 /bill/hr/3393
@@ -6167,6 +6178,8 @@
 /bill/hr/3413
 /bill/hr/3414
 /bill/hr/3415
+/bill/hr/3420
+/bill/hr/3421
 /bill/hr/3422
 /bill/hr/3423
 /bill/hr/3424

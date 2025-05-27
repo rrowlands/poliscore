@@ -61,7 +61,7 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	public static boolean INTERPRET_NEW_BILLS = true;
 	
-	public static boolean REINTERPRET_LEGISLATORS = false;
+	public static boolean REINTERPRET_LEGISLATORS = true;
 	
 	public static boolean REINTERPRET_PARTIES = false;
 	
@@ -155,10 +155,11 @@ public class DatabaseBuilder implements QuarkusApplication
 		
 		long amount = 0;
 		
-		// TODO : As predicted, this is crazy slow. We might need to create a way to 'optimizeExists' for ddb
+		// This could be optimized by building an "index" for each ddb database
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
-			// TODO : Hot bills are getting out of sync
-			if (!ddb.exists(b.getId(), Bill.class)) {
+			var dbill = ddb.get(b.getId(), Bill.class).orElse(null);
+			
+			if (dbill == null || !dbill.getStatus().equals(b.getStatus())) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				billService.ddbPersist(b, interp);
 				amount++;
