@@ -1,0 +1,4 @@
+modules = ["java-graalvm22.3", "nodejs-20", "web"]
+
+[nix]
+channel = "stable-24_05"
