@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import io.quarkus.logging.Log; // Added import
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -53,10 +54,19 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	 * "storage buckets". Really only used in DynamoDb at the moment, and is used for querying on the object indexes with objects that exist
 	 * in different congressional sessions.
 	 */
-	public static String getClassStorageBucket()
-	{
-		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber();
-	}
+	public static String getClassStorageBucket() {
+            LegislativeNamespace ns = PoliscoreUtil.currentNamespace != null ? PoliscoreUtil.currentNamespace : LegislativeNamespace.US_CONGRESS;
+            Integer sessionNum = PoliscoreUtil.currentSessionNumber != null ? PoliscoreUtil.currentSessionNumber : (PoliscoreUtil.CURRENT_SESSION != null ? PoliscoreUtil.CURRENT_SESSION.getNumber() : null);
+            if (sessionNum == null) {
+                 // Attempt to get session from a default if currentSessionNumber isn't set - this might indicate an issue elsewhere
+                 // For now, let's log and use a fallback, but this needs to be reliable.
+                 Log.warn("PoliscoreUtil.currentSessionNumber is null in Legislator.getClassStorageBucket. Falling back to legacy CURRENT_SESSION or default. This should be set.");
+                 // Fallback to a default session or handle error, e.g., 118 for congress if nothing else set
+                 // This fallback logic might need to be more robust or removed if currentSessionNumber is guaranteed.
+                 sessionNum = 118; // Placeholder default
+            }
+            return ID_CLASS_PREFIX + "/" + ns.getNamespace() + "/" + sessionNum;
+        }
 	
 	@NonNull
 	protected LegislatorName name;
@@ -64,6 +74,7 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	protected Integer session;
 	
 	protected String bioguideId;
+	protected String legiscanId; // Added legiscanId field
 	
 	protected String thomasId;
 	
@@ -76,6 +87,8 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	
 	@NonNull
 	protected LocalDate birthday;
+	
+	protected String photoUrl; // Added photoUrl field
 	
 	@Getter(onMethod = @__({ @DynamoDbConvertedBy(IssueStatsMapLongAttributeConverter.class) }))
 	public Map<TrackedIssue, Long> impactMap = new HashMap<TrackedIssue, Long>();
@@ -120,13 +133,26 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	}
 	
 	@DynamoDbPartitionKey
-	public String getId()
-	{
-		if (bioguideId != null) return generateId(LegislativeNamespace.US_CONGRESS, session, bioguideId);
-		if (thomasId != null) return generateId(LegislativeNamespace.US_CONGRESS, session, thomasId);
-		
-		throw new NullPointerException();
-	}
+	public String getId() {
+            if (this.session == null) {
+                // Or handle this error more gracefully
+                throw new IllegalStateException("Session cannot be null when generating ID for Legislator with bioguideId: " + bioguideId + " and legiscanId: " + legiscanId);
+            }
+            LegislativeNamespace ns = PoliscoreUtil.currentNamespace != null ? PoliscoreUtil.currentNamespace : LegislativeNamespace.US_CONGRESS; // Default for safety, but should be set
+            if (ns != LegislativeNamespace.US_CONGRESS && !StringUtils.isBlank(this.legiscanId)) {
+                return generateId(ns, this.session, this.legiscanId, true);
+            }
+            if (!StringUtils.isBlank(this.bioguideId)) {
+                return generateId(ns, this.session, this.bioguideId, false);
+            }
+            if (!StringUtils.isBlank(this.thomasId)) { // Fallback for older data if bioguide is missing for US_CONGRESS
+                return generateId(LegislativeNamespace.US_CONGRESS, this.session, this.thomasId, false);
+            }
+            if (!StringUtils.isBlank(this.legiscanId)) { // Fallback if everything else is missing
+                return generateId(ns, this.session, this.legiscanId, true);
+            }
+            throw new NullPointerException("Cannot generate ID: bioguideId, thomasId, and legiscanId are all blank.");
+        }
 	
 	public void setId(String id) { }
 	
@@ -178,22 +204,51 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 //		return Integer.valueOf(session.getNumber()).equals(this.session);
 	}
 	
-	public static String generateId(LegislativeNamespace ns, Integer session, String bioguideId)
-	{
-		return generateId(ns, session.toString(), bioguideId);
-	}
+	private static String generateId(LegislativeNamespace ns, Integer session, String nativeId, boolean isLegiscanId) {
+            if (ns == null || session == null || StringUtils.isBlank(nativeId)) {
+                throw new IllegalArgumentException("Namespace, session, and nativeId are required for generating ID.");
+            }
+            // Potentially add a prefix to nativeId if isLegiscanId to avoid collision, or ensure Legiscan IDs are distinct
+            return ID_CLASS_PREFIX + "/" + ns.getNamespace() + "/" + session.toString() + "/" + nativeId;
+        }
+
+	public static String generateId(LegislativeNamespace ns, Integer session, String bioguideId) {
+            return generateId(ns, session, bioguideId, false);
+        }
+
+	public static String generateId(LegislativeNamespace ns, String session, String bioguideId) {
+            // Assuming session here is always an Integer convertible string for PoliscoreUtil.currentSessionNumber consistency
+            return generateId(ns, Integer.valueOf(session), bioguideId, false);
+        }
+
+	public static String generateIdForLegiscan(LegislativeNamespace ns, Integer session, String legiscanId) {
+            return generateId(ns, session, legiscanId, true);
+        }
 	
-	public static String generateId(LegislativeNamespace ns, String session, String bioguideId)
-	{
-		return ID_CLASS_PREFIX + "/" + ns.getNamespace() + "/" + session + "/" + bioguideId;
-	}
-	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_RATING_ABS_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX, Persistable.OBJECT_BY_IMPACT_ABS_INDEX}) public String getStorageBucket() {
-		if (!StringUtils.isEmpty(this.getId()))
-			return this.getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 4));
-		
-		return getClassStorageBucket();
-	}
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_RATING_ABS_INDEX, Persistable.OBJECT_BY_LOCATION_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX, Persistable.OBJECT_BY_IMPACT_ABS_INDEX})
+        public String getStorageBucket() {
+            if (StringUtils.isBlank(getId())) {
+                return getClassStorageBucket(); // Fallback if ID isn't formed yet
+            }
+            // Assumes ID format is "LEG/ns/session/nativeId"
+            String[] parts = getId().split("/");
+            if (parts.length >= 4) {
+                return String.join("/", parts[0], parts[1], parts[2], parts[3]); // Should be LEG/ns_part1/ns_part2/session
+            }
+            // Fallback to more generic bucket if ID format is unexpected, or use class-level bucket
+            // The ID format is "LEG/us/congress/118/S000033"
+            // So parts[0]=LEG, parts[1]=us, parts[2]=congress, parts[3]=118, parts[4]=S000033
+            // We want "LEG/us/congress/118"
+            if (getId().contains(LegislativeNamespace.US_CONGRESS.getNamespace())) {
+                 return getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 4));
+            } else {
+                 // For states like "us/california", namespace has two parts.
+                 // ID could be "LEG/us/california/2023/L123"
+                 // parts[0]=LEG, parts[1]=us, parts[2]=california, parts[3]=2023, parts[4]=L123
+                 // We want "LEG/us/california/2023"
+                 return getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 4));
+            }
+        }
 	@Override @JsonIgnore public void setStorageBucket(String prefix) { }
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() { return birthday; }
@@ -278,4 +333,12 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 		return Integer.valueOf(this.getRating()).compareTo(o.getRating());
 	}
 	
+	// Getter and Setter for photoUrl
+	public String getPhotoUrl() {
+		return photoUrl;
+	}
+
+	public void setPhotoUrl(String photoUrl) {
+		this.photoUrl = photoUrl;
+	}
 }

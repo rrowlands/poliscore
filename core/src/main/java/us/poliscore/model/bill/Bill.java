@@ -1,8 +1,9 @@
 package us.poliscore.model.bill;
 
-import java.time.LocalDate;
+import java.time.LocalDate; // Already present
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import io.quarkus.logging.Log; // Added import
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,10 +46,15 @@ public class Bill implements Persistable {
 	 * "storage buckets". Really only used in DynamoDb at the moment, and is used for querying on the object indexes with objects that exist
 	 * in different congressional sessions.
 	 */
-	public static String getClassStorageBucket()
-	{
-		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + PoliscoreUtil.CURRENT_SESSION.getNumber();
-	}
+	public static String getClassStorageBucket() {
+            LegislativeNamespace ns = PoliscoreUtil.currentNamespace != null ? PoliscoreUtil.currentNamespace : LegislativeNamespace.US_CONGRESS; // Default for safety
+            Integer sessionNum = PoliscoreUtil.currentSessionNumber;
+            if (sessionNum == null) {
+                Log.warn("PoliscoreUtil.currentSessionNumber is null in Bill.getClassStorageBucket. This should be set. Falling back to placeholder session 118 for US_CONGRESS or current year for others.");
+                sessionNum = ns == LegislativeNamespace.US_CONGRESS ? 118 : LocalDate.now().getYear(); // Placeholder default
+            }
+            return getClassStorageBucket(ns, sessionNum); // Calls the existing overload
+        }
 	public static String getClassStorageBucket(LegislativeNamespace namespace, int session)
 	{
 		return ID_CLASS_PREFIX + "/" + namespace.getNamespace() + "/" + session;
@@ -57,7 +63,7 @@ public class Bill implements Persistable {
 	@JsonIgnore
 	protected transient BillText text;
 	
-	protected LegislativeNamespace namespace = LegislativeNamespace.US_CONGRESS;
+	protected LegislativeNamespace namespace; // Default assignment removed
 	
 	protected Integer session;
 	
@@ -65,9 +71,12 @@ public class Bill implements Persistable {
 	
 	protected BillStatus status;
 	
-	protected int number;
+	protected int number; // Remains int
 	
 	protected String name;
+	
+	protected String legiscanBillId; // Added field
+	protected String billPdfUrl; // Added field
 	
 //	protected String statusUrl;
 	
@@ -113,10 +122,17 @@ public class Bill implements Persistable {
 	
 	@JsonIgnore
 	@DynamoDbIgnore
-	public String getPoliscoreId()
-	{
-		return generateId(session, type, number);
-	}
+	public String getPoliscoreId() {
+            if (this.namespace == null || this.session == null || this.type == null || this.number == 0 /*代表纯数字编号，后续可能需要调整使其能适应 H.R.123 这种编号*/) {
+                 // Or log an error and return a placeholder if this state is possible during normal operation
+                 throw new IllegalStateException("Namespace, session, type, or number is not properly set for Bill ID generation. Bill Name: " + this.name);
+            }
+            // The 'number' field is an int. The new generateId expects a billNumberString.
+            // We need to decide if Bill.number should become a String or if LegiscanBillView.number (which is a String)
+            // will be parsed into an int for Bill.number and potentially a prefix for Bill.type.
+            // For now, let's assume Bill.number (int) is the primary number and type handles the prefix.
+            return generateId(this.namespace, this.session, this.type, String.valueOf(this.number));
+        }
 	
 	@JsonIgnore
 	public String getUSCId()
@@ -148,12 +164,21 @@ public class Bill implements Persistable {
 		return Integer.valueOf(session.getNumber()).equals(this.session);
 	}
 	
-	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_RATING_ABS_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX, OBJECT_BY_IMPACT_ABS_INDEX, OBJECT_BY_HOT_INDEX }) public String getStorageBucket() {
-		if (!StringUtils.isEmpty(this.getId()))
-			return this.getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 4));
-		
-		return getClassStorageBucket();
-	}
+	@Override @JsonIgnore @DynamoDbSecondaryPartitionKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX, Persistable.OBJECT_BY_RATING_INDEX, Persistable.OBJECT_BY_RATING_ABS_INDEX, Persistable.OBJECT_BY_IMPACT_INDEX, OBJECT_BY_IMPACT_ABS_INDEX, OBJECT_BY_HOT_INDEX })
+        public String getStorageBucket() {
+            if (StringUtils.isBlank(getId())) {
+                return getClassStorageBucket(); // Fallback
+            }
+            // ID format: "BIL/ns_part1/ns_part2.../session/type/number"
+            // We need "BIL/ns_part1/ns_part2.../session"
+            // Count slashes: BIL / ns / session / type / number (for us/congress) -> 4 slashes before number
+            // BIL / ns1 / ns2 / session / type / number (for us/state/foo) -> 5 slashes before number
+            // The common part is up to and including the session.
+            // The ID is "BIL/us/congress/118/hr/123" -> ordinalIndexOf(..., "/", 4) -> "BIL/us/congress/118"
+            // The ID is "BIL/us/california/2023/ab/456" -> ordinalIndexOf(..., "/", 4) -> "BIL/us/california/2023"
+            // This seems correct.
+            return getId().substring(0, StringUtils.ordinalIndexOf(getId(), "/", 4));
+        }
 	@Override @JsonIgnore public void setStorageBucket(String prefix) { }
 	
 	@JsonIgnore @DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_DATE_INDEX }) public LocalDate getDate() {
@@ -180,10 +205,14 @@ public class Bill implements Persistable {
 	@DynamoDbSecondarySortKey(indexNames = { Persistable.OBJECT_BY_HOT_INDEX }) public int getHot() { return (int)(getImpactAbs(TrackedIssue.OverallBenefitToSociety, 1.5d) * Math.exp(-0.02 * ChronoUnit.DAYS.between(getDate(), LocalDate.now()))); }
 	public void setHot(int hot) { }
 	
-	public static String generateId(int congress, BillType type, int number)
-	{
-		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/" + congress + "/" + type.getName().toLowerCase() + "/" + number;
-	}
+	public static String generateId(LegislativeNamespace ns, int session, BillType type, String billNumberString) {
+            if (ns == null || type == null || StringUtils.isBlank(billNumberString)) {
+                throw new IllegalArgumentException("Namespace, session, type, and billNumberString are required for generating Bill ID.");
+            }
+            // Normalize billNumberString: remove non-alphanumeric characters to keep it clean if it contains them (e.g. "A.B. 123")
+            String cleanBillNumber = billNumberString.replaceAll("[^a-zA-Z0-9]", "");
+            return ID_CLASS_PREFIX + "/" + ns.getNamespace() + "/" + session + "/" + type.getName().toLowerCase() + "/" + cleanBillNumber;
+        }
 	
 	@JsonIgnore public int getImpact(TrackedIssue issue) { return getImpact(issue, DEFAULT_IMPACT_LAW_WEIGHT); };
 	
@@ -232,12 +261,24 @@ public class Bill implements Persistable {
 
 	
 	public static BillType billTypeFromId(String poliscoreId) {
-		return BillType.fromName(poliscoreId.split("/")[4]);
-	}
+                String[] parts = poliscoreId.split("/");
+                if (parts.length < 2) throw new IllegalArgumentException("Invalid Poliscore Bill ID for type extraction: " + poliscoreId);
+                return BillType.fromName(parts[parts.length - 2]);
+            }
 	
 	public static int billNumberFromId(String poliscoreId) {
-		return Integer.valueOf(poliscoreId.split("/")[5]);
-	}
+                String[] parts = poliscoreId.split("/");
+                if (parts.length < 1) throw new IllegalArgumentException("Invalid Poliscore Bill ID for number extraction: " + poliscoreId);
+                // The number part might contain non-numeric characters if generateId's cleanBillNumber wasn't aggressive enough
+                // or if Bill.number was changed to String. For now, assume it's convertible to int.
+                String numberStr = parts[parts.length - 1];
+                try {
+                    return Integer.parseInt(numberStr.replaceAll("[^0-9]", "")); // Attempt to get only digits
+                } catch (NumberFormatException e) {
+                    Log.error("Could not parse bill number from ID's last part: " + numberStr + " (original ID: " + poliscoreId + ")", e);
+                    return 0; // Or throw
+                }
+            }
 	
 	@Data
 	@DynamoDbBean

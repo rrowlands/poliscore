@@ -29,6 +29,9 @@ import us.poliscore.entrypoint.batch.BatchOpenAIResponseImporter;
 import us.poliscore.entrypoint.batch.PressBillInterpretationRequestGenerator;
 import us.poliscore.model.DoubleIssueStats;
 import us.poliscore.model.LegislativeNamespace;
+import us.poliscore.view.legiscan.LegiscanBillView;
+import us.poliscore.view.legiscan.LegiscanLegislatorView;
+import us.poliscore.view.legiscan.LegiscanVoteView;
 import us.poliscore.model.Persistable;
 import us.poliscore.model.bill.Bill;
 import us.poliscore.model.bill.BillInterpretation;
@@ -46,6 +49,7 @@ import us.poliscore.service.LegislatorService;
 import us.poliscore.service.OpenAIService;
 import us.poliscore.service.PartyInterpretationService;
 import us.poliscore.service.RollCallService;
+import us.poliscore.service.LegiscanService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.LocalFilePersistenceService;
@@ -69,7 +73,7 @@ public class DatabaseBuilder implements QuarkusApplication
 	private S3ImageDatabaseBuilder imageBuilder;
 	
 	@Inject
-	private GPOBulkBillTextFetcher billTextFetcher;
+	private LegiscanService legiscanService;
 	
 	@Inject
 	private BatchBillRequestGenerator billRequestGenerator;
@@ -123,17 +127,25 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	protected void process() throws IOException
 	{
-		updateUscLegislators();
+		PoliscoreUtil.setCurrentNamespace(LegislativeNamespace.US_CONGRESS);
+		PoliscoreUtil.setCurrentSessionNumber(118); // TODO: Make this dynamic
+		
+		// updateUscLegislators(); // Removed
 		
 		s3.optimizeExists(BillInterpretation.class);
 		s3.optimizeExists(LegislatorInterpretation.class);
 		
-		legService.importLegislators();
-		billService.importUscBills();
-		rollCallService.importUscVotes();
+		List<LegiscanLegislatorView> legiscanLegislators = legiscanService.getLegislators(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.currentSessionNumber);
+		legService.importLegislators(legiscanLegislators);
+		
+		List<LegiscanBillView> legiscanBills = legiscanService.getBills(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.currentSessionNumber);
+		billService.importBills(legiscanBills);
+		
+		List<LegiscanVoteView> legiscanVotes = legiscanService.getVotes(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.currentSessionNumber);
+		rollCallService.importVotes(legiscanVotes);
 		
 		imageBuilder.process();
-		billTextFetcher.process();
+		// billTextFetcher.process(); // Removed
 		syncDdbWithS3();
 		
 		interpretBillPressArticles();
@@ -156,7 +168,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		long amount = 0;
 		
 		// This could be optimized by building an "index" for each ddb database
-		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
+		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.currentSessionNumber) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
 			var dbill = ddb.get(b.getId(), Bill.class).orElse(null);
 			
 			if (dbill == null || !dbill.getStatus().equals(b.getStatus())) {
@@ -199,16 +211,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		Log.info("Updated " + updated.size() + " bills whose press interpretations were out of date.");
 	}
 	
-	@SneakyThrows
-	private void updateUscLegislators()
-	{
-		Log.info("Updating USC legislators resource files");
-		
-		File dbRes = new File(Environment.getDeployedPath(), "../../databuilder/src/main/resources");
-		
-		FileUtils.copyURLToFile(URI.create("https://unitedstates.github.io/congress-legislators/legislators-current.json").toURL(), new File(dbRes, "legislators-current.json"));
-		FileUtils.copyURLToFile(URI.create("https://unitedstates.github.io/congress-legislators/legislators-historical.json").toURL(), new File(dbRes, "legislators-historical.json"));
-	}
+	// Removed updateUscLegislators() method
 	
 	@SneakyThrows
 	private void interpretBillPressArticles() {
@@ -271,7 +274,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		List<String> legsWithoutSufficientInteractions = new ArrayList<String>();
 		
 		for (var leg : memService.query(Legislator.class).stream()
-				.filter(l -> l.isMemberOfSession(PoliscoreUtil.CURRENT_SESSION)) //  && s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class)
+				.filter(l -> l.isMemberOfSession(PoliscoreUtil.currentSessionNumber)) //  && s3.exists(LegislatorInterpretation.generateId(l.getId(), PoliscoreUtil.currentSessionNumber), LegislatorInterpretation.class)
 				.collect(Collectors.toList()))
 		{
 			legInterp.updateInteractionsInterp(leg);
@@ -281,15 +284,15 @@ public class DatabaseBuilder implements QuarkusApplication
 //				continue;
 //			}
 			
-			LegislatorInterpretation interp = new LegislatorInterpretation(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber(), OpenAIService.metadata(), null);
-			val interpOp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber()), LegislatorInterpretation.class);
+			LegislatorInterpretation interp = new LegislatorInterpretation(leg.getId(), PoliscoreUtil.currentSessionNumber, OpenAIService.metadata(), null);
+			val interpOp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.currentSessionNumber), LegislatorInterpretation.class);
 			
 			if (interpOp.isPresent()) { interp = interpOp.get(); }
 			
 			// If there exists an interp from a previous session, backfill the interactions until we get to 1000
 			if (legInterp.getInteractionsForInterpretation(leg).size() < 1000) {
 				// If an interpretation from this session doesn't exist, grab one from the previous session.
-				val prevInterpOp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.CURRENT_SESSION.getNumber() - 1), LegislatorInterpretation.class);
+				val prevInterpOp = s3.get(LegislatorInterpretation.generateId(leg.getId(), PoliscoreUtil.currentSessionNumber - 1), LegislatorInterpretation.class);
 				
 				if (prevInterpOp.isPresent()) {
 					if (StringUtils.isBlank(interp.getShortExplain()))
@@ -297,7 +300,7 @@ public class DatabaseBuilder implements QuarkusApplication
 					if (StringUtils.isBlank(interp.getLongExplain()))
 						interp.setLongExplain(prevInterpOp.get().getLongExplain());
 					
-					val prevLeg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber() - 1, leg.getBioguideId()), Legislator.class).orElseThrow();
+					val prevLeg = ddb.get(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.currentSessionNumber - 1, leg.getBioguideId()), Legislator.class).orElseThrow();
 					
 					val prevInteracts = prevLeg.getInteractions().stream().sorted(Comparator.comparing(LegislatorBillInteraction::getDate).reversed()).iterator();
 					while (leg.getInteractionsPrivate1().size() < 1000 && prevInteracts.hasNext()) {
@@ -353,12 +356,12 @@ public class DatabaseBuilder implements QuarkusApplication
 				}
 			}
 		} else {
-			val sit = s3.get(SessionInterpretationOld.generateId(PoliscoreUtil.CURRENT_SESSION.getNumber()), SessionInterpretationOld.class).orElse(null);
+			val sit = s3.get(SessionInterpretationOld.generateId(PoliscoreUtil.currentSessionNumber), SessionInterpretationOld.class).orElse(null);
 			if (sit != null) {
 				ddb.put(sit);
 			}
 			
-			val sit2 = s3.get(SessionInterpretationOld.generateId(PoliscoreUtil.CURRENT_SESSION.getNumber()-1), SessionInterpretationOld.class).orElse(null);
+			val sit2 = s3.get(SessionInterpretationOld.generateId(PoliscoreUtil.currentSessionNumber-1), SessionInterpretationOld.class).orElse(null);
 			if (sit2 != null) {
 //				var newSit = SessionInterpretationConverter.fromOld(sit2);
 //				

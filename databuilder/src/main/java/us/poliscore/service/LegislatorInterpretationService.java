@@ -44,7 +44,7 @@ public class LegislatorInterpretationService
 //	private static final String PROMPT_TEMPLATE = "The provided text is a summary of the last {{time_period}} of legislative history of United States Legislator {{full_name}}. Please generate a concise (single paragraph) critique of this history, evaluating the performance, highlighting any specific accomplishments or alarming behaviour and pointing out major focuses and priorities of the legislator. In your critique, please attempt to reference concrete, notable and specific text of the summarized bills where possible.";
 	
 	private static final String PROMPT_TEMPLATE = """
-You are part of a U.S. non-partisan oversight committee which has graded the recent legislative performance of {{politicianType}} {{fullName}}. This legislator has received the following policy area grades (scores range from -100 to 100):
+You are part of a {{jurisdictionShortName}} non-partisan oversight committee which has graded the recent legislative performance of {{politicianType}} {{fullName}}. This legislator has received the following policy area grades (scores range from -100 to 100):
 
 {{stats}}
 
@@ -287,16 +287,47 @@ Generate a layman's, concise, three paragraph, {{analysisType}}, highlighting an
 //		return interp;
 //	}
 	
-	public static String getAiPrompt(Legislator leg, IssueStats stats) {
+	// Helper method
+    private String getJurisdictionAdjective(LegislativeNamespace namespace) {
+        if (namespace == LegislativeNamespace.US_CONGRESS) return "U.S.";
+        String nsStr = namespace.getNamespace();
+        if (nsStr.startsWith("us/")) {
+            String stateName = nsStr.substring(3); // "california"
+            // Simple examples, can be made more grammatically correct
+            if (stateName.equals("california")) return "Californian";
+            if (stateName.equals("texas")) return "Texan";
+            if (stateName.equals("newyork")) return "New York"; // Adjective might be tricky, "New York State" or "New Yorker"
+            // Fallback to capitalized state name if no specific adjective is defined
+            return stateName.substring(0, 1).toUpperCase() + stateName.substring(1);
+        }
+        return "Local"; // Default fallback
+    }
+	
+	public String getAiPrompt(Legislator leg, IssueStats stats) {
 		val grade = stats.getLetterGrade();
+		String jurisdictionShortName = getJurisdictionAdjective(leg.getNamespace());
+
+		String politicianType;
+		LegislativeChamber chamber = leg.getTerms().last().getChamber();
+		if (chamber == LegislativeChamber.SENATE || chamber == LegislativeChamber.STATE_SENATE) {
+			politicianType = "Senator";
+		} else if (chamber == LegislativeChamber.HOUSE || chamber == LegislativeChamber.STATE_HOUSE || chamber == LegislativeChamber.STATE_ASSEMBLY) {
+			politicianType = "Representative"; // Or "Assemblymember" if specific
+		} else if (chamber == LegislativeChamber.UNICAMERAL) {
+			politicianType = "Legislator"; // Or "Senator" if Nebraska unicameral are called Senators
+		}
+		else {
+			politicianType = "Politician"; // Fallback
+		}
 		
 		return PROMPT_TEMPLATE
 				.replace("{{letterGrade}}", grade)
-				.replace("{{politicianType}}", leg.getTerms().last().getChamber() == LegislativeChamber.SENATE ? "Senator" : "House Representative")
+				.replace("{{politicianType}}", politicianType)
 				.replace("{{fullName}}", leg.getName().getOfficial_full())
 				.replace("{{stats}}", stats.toString())
 				.replace("{{analysisType}}", grade.equals("A") || grade.equals("B") ? "commendation" : (grade.equals("C") || grade.equals("D") ? "mixed analysis" : "harsh critique"))
-				.replace("{{behavior}}", grade.equals("A") || grade.equals("B") ? "specific accomplishments" : (grade.equals("C") || grade.equals("D") ? "specific accomplishments or alarming behaviour" : "alarming behaviour"));
+				.replace("{{behavior}}", grade.equals("A") || grade.equals("B") ? "specific accomplishments" : (grade.equals("C") || grade.equals("D") ? "specific accomplishments or alarming behaviour" : "alarming behaviour"))
+				.replace("{{jurisdictionShortName}}", jurisdictionShortName);
 	}
 	
 	public static String describeTimePeriod(LocalDate periodStart, LocalDate periodEnd)

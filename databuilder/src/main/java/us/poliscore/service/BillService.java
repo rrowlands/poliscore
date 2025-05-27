@@ -3,9 +3,11 @@ package us.poliscore.service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URI;
+import java.time.LocalDate; // Added for parsing dates
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList; // Added for cosponsors list
 import java.util.Arrays;
-import java.util.List;
+import java.util.List; // Already present
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -33,13 +35,15 @@ import us.poliscore.model.bill.BillStatus;
 import us.poliscore.model.bill.BillText;
 import us.poliscore.model.bill.BillType;
 import us.poliscore.model.legislator.Legislator;
-import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCosponsor;
-import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor;
+import us.poliscore.model.legislator.Legislator.LegislatorName; // Added for BillSponsor
+// import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillCosponsor; // Not directly used in new logic
+// import us.poliscore.model.legislator.LegislatorBillInteraction.LegislatorBillSponsor; // Not directly used in new logic
 import us.poliscore.model.press.PressInterpretation;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
 import us.poliscore.service.storage.LocalCachedS3Service;
 import us.poliscore.service.storage.MemoryObjectService;
-import us.poliscore.view.USCBillView;
+// import us.poliscore.view.USCBillView; // Commented out as it's related to old logic
+import us.poliscore.view.legiscan.LegiscanBillView; // Added import
 
 @ApplicationScoped
 @Priority(4)
@@ -60,102 +64,208 @@ public class BillService {
 	public static List<String> PROCESS_BILL_TYPE = Arrays.asList(BillType.values()).stream().filter(bt -> !BillType.getIgnoredBillTypes().contains(bt)).map(bt -> bt.getName().toLowerCase()).collect(Collectors.toList());
 	
 	@SneakyThrows
-	public void importUscBills() {
-		if (memService.query(Bill.class).size() > 0) return;
-		
-		long totalBills = 0;
-		
-		for (File fCongress : Arrays.asList(PoliscoreUtil.USC_DATA.listFiles()).stream()
-				.filter(f -> f.getName().matches("\\d+") && f.isDirectory())
-				.sorted((a,b) -> a.getName().compareTo(b.getName()))
-				.collect(Collectors.toList()))
-		{
-			if (!Integer.valueOf(PoliscoreUtil.CURRENT_SESSION.getNumber()).equals(Integer.valueOf(fCongress.getName()))) continue;
-			
-			val session = CongressionalSession.of(Integer.valueOf(fCongress.getName()));
-			
-			Log.info("Processing " + fCongress.getName() + " congress");
-			
-			for (val bt : PROCESS_BILL_TYPE)
-			{
-				Log.info("Processing bill types " + bt + " congress");
-				
-				for (File data : PoliscoreUtil.allFilesWhere(new File(fCongress, "bills/" + bt), f -> f.getName().equals("data.json")))
-				{
-					try (var fos = new FileInputStream(data))
-					{
-						importUscBill(fos, String.valueOf(session.getNumber()));
-						totalBills++;
+	public void importBills(List<LegiscanBillView> legiscanBills) {
+		if (legiscanBills == null || legiscanBills.isEmpty()) {
+			Log.info("No bills to import from Legiscan.");
+			return;
+		}
+		Log.info("Importing " + legiscanBills.size() + " bills from Legiscan for session " + PoliscoreUtil.currentSessionNumber + " in namespace " + PoliscoreUtil.currentNamespace);
+		int importedCount = 0;
+
+		for (LegiscanBillView view : legiscanBills) {
+			try {
+				Bill bill = new Bill();
+				bill.setLegiscanBillId(view.getBill_id());
+				bill.setNamespace(PoliscoreUtil.currentNamespace);
+				bill.setSession(PoliscoreUtil.currentSessionNumber);
+
+				BillType type = determineBillType(view.getNumber(), PoliscoreUtil.currentNamespace);
+				int number = extractBillNumber(view.getNumber(), type);
+				bill.setType(type);
+				bill.setNumber(number);
+
+				bill.setName(view.getTitle());
+
+				// Assuming last_action_date is a suitable proxy for introduced_date and is in YYYY-MM-DD
+				if (view.getLast_action_date() != null && !view.getLast_action_date().isEmpty()) {
+					try {
+						LocalDate date = LocalDate.parse(view.getLast_action_date());
+						bill.setIntroducedDate(date);
+						bill.setLastActionDate(date);
+					} catch (Exception e) {
+						Log.warn("Could not parse date for bill " + view.getBill_id() + ": " + view.getLast_action_date(), e);
 					}
 				}
+
+				bill.setStatus(buildStatusFromLegiscan(view, PoliscoreUtil.currentNamespace));
+				
+				// Sponsors
+				if (view.getSponsors() != null && !view.getSponsors().isEmpty()) {
+					String sponsorLegiscanId = view.getSponsors().get(0);
+					// This lookup can be inefficient. Consider optimizing if performance is an issue.
+					Optional<Legislator> sponsorOpt = memService.queryAll(Legislator.class).stream()
+						.filter(l -> PoliscoreUtil.currentNamespace.equals(l.getNamespace()) && 
+									 PoliscoreUtil.currentSessionNumber.equals(l.getSession()) &&
+									 sponsorLegiscanId.equals(l.getLegiscanId()))
+						.findFirst();
+					if (sponsorOpt.isPresent()) {
+						Legislator sponsorLeg = sponsorOpt.get();
+						Bill.BillSponsor billSponsor = new Bill.BillSponsor(sponsorLeg.getId(), sponsorLeg.getName());
+						bill.setSponsor(billSponsor);
+					} else {
+						Log.warn("Could not find sponsor legislator with Legiscan ID: " + sponsorLegiscanId + " for bill " + view.getBill_id());
+					}
+				}
+
+				// Cosponsors
+				if (view.getCosponsors() != null && !view.getCosponsors().isEmpty()) {
+					List<Bill.BillSponsor> cosponsorsList = new ArrayList<>();
+					for (String cosponsorLegiscanId : view.getCosponsors()) {
+						Optional<Legislator> cosponsorOpt = memService.queryAll(Legislator.class).stream()
+							.filter(l -> PoliscoreUtil.currentNamespace.equals(l.getNamespace()) && 
+										 PoliscoreUtil.currentSessionNumber.equals(l.getSession()) &&
+										 cosponsorLegiscanId.equals(l.getLegiscanId()))
+							.findFirst();
+						if (cosponsorOpt.isPresent()) {
+							Legislator cosponsorLeg = cosponsorOpt.get();
+							cosponsorsList.add(new Bill.BillSponsor(cosponsorLeg.getId(), cosponsorLeg.getName()));
+						} else {
+							Log.warn("Could not find cosponsor legislator with Legiscan ID: " + cosponsorLegiscanId + " for bill " + view.getBill_id());
+						}
+					}
+					bill.setCosponsors(cosponsorsList);
+				}
+				
+				bill.setBillPdfUrl(view.getText_url()); // Assuming LegiscanBillView.text_url exists and is the PDF link
+
+				memService.put(bill);
+				importedCount++;
+			} catch (Exception e) {
+				Log.error("Failed to import bill: " + view.getBill_id() + " - " + view.getTitle(), e);
 			}
 		}
-		
-		Log.info("Imported " + totalBills + " bills");
+		Log.info("Successfully imported " + importedCount + " bills into memory.");
+	}
+
+	private BillType determineBillType(String legiscanBillNumber, LegislativeNamespace namespace) {
+		if (StringUtils.isBlank(legiscanBillNumber)) return BillType.BILL; // Default
+
+		String numUpper = legiscanBillNumber.toUpperCase().replaceAll("[^A-Z]", ""); // Get only letters
+
+		if (namespace == LegislativeNamespace.US_CONGRESS) {
+			if (numUpper.startsWith("HR")) return BillType.HR; // House Bill
+			if (numUpper.startsWith("S")) return BillType.S;   // Senate Bill
+			if (numUpper.startsWith("HRES")) return BillType.HRES;
+			if (numUpper.startsWith("SRES")) return BillType.SRES;
+			if (numUpper.startsWith("HJRES")) return BillType.HJRES;
+			if (numUpper.startsWith("SJRES")) return BillType.SJRES;
+			if (numUpper.startsWith("HCONRES")) return BillType.HCONRES;
+			if (numUpper.startsWith("SCONRES")) return BillType.SCONRES;
+			Log.warn("Unknown US_CONGRESS bill type for: " + legiscanBillNumber);
+			return BillType.BILL; // Default for unmapped US Congress types
+		} else { // State namespaces
+			if (numUpper.startsWith("AB")) return BillType.BILL; // Assembly Bill
+			if (numUpper.startsWith("SB")) return BillType.BILL; // Senate Bill
+			if (numUpper.startsWith("HB")) return BillType.BILL; // House Bill
+			// Resolutions
+			if (numUpper.contains("RES") || numUpper.startsWith("SR") || numUpper.startsWith("HR")) return BillType.RESOLUTION;
+			// Add more state-specific mappings if needed
+			Log.debug("Defaulting to BILL for state bill number: " + legiscanBillNumber);
+			return BillType.BILL; // Default for states
+		}
+	}
+
+	private int extractBillNumber(String legiscanBillNumber, BillType determinedType) {
+		if (StringUtils.isBlank(legiscanBillNumber)) return 0;
+		String numericPart = legiscanBillNumber.replaceAll("[^0-9]", ""); // Get only numbers
+		try {
+			return Integer.parseInt(numericPart);
+		} catch (NumberFormatException e) {
+			Log.warn("Could not parse bill number from: " + legiscanBillNumber + " (type: " + determinedType.getName() + ")", e);
+			return 0;
+		}
+	}
+
+	private BillStatus buildStatusFromLegiscan(LegiscanBillView view, LegislativeNamespace namespace) {
+		BillStatus status = new BillStatus();
+		status.setSourceStatus(view.getStatus() + (view.getLast_action() != null ? " - " + view.getLast_action() : ""));
+		status.setDescription(view.getLast_action() != null ? view.getLast_action() : view.getStatus());
+
+		String statusLower = view.getStatus().toLowerCase();
+		if (statusLower.contains("passed") || statusLower.contains("enacted") || statusLower.contains("signed") || statusLower.contains("adopted")) {
+			status.setProgress(1.0f);
+		} else if (statusLower.contains("failed") || statusLower.contains("vetoed")) {
+			status.setProgress(0.1f); // Died
+		} else {
+			status.setProgress(0.05f); // Introduced/Pending
+		}
+		// This is a very basic placeholder. Real status mapping would be more complex.
+		return status;
 	}
 	
 	@SneakyThrows
-	protected void importUscBill(FileInputStream fos, String session) {
-		val view = PoliscoreUtil.getObjectMapper().readValue(fos, USCBillView.class);
+	// protected void importUscBill(FileInputStream fos, String session) { // Old method
+	protected void importSingleBill_Old(FileInputStream fos, String session) { // Renamed
+		// val view = PoliscoreUtil.getObjectMapper().readValue(fos, USCBillView.class);
 		
 //		String text = fetchBillText(view.getUrl());
     	
-    	val bill = new Bill();
+    	// val bill = new Bill(); // Old logic
 //    	bill.setText(text);
-    	bill.setName(view.getBillName());
-    	bill.setSession(Integer.parseInt(view.getCongress()));
-    	bill.setType(BillType.valueOf(view.getBill_type().toUpperCase()));
-    	bill.setNumber(Integer.parseInt(view.getNumber()));
-    	bill.setStatus(buildStatus(view));
+    	// bill.setName(view.getBillName());
+    	// bill.setSession(Integer.parseInt(view.getCongress()));
+    	// bill.setType(BillType.valueOf(view.getBill_type().toUpperCase()));
+    	// bill.setNumber(Integer.parseInt(view.getNumber()));
+    	// bill.setStatus(buildStatus(view));
 //    	bill.setStatusUrl(view.getUrl());
-    	bill.setIntroducedDate(view.getIntroduced_at());
-    	bill.setSponsor(view.getSponsor() == null ? null : view.getSponsor().convert(session, memService));
-    	bill.setCosponsors(view.getCosponsors().stream().map(s -> s.convert(session, memService)).collect(Collectors.toList()));
-    	bill.setLastActionDate(view.getLastActionDate());
+    	// bill.setIntroducedDate(view.getIntroduced_at());
+    	// bill.setSponsor(view.getSponsor() == null ? null : view.getSponsor().convert(session, memService));
+    	// bill.setCosponsors(view.getCosponsors().stream().map(s -> s.convert(session, memService)).collect(Collectors.toList()));
+    	// bill.setLastActionDate(view.getLastActionDate());
     	
-    	if (view.getSponsor() != null && !StringUtils.isBlank(view.getSponsor().getBioguide_id()))
-    	{
-			val leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber(), view.getSponsor().getBioguide_id()));
+    	// if (view.getSponsor() != null && !StringUtils.isBlank(view.getSponsor().getBioguide_id())) // Old logic
+    	// {
+			// val leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.currentSessionNumber, view.getSponsor().getBioguide_id())); // Updated
 			
-			if (leg.isPresent()) {
-				LegislatorBillSponsor interaction = new LegislatorBillSponsor();
-				interaction.setLegId(leg.get().getId());
-				interaction.setBillId(bill.getId());
-				interaction.setDate(view.getIntroduced_at());
-				interaction.setBillName(bill.getName());
-				leg.get().addBillInteraction(interaction);
+			// if (leg.isPresent()) {
+				// LegislatorBillSponsor interaction = new LegislatorBillSponsor();
+				// interaction.setLegId(leg.get().getId());
+				// interaction.setBillId(bill.getId());
+				// interaction.setDate(view.getIntroduced_at());
+				// interaction.setBillName(bill.getName());
+				// leg.get().addBillInteraction(interaction);
 				
-				memService.put(leg.get());
-			}
-    	}
+				// memService.put(leg.get());
+			// }
+    	// }
     	
-    	view.getCosponsors().stream().filter(cs -> view.getSponsor() == null || !view.getSponsor().getBioguide_id().equals(cs.getBioguide_id())).forEach(cs -> {
-    		if (!StringUtils.isBlank(cs.getBioguide_id())) {
-	    		val leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.CURRENT_SESSION.getNumber(), cs.getBioguide_id()));
+    	// view.getCosponsors().stream().filter(cs -> view.getSponsor() == null || !view.getSponsor().getBioguide_id().equals(cs.getBioguide_id())).forEach(cs -> { // Old logic
+    		// if (!StringUtils.isBlank(cs.getBioguide_id())) {
+	    		// val leg = lService.getById(Legislator.generateId(LegislativeNamespace.US_CONGRESS, PoliscoreUtil.currentSessionNumber, cs.getBioguide_id())); // Updated
 				
-	    		if (leg.isPresent()) {
-					LegislatorBillCosponsor interaction = new LegislatorBillCosponsor();
-					interaction.setLegId(leg.get().getId());
-					interaction.setBillId(bill.getId());
-					interaction.setDate(view.getIntroduced_at());
-					interaction.setBillName(bill.getName());
-					leg.get().addBillInteraction(interaction);
+	    		// if (leg.isPresent()) {
+					// LegislatorBillCosponsor interaction = new LegislatorBillCosponsor();
+					// interaction.setLegId(leg.get().getId());
+					// interaction.setBillId(bill.getId());
+					// interaction.setDate(view.getIntroduced_at());
+					// interaction.setBillName(bill.getName());
+					// leg.get().addBillInteraction(interaction);
 					
-					memService.put(leg.get());
-	    		}
-    		}
-    	});
+					// memService.put(leg.get());
+	    		// }
+    		// }
+    	// });
     	
-    	memService.put(bill);
+    	// memService.put(bill); // Old logic
 	}
 	
-	public BillStatus buildStatus(USCBillView view) {
-	    BillStatus status = new BillStatus();
-	    status.setSourceStatus(view.getStatus());
+	// public BillStatus buildStatus(USCBillView view) { // Old logic, uses USCBillView
+	    // BillStatus status = new BillStatus();
+	    // status.setSourceStatus(view.getStatus());
 	    
-	    final LegislativeChamber chamber = BillType.getOriginatingChamber(BillType.valueOf(view.getBill_type().toUpperCase()));
-	    final String stat = view.getStatus().toUpperCase();
-	    final boolean sessionOver = CongressionalSession.of(Integer.parseInt(view.getCongress())).isOver();
+	    // final LegislativeChamber chamber = BillType.getOriginatingChamber(BillType.valueOf(view.getBill_type().toUpperCase()));
+	    // final String stat = view.getStatus().toUpperCase();
+	    // final boolean sessionOver = CongressionalSession.of(Integer.parseInt(view.getCongress())).isOver();
 
 	    if (stat.equals("INTRODUCED")) {
 	        status.setDescription("Introduced in the " + chamber.getName());
@@ -349,18 +459,24 @@ public class BillService {
 	public void generateBillWebappIndex() {
 		final File out = new File(Environment.getDeployedPath(), "../../webapp/src/main/resources/bills.index");
 		
-		DateTimeFormatter usFormat = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+		DateTimeFormatter usFormat = DateTimeFormatter.ofPattern("MM/dd/yyyy"); // Keep for date formatting if needed
 		
 		val data = memService.queryAll(Bill.class).stream()
-			.filter(b -> PoliscoreUtil.SUPPORTED_CONGRESSES.stream().anyMatch(s -> b.isIntroducedInSession(s)) && s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
+			.filter(b -> b.getNamespace() == PoliscoreUtil.currentNamespace && 
+						 b.getSession().equals(PoliscoreUtil.currentSessionNumber) && 
+						 s3.exists(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class))
 			.map(b -> {
 				// The bill name can come from the interpretation so we have to fetch it.
 				b.setInterpretation(s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).orElseThrow());
 				
-				if (b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION)) {
+				// The filter already ensures namespace and session match, so this check might be redundant
+				// but kept for safety or if the filter changes.
+				if (b.getNamespace() == PoliscoreUtil.currentNamespace && b.getSession().equals(PoliscoreUtil.currentSessionNumber)) {
 					return Arrays.asList(b.getId(), b.getName());
 				} else {
-					return Arrays.asList(b.getId(), b.getName() + " (" + b.getIntroducedDate().format(usFormat) + ")");
+					// This case should ideally not be hit if the filter is correct.
+					// If PoliscoreUtil.SUPPORTED_CONGRESSES is used, this logic for different sessions might be relevant.
+					return Arrays.asList(b.getId(), b.getName() + " (" + (b.getIntroducedDate() != null ? b.getIntroducedDate().format(usFormat) : "N/A") + ")");
 				}
 			})
 			.sorted((a,b) -> a.get(1).compareTo(b.get(1)))

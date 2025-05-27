@@ -22,6 +22,7 @@ import jakarta.inject.Inject;
 import lombok.val;
 import us.poliscore.Environment;
 import us.poliscore.PoliscoreUtil;
+import us.poliscore.model.LegislativeNamespace; // Added import
 import us.poliscore.ai.BatchOpenAIRequest;
 import us.poliscore.ai.BatchOpenAIRequest.BatchBillMessage;
 import us.poliscore.ai.BatchOpenAIRequest.BatchOpenAIBody;
@@ -47,7 +48,7 @@ import us.poliscore.service.storage.MemoryObjectService;
 @ApplicationScoped
 public class PartyInterpretationService {
 	public static final String PROMPT_TEMPLATE = """
-			You are part of a U.S. non-partisan oversight committee which has graded the {{partyName}} party for the {{session}} congressional session. The evaluations were compiled based on grading every bill within the session, and then aggregating the scores. The party has received the following policy area grades (scores range from -100 to 100):
+			You are part of a {{jurisdictionShortName}} non-partisan oversight committee which has graded the {{partyName}} party for the {{sessionName}}. The evaluations were compiled based on grading every bill within the session, and then aggregating the scores. The party has received the following policy area grades (scores range from -100 to 100):
 			
 			{{stats}}
 			
@@ -347,12 +348,14 @@ public class PartyInterpretationService {
 		return highlightPolicyAreas;
 	}
 	
-	public static String getAiPrompt(CongressionalSession session, Party party, IssueStats stats) {
+	public static String getAiPrompt(LegislativeNamespace namespace, String sessionDisplayName, Party party, IssueStats stats) {
 		val grade = stats.getLetterGrade();
+		String jurisdictionShortName = (namespace == LegislativeNamespace.US_CONGRESS) ? "U.S." : "State";
 		
 		return PROMPT_TEMPLATE
+				.replace("{{jurisdictionShortName}}", jurisdictionShortName)
 				.replace("{{partyName}}", party.getName())
-				.replace("{{session}}", String.valueOf(session.getNumber()))
+				.replace("{{sessionName}}", sessionDisplayName)
 				.replace("{{stats}}", stats.toString())
 				.replace("{{letterGrade}}", grade)
 				.replace("{{analysisType}}", grade.equals("A") || grade.equals("B") ? "endorsement" : (grade.equals("C") || grade.equals("D") ? "mixed analysis" : "harsh critique"))

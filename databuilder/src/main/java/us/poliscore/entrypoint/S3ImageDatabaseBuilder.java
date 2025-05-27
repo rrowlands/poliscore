@@ -11,6 +11,8 @@ import java.util.Optional;
 
 import javax.net.ssl.SSLContext;
 
+// Added import for StringUtils
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -32,6 +34,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+// Added import for LegislativeNamespace
+import us.poliscore.model.LegislativeNamespace;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.storage.MemoryObjectService;
@@ -182,10 +186,27 @@ public class S3ImageDatabaseBuilder implements QuarkusApplication {
 	    }
 	}
 
+	private String determinePhotoUrl(Legislator leg) {
+	    if (!StringUtils.isBlank(leg.getPhotoUrl())) {
+	        return leg.getPhotoUrl();
+	    }
+	    // Fallback for US Congress legislators if photoUrl is missing but bioguideId exists
+	    if (leg.getNamespace() == LegislativeNamespace.US_CONGRESS && !StringUtils.isBlank(leg.getBioguideId())) {
+	        Log.info("No direct photoUrl for " + leg.getId() + ", attempting to scrape congress.gov as fallback.");
+	        return scrapeImageUrlFromMemberPage(leg); // Existing scraping method
+	    }
+	    Log.warn("No photoUrl found for legislator " + leg.getId() + " (Namespace: " + leg.getNamespace() + ")");
+	    return null;
+	}
 	
 	@SneakyThrows
 	private Optional<byte[]> getImage(Legislator leg) {
-	    String url = scrapeImageUrlFromMemberPage(leg);
+	    String url = determinePhotoUrl(leg);
+
+	    if (StringUtils.isBlank(url)) {
+	        Log.warn("Skipping image fetch for " + leg.getId() + " as no URL could be determined.");
+	        return Optional.empty();
+	    }
 
 	    final int MAX_RETRIES = 5;
 	    int attempt = 0;

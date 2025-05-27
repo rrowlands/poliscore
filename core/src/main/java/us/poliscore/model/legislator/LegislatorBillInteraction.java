@@ -3,6 +3,7 @@ package us.poliscore.model.legislator;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import org.apache.commons.lang3.StringUtils; // Added import
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -106,15 +107,30 @@ public abstract class LegislatorBillInteraction implements Comparable<Legislator
 	}
 	
 	public static String generatePartitionKey(String legId) {
-		return ID_CLASS_PREFIX + "/" + LegislativeNamespace.US_CONGRESS.getNamespace() + "/"
-				+ legId.replace(Legislator.ID_CLASS_PREFIX + "/", "").replace(LegislativeNamespace.US_CONGRESS.getNamespace() + "/", "");
-	}
+            if (StringUtils.isBlank(legId) || !legId.startsWith(Legislator.ID_CLASS_PREFIX + "/")) {
+                throw new IllegalArgumentException("Invalid legId for LBI partition key: " + legId);
+            }
+            // legId is "LEG/ns.../session/nativeId"
+            // We want "LBI/ns.../session/nativeId"
+            return ID_CLASS_PREFIX + legId.substring(Legislator.ID_CLASS_PREFIX.length());
+        }
 	
 	public static String generateSortKey(LocalDate date, String billId) {
-		return date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-				+ "/"
-				+ billId.replace(Bill.ID_CLASS_PREFIX + "/", "").replace(LegislativeNamespace.US_CONGRESS.getNamespace() + "/", "");
-	}
+            if (date == null || StringUtils.isBlank(billId) || !billId.startsWith(Bill.ID_CLASS_PREFIX + "/")) {
+                throw new IllegalArgumentException("Invalid date or billId for LBI sort key. Date: " + date + ", BillId: " + billId);
+            }
+            // billId is "BIL/ns.../session/type/number"
+            // We want "date/type/number"
+            String[] billParts = billId.split("/");
+            if (billParts.length < 5) { // BIL, ns..., session, type, number - expect at least 5 parts for simple ns like us/congress
+                // For "us/california" it would be BIL / us / california / 2023 / ab / 123 (6 parts)
+                // The type is always second to last, number is last.
+                throw new IllegalArgumentException("Invalid billId structure for LBI sort key: " + billId);
+            }
+            String type = billParts[billParts.length - 2];
+            String number = billParts[billParts.length - 1];
+            return date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "/" + type + "/" + number;
+        }
 	
 	@DdbKeyProvider
 	public static Key ddbKey(String id) {

@@ -3,6 +3,7 @@ package us.poliscore.service;
 import java.util.Arrays;
 import java.util.Optional;
 
+import us.poliscore.model.LegislativeNamespace; // Added import
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.NonNull;
@@ -39,10 +40,10 @@ public class BillInterpretationService {
 	// 4. Beetle bill - https://www.congress.gov/bill/118th-congress/senate-bill/3838
 	
 	public static final String statsPromptTemplate = """
-			You will be given the text of a United States bill currently in congress. Your role is to be a non-partisan oversight committee, evaluating whether or not the following bill will produce a positive overall benefit to society. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Stats:') in your response. Do not include the section instructions in your response.
+			You will be given the text of a {{jurisdictionName}} bill currently in the {{legislativeBodyDisplayName}}. Your role is to be a non-partisan oversight committee, evaluating whether or not the following bill will produce a positive overall benefit to society. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Stats:') in your response. Do not include the section instructions in your response.
 
 			Stats:
-			Score the following bill on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant.
+			Score the following bill on the estimated impact to {{jurisdictionName}} upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant.
 			
 			{issuesList}
 			
@@ -60,10 +61,10 @@ public class BillInterpretationService {
 			""";
 	
 	public static final String slicePromptTemplate = """
-			You will be given the text of a United States bill currently in congress. Your role is to be a non-partisan oversight committee, evaluating whether or not the following bill will produce a positive overall benefit to society. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Stats:') in your response. Do not include the section instructions in your response.
+			You will be given the text of a {{jurisdictionName}} bill currently in the {{legislativeBodyDisplayName}}. Your role is to be a non-partisan oversight committee, evaluating whether or not the following bill will produce a positive overall benefit to society. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Stats:') in your response. Do not include the section instructions in your response.
 
 			Stats:
-			Score the following bill on the estimated impact to the United States upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant.
+			Score the following bill on the estimated impact to {{jurisdictionName}} upon the following criteria, rated from -100 (very harmful) to 0 (neutral) to +100 (very helpful) or N/A if it is not relevant.
 			
 			{issuesList}
 			
@@ -72,7 +73,7 @@ public class BillInterpretationService {
 			""";
 	
 	public static final String aggregatePrompt = """
-			A large U.S. congressional bill has been split into sections and summarized. Your role is to be a non-partisan oversight committee, evaluating whether or not the following bill will produce a positive overall benefit to society. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Stats:') in your response. Do not include the section instructions in your response.
+			A large {{jurisdictionName}} {{legislativeBodyDisplayName}} bill has been split into sections and summarized. Your role is to be a non-partisan oversight committee, evaluating whether or not the following bill will produce a positive overall benefit to society. In your response, fill out the sections as listed in the following template. Each section will have detailed instructions on how to fill it out. Make sure to include the section title (such as, 'Stats:') in your response. Do not include the section instructions in your response.
 			
 			Bill Title:
 			Write the bill title. If the bill does not have a title and is only referred to by its bill number (such as HR 4141), please make up a very short title for the bill based on its content.
@@ -111,15 +112,37 @@ public class BillInterpretationService {
 		return s3.get(BillInterpretation.generateId(billId, origin, null), BillInterpretation.class);
 	}
 	
-	public String getPromptForBill(Bill bill, boolean isAggregate) {
-		if (isAggregate) {
-			return aggregatePrompt;
-		} else {
-			return statsPrompt;
-		}
+	private String getJurisdictionName(LegislativeNamespace namespace) {
+	    if (namespace == LegislativeNamespace.US_CONGRESS) return "the United States";
+	    String nsStr = namespace.getNamespace();
+	    if (nsStr.startsWith("us/")) {
+	        String stateName = nsStr.substring(3);
+	        return stateName.substring(0, 1).toUpperCase() + stateName.substring(1);
+	    }
+	    return "the jurisdiction"; // Fallback
+	}
+
+	private String getLegislativeBodyDisplayName(LegislativeNamespace namespace) {
+	    if (namespace == LegislativeNamespace.US_CONGRESS) return "Congress";
+	    return getJurisdictionName(namespace) + " State Legislature";
 	}
 	
-	public String getUserMsgForBill(Bill bill, String billText) {
+	public String getPromptForBill(Bill bill, boolean isAggregate, LegislativeNamespace namespace) {
+		String basePrompt;
+		if (isAggregate) {
+			basePrompt = aggregatePrompt;
+		} else {
+			basePrompt = statsPrompt;
+		}
+		String jurisdictionName = getJurisdictionName(namespace);
+		String legislativeBodyDisplayName = getLegislativeBodyDisplayName(namespace);
+		
+		return basePrompt
+				.replace("{{jurisdictionName}}", jurisdictionName)
+				.replace("{{legislativeBodyDisplayName}}", legislativeBodyDisplayName);
+	}
+	
+	public String getUserMsgForBill(Bill bill, String billText, LegislativeNamespace namespace) {
 //		var userMsg = "Bill Text:\n" + billText;
 //		
 //		val op = s3.get(CBOBillAnalysis.generateId(bill.getId()), CBOBillAnalysis.class);
@@ -130,8 +153,9 @@ public class BillInterpretationService {
 //		
 //		return userMsg;
 		
+		String jurisdictionName = getJurisdictionName(namespace);
 		var userMsg = "Press Coverage:\n";
-		userMsg += "The following articles were pulled from a basic Google search for this bill and were included to provide additional context for the interpretation. Their inclusion does not represent an endorsement from PoliScore. Often a Google search for a bill will reveal key legislative stakeholders, so view these articles with a skeptical eye. We want to prioritize what's best for all of America, not necessarily a few key stakeholders.\n\n";
+		userMsg += "The following articles were pulled from a basic Google search for this bill and were included to provide additional context for the interpretation. Their inclusion does not represent an endorsement from PoliScore. Often a Google search for a bill will reveal key legislative stakeholders, so view these articles with a skeptical eye. We want to prioritize what's best for all of " + jurisdictionName + ", not necessarily a few key stakeholders.\n\n";
 		
 		
 		var pressInterps = billService.getAllPressInterps(bill.getId());
