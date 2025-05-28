@@ -76,11 +76,9 @@
                                         <h3 class="card-subtitle">Sponsor: <a [href]="config.legislatorIdToAbsolutePath(bill.sponsor.legislatorId)">{{bill.sponsor.name.official_full}}</a></h3>
                                     </div>
                                     <div class="title-right">
-                                        <h3>
-                                            <div>{{ getBillDate() }}</div>
-                                            <div class="">{{bill.type + " " + bill.number}}</div>
-                                            <div class="bill-status" [ngClass]="{'highlight-law': bill.status.description.trim().toLowerCase() === 'law'}">{{ bill.status.description }}</div>
-                                        </h3>
+                                        <div>{{ getBillDate() }}</div>
+                                        <div class="">{{bill.type + " " + bill.number}}</div>
+                                        <div class="bill-status" [ngClass]="{'highlight-law': bill.status.description.trim().toLowerCase() === 'law'}">{{ bill.status.description }}</div>
                                     </div>
                                 </div>
                             </ng-template>

@@ -166,7 +166,7 @@ public class DatabaseBuilder implements QuarkusApplication
 			}
 		}
 		
-		Log.info("Created " + amount + " missing bills in ddb from s3");
+		Log.info("Updated " + amount + " out of sync bills in ddb from s3");
 		Log.info("Decaying hot values");
 		
 		// Decay first x hot values //
@@ -255,9 +255,9 @@ public class DatabaseBuilder implements QuarkusApplication
 					responseImporter.process(f);
 				}
 			}
-		} else {
-			recalculateLegislators();
 		}
+		
+		recalculateLegislators();
 	}
 	
 	/**
