@@ -159,7 +159,7 @@ public class DatabaseBuilder implements QuarkusApplication
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
 			var dbill = ddb.get(b.getId(), Bill.class).orElse(null);
 			
-			if (dbill == null || !dbill.getStatus().equals(b.getStatus())) {
+			if (dbill == null || !dbill.getStatus().equals(b.getStatus()) || !dbill.getLastActionDate().equals(b.getLastActionDate())) {
 				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
 				billService.ddbPersist(b, interp);
 				amount++;
