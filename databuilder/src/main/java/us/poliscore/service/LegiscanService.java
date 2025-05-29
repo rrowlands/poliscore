@@ -36,15 +36,10 @@ public class LegiscanService {
             .connectTimeout(REQUEST_TIMEOUT)
             .build();
     
-    private String getApiKey() {
-        return secretService.getSecret("LEGISCAN_API_KEY")
-                .orElseThrow(() -> new RuntimeException("LEGISCAN_API_KEY not found in secrets"));
-    }
-    
     @SneakyThrows
     private String buildUrl(String endpoint, String... params) {
         StringBuilder url = new StringBuilder(BASE_URL)
-                .append("?key=").append(getApiKey())
+                .append("?key=").append(secretService.getLegiscanSecret())
                 .append("&op=").append(endpoint);
         
         for (int i = 0; i < params.length; i += 2) {

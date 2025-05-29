@@ -9,7 +9,10 @@ import lombok.SneakyThrows;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
-import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;	
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
 public class SecretService {
@@ -19,48 +22,45 @@ public class SecretService {
 		String username;
 		String password;
 	}
-	
-	public String getGoogleSearchSecret()
-	{
+
+	private final Map<String, String> secretCache = new ConcurrentHashMap<>();
+
+	public String getGoogleSearchSecret() {
 		return getSecret("google-search", Region.of("us-east-1"));
 	}
-	
+
 	public String getOpenAISecret() {
 		return getSecret("openai", Region.of("us-east-1"));
 	}
-	
+
 	public String getGovInfoSecret() {
 		return getSecret("govinfo.gov", Region.of("us-east-1"));
 	}
-	
+
 	@SneakyThrows
 	public UsernameAndPassword getLegiscanSecret() {
-		return new ObjectMapper().readValue(getSecret("legiscan", Region.of("us-east-1")), UsernameAndPassword.class);
+		return new ObjectMapper().readValue(getSecret("legiscan2", Region.of("us-east-1")), UsernameAndPassword.class);
 	}
-	
-	private String getSecret(String secretName, Region region)
-	{
-		// Create a Secrets Manager client
-	    SecretsManagerClient client = SecretsManagerClient.builder()
-	            .region(region)
-	            .build();
 
-	    GetSecretValueRequest getSecretValueRequest = GetSecretValueRequest.builder()
-	            .secretId(secretName)
-	            .build();
+	private String getSecret(String secretName, Region region) {
+		// Check the cache first
+		if (secretCache.containsKey(secretName)) {
+			return secretCache.get(secretName);
+		}
 
-	    GetSecretValueResponse getSecretValueResponse;
+		// Fetch from AWS if not cached
+		SecretsManagerClient client = SecretsManagerClient.builder()
+				.region(region)
+				.build();
 
-	    try {
-	        getSecretValueResponse = client.getSecretValue(getSecretValueRequest);
-	    } catch (Exception e) {
-	        // For a list of exceptions thrown, see
-	        // https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-	        throw e;
-	    }
+		GetSecretValueRequest request = GetSecretValueRequest.builder()
+				.secretId(secretName)
+				.build();
 
-	    String secret = getSecretValueResponse.secretString();
+		GetSecretValueResponse response = client.getSecretValue(request);
+		String secret = response.secretString();
 
-	    return secret;
+		secretCache.put(secretName, secret);
+		return secret;
 	}
 }
