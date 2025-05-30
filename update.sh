@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 set -x
 
 sudo docker ps
@@ -34,7 +35,7 @@ mvn exec:java \
   -Dquarkus.launch.devmode=false \
   -Dvertx.options.warningExceptionTime=-1 \
   -Dtest-containers.disabled=true \
-2>&1 | ./vertx.silencer
+2>&1
 
 
 

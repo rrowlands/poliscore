@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -132,8 +133,8 @@ public class DatabaseBuilder implements QuarkusApplication
 		billService.importUscBills();
 		rollCallService.importUscVotes();
 		
-		imageBuilder.process();
-		billTextFetcher.process();
+//		imageBuilder.process();
+//		billTextFetcher.process();
 		syncDdbWithS3();
 		
 		interpretBillPressArticles();
@@ -159,11 +160,15 @@ public class DatabaseBuilder implements QuarkusApplication
 		for (Bill b : memService.query(Bill.class).stream().filter(b -> b.isIntroducedInSession(PoliscoreUtil.CURRENT_SESSION) && billInterpreter.isInterpreted(b.getId())).collect(Collectors.toList())) {
 			var dbill = ddb.get(b.getId(), Bill.class).orElse(null);
 			
-			if (dbill == null || !dbill.getStatus().equals(b.getStatus()) || !dbill.getLastActionDate().equals(b.getLastActionDate())) {
-				val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
-				billService.ddbPersist(b, interp);
-				amount++;
+			if (dbill == null 
+			    || !Objects.equals(dbill.getStatus(), b.getStatus()) 
+			    || !Objects.equals(dbill.getLastActionDate(), b.getLastActionDate())) {
+			    
+			    val interp = s3.get(BillInterpretation.generateId(b.getId(), null), BillInterpretation.class).get();
+			    billService.ddbPersist(b, interp);
+			    amount++;
 			}
+
 		}
 		
 		Log.info("Updated " + amount + " out of sync bills in ddb from s3");
@@ -406,10 +411,17 @@ public class DatabaseBuilder implements QuarkusApplication
 	
 	@Override
     public int run(String... args) throws Exception {
-        process();
-        
-        Quarkus.waitForExit();
-        return 0;
+		try {
+	        process();
+	        
+	        Quarkus.waitForExit();
+	        return 0;
+		} catch (Throwable t) {
+			t.printStackTrace();
+			System.exit(1);
+		}
+		
+		return 1;
     }
 	
 	public static void main(String[] args) {
