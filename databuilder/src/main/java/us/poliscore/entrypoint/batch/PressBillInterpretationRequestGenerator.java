@@ -412,7 +412,7 @@ public class PressBillInterpretationRequestGenerator implements QuarkusApplicati
 		Log.info("Scraping press articles");
 		
 		legService.importLegislators();
-		billService.importUscBills();
+		billService.importBills();
 		rollCallService.importUscVotes();
 		
 		s3.optimizeExists(BillText.class);

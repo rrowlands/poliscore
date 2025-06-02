@@ -88,12 +88,12 @@ public class BatchLegislatorRequestGenerator implements QuarkusApplication
 		
 		PoliscoreUtil.CURRENT_SESSION = CongressionalSession.of(PoliscoreUtil.CURRENT_SESSION.getNumber() - 1);
 		legService.importLegislators();
-		billService.importUscBills();
+		billService.importBills();
 		rollCallService.importUscVotes();
 		
 		PoliscoreUtil.CURRENT_SESSION = CongressionalSession.of(PoliscoreUtil.CURRENT_SESSION.getNumber() + 1);
 		legService.importLegislators();
-		billService.importUscBills();
+		billService.importBills();
 		rollCallService.importUscVotes();
 		
 		int block = 1;

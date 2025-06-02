@@ -130,11 +130,11 @@ public class DatabaseBuilder implements QuarkusApplication
 		s3.optimizeExists(LegislatorInterpretation.class);
 		
 		legService.importLegislators();
-		billService.importUscBills();
+		billService.importBills();
 		rollCallService.importUscVotes();
 		
-//		imageBuilder.process();
-//		billTextFetcher.process();
+		imageBuilder.process();
+		billTextFetcher.process();
 		syncDdbWithS3();
 		
 		interpretBillPressArticles();

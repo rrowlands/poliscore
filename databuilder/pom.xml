@@ -59,6 +59,11 @@
   
   <dependencies>
 	<dependency>
+        <groupId>us.poliscore</groupId>
+        <artifactId>legiscan</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+	<dependency>
 		<groupId>us.poliscore</groupId>
 		<artifactId>core</artifactId>
 		<version>0.0.1-SNAPSHOT</version>

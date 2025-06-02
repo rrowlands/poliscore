@@ -87,7 +87,7 @@ public class CBODataFetcher implements QuarkusApplication
 	protected void process() throws IOException
 	{
 		legService.importLegislators();
-		billService.importUscBills();
+		billService.importBills();
 		rollCallService.importUscVotes();
 		
 		if (CHECK_EXISTS) s3.optimizeExists(CBOBillAnalysis.class);

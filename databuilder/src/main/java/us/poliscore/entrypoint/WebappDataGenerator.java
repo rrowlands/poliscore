@@ -68,7 +68,7 @@ public class WebappDataGenerator implements QuarkusApplication
 			PoliscoreUtil.CURRENT_SESSION = session;
 			
 			legService.importLegislators();
-			billService.importUscBills();
+			billService.importBills();
 			
 			s3.optimizeExists(BillInterpretation.class);
 			s3.optimizeExists(LegislatorInterpretation.class);

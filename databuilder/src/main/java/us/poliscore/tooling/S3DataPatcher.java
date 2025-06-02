@@ -47,7 +47,7 @@ public class S3DataPatcher implements QuarkusApplication {
 	protected void process() throws IOException
 	{
 		legService.importLegislators();
-		billService.importUscBills();
+		billService.importBills();
 		rollCallService.importUscVotes();
 		
 		s3.optimizeExists(BillInterpretation.class);

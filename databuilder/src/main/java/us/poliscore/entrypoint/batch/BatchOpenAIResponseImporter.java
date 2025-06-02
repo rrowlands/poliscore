@@ -105,7 +105,7 @@ public class BatchOpenAIResponseImporter implements QuarkusApplication
 	public void process(File input)
 	{
 		legService.importLegislators();
-		billService.importUscBills();
+		billService.importBills();
 		rollCallService.importUscVotes();
 		
 		Log.info("Importing " + input.getAbsolutePath());

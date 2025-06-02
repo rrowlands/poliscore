@@ -92,7 +92,7 @@ public class PartyInterpretationService {
 	public List<File> process() throws IOException
 	{
 		legService.importLegislators();
-		billService.importUscBills();
+		billService.importBills();
 		rollCallService.importUscVotes();
 		
 		val partyStats = recalculateStats();

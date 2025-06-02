@@ -44,7 +44,7 @@ public class DataCleaner implements QuarkusApplication {
 	protected void process() throws IOException
 	{
 		legService.importLegislators();
-		billService.importUscBills();
+		billService.importBills();
 		rollCallService.importUscVotes();
 		
 		s3.optimizeExists(BillInterpretation.class);
