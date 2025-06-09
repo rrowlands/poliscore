@@ -6,7 +6,9 @@ import lombok.Getter;
 
 @Getter
 public enum LegislativeNamespace {
-	US_CONGRESS("us/congress");
+	US_CONGRESS("us/congress"),
+	US_COLORADO("us/colorado"),
+	US_TEXAS("us/texas");
 	
 	private String namespace;
 	

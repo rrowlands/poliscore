@@ -1,6 +1,5 @@
 package us.poliscore.dynamodb;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -13,9 +12,8 @@ import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndexUpdate
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.UpdateTableRequest;
-import us.poliscore.PoliscoreUtil;
+import us.poliscore.TestUtils;
 import us.poliscore.model.legislator.Legislator;
 import us.poliscore.service.LegislatorService;
 import us.poliscore.service.storage.DynamoDbPersistenceService;
@@ -47,7 +45,7 @@ public class DdbBuilder
 			
 			legService.importLegislators();
 			
-			ddb.put(memory.get(PoliscoreUtil.BERNIE_SANDERS_ID, Legislator.class).orElseThrow());
+			ddb.put(memory.get(TestUtils.BERNIE_SANDERS_ID, Legislator.class).orElseThrow());
 			
 			bootstrapped = true;
 		}
