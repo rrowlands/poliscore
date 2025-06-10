@@ -99,7 +99,7 @@ public class BillService {
 	{
 		var pressInterps = s3.query(PressInterpretation.class, Persistable.getClassStorageBucket(PressInterpretation.class), billId.replace(Bill.ID_CLASS_PREFIX + "/", ""));
 		
-		pressInterps = pressInterps.stream().filter(i -> !InterpretationOrigin.POLISCORE.equals(i.getOrigin())).collect(Collectors.toList());
+		pressInterps = pressInterps.stream().filter(i -> i.getBillId().equals(billId) && !InterpretationOrigin.POLISCORE.equals(i.getOrigin())).collect(Collectors.toList());
 		
 		return pressInterps;
 	}
