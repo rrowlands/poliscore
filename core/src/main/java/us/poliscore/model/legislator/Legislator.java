@@ -65,12 +65,10 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	
 	protected String bioguideId;
 	
-	protected String thomasId;
+//	protected String legiscanId;
 	
 	// Senate Id : https://github.com/usgpo/bill-status/issues/241
 	protected String lisId;
-	
-	protected String wikidataId;
 	
 	protected LegislatorInterpretation interpretation;
 	
@@ -122,8 +120,8 @@ public class Legislator implements Persistable, Comparable<Legislator> {
 	@DynamoDbPartitionKey
 	public String getId()
 	{
+//		if (legiscanId != null) return generateId(LegislativeNamespace.US_CONGRESS, session, legiscanId);
 		if (bioguideId != null) return generateId(LegislativeNamespace.US_CONGRESS, session, bioguideId);
-		if (thomasId != null) return generateId(LegislativeNamespace.US_CONGRESS, session, thomasId);
 		
 		throw new NullPointerException();
 	}
