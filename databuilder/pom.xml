@@ -59,9 +59,14 @@
   
   <dependencies>
 	<dependency>
+        <groupId>dev.failsafe</groupId>
+    	<artifactId>failsafe</artifactId>
+    	<version>3.3.2</version>
+	</dependency>
+	<dependency>
         <groupId>us.poliscore</groupId>
         <artifactId>legiscan</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.0.0</version>
       </dependency>
 	<dependency>
 		<groupId>us.poliscore</groupId>

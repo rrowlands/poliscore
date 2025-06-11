@@ -1,6 +1,7 @@
 package us.poliscore.service;
 
 import java.io.File;
+import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -22,6 +23,8 @@ import com.theokanning.openai.completion.chat.SystemMessage;
 import com.theokanning.openai.completion.chat.UserMessage;
 import com.theokanning.openai.service.OpenAiService;
 
+import dev.failsafe.Failsafe;
+import dev.failsafe.RetryPolicy;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -145,7 +148,16 @@ public class OpenAIService {
 			
 			while (it.hasNext()) {
 				val b = it.next();
-				val b2 = service.retrieveBatch(b.getId());
+				
+				RetryPolicy<Object> retryPolicy = RetryPolicy.builder()
+				    .handle(SocketTimeoutException.class)
+				    .withBackoff(1, 8, ChronoUnit.SECONDS)
+				    .withMaxRetries(3)
+				    .onRetry(e -> Log.warn("Retrying due to timeout..."))
+				    .onFailure(e -> Log.error("Retries exhausted", e.getException()))
+				    .build();
+
+				Batch b2 = Failsafe.with(retryPolicy).get(() -> service.retrieveBatch(b.getId()));
 				
 				if (b2.getStatus().equals("completed") && StringUtils.isNotEmpty(b2.getOutputFileId())) {
 					val body = service.retrieveFileContent(b2.getOutputFileId());
