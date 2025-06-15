@@ -7,12 +7,15 @@ import java.util.Scanner;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import io.quarkus.logging.Log;
 import us.poliscore.model.IssueStats;
 import us.poliscore.model.TrackedIssue;
 
 public class BillInterpretationParser {
+	
+	private static Logger logger = LoggerFactory.getLogger(BillInterpretationParser.class);
 	
 	public static List<String> summaryHeader = Arrays.asList("summary:", "*summary:*", "**summary:**", "*summary*", "**summary**");
 	
@@ -99,7 +102,7 @@ public class BillInterpretationParser {
 	    }
 
 	    if (Math.abs(totalSet - TrackedIssue.values().length) <= 2 && zeroCount > 1) {
-	    	Log.error("Malformed AI response for bill [" + this.interp.billId + "]: too many tracked issues were assigned a value of 0. Only include an issue if it is truly relevant. Zeros will be removed from issue stats.");
+	    	logger.error("Malformed AI response for bill [" + this.interp.billId + "]: too many tracked issues were assigned a value of 0. Only include an issue if it is truly relevant. Zeros will be removed from issue stats.");
 	    	
 	    	for (TrackedIssue issue : TrackedIssue.values()) {
 		        if (stats.hasStat(issue) && stats.getStat(issue) == 0 && issue != TrackedIssue.OverallBenefitToSociety) {
@@ -134,7 +137,7 @@ public class BillInterpretationParser {
 		}
 		catch (Throwable t)
 		{
-			Log.error(t);
+			logger.error("Error setting confidence", t);
 		}
 	}
 	

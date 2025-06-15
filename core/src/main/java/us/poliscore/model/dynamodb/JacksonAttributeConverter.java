@@ -9,11 +9,13 @@ import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.quarkus.logging.Log;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -26,6 +28,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.ImmutableMap;
 import us.poliscore.PoliscoreUtil;
 import us.poliscore.model.AIInterpretationMetadata;
+import us.poliscore.model.bill.BillInterpretationParser;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionList;
 import us.poliscore.model.legislator.Legislator.LegislatorBillInteractionSet;
 import us.poliscore.model.legislator.Legislator.LegislatorLegislativeTermSortedSet;
@@ -34,6 +37,8 @@ import us.poliscore.model.session.SessionInterpretationOld.PartyInterpretationOl
 
 public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
 
+	private static Logger logger = LoggerFactory.getLogger(JacksonAttributeConverter.class);
+	
     protected final Class<T> clazz;
     protected static final ObjectMapper mapper = PoliscoreUtil.getObjectMapper();
 
@@ -105,7 +110,7 @@ public class JacksonAttributeConverter <T> implements AttributeConverter<T> {
 	        	return mapper.readValue(bais.readAllBytes(), this.clazz);
 	    	}
 	    	catch (Exception e) {
-	    		Log.error(e);
+	    		logger.error("Error transforming compressed attribute value", e);
 	    		return this.clazz.newInstance();
 	    	}
 	    }
